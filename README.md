@@ -58,9 +58,9 @@ cd <repo-name>
 > Add a few PNGs to a `docs/` folder and reference them here, for example:
 
 ```markdown
-![Reactor core](docs/core.png)
-![3D digital twin](docs/twin3d.png)
-![System dependencies](docs/dependencies.png)
+![3D Reactor View](docs/Screenshot 2026-06-01 213844.png)
+![Plant Overview](docs/Screenshot 2026-06-01 213929.png)
+![Rod Inspection](docs/Screenshot 2026-06-01 214005.png)
 ```
 
 <!-- Suggested shots: Plant Overview, Reactor Core, 3D Reactor View, System Dependencies graph, Reactor Kinetics, Optimization (RL). -->
