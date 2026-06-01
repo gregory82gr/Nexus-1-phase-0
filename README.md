@@ -58,7 +58,7 @@ cd <repo-name>
 > Add a few PNGs to a `docs/` folder and reference them here, for example:
 
 ```markdown
-![3D Reactor View](/docs/20213844.png)
+![3D Reactor View](docs/20213844.png)
 ![Plant Overview](docs/213929.png)
 ![Rod Inspection](docs/214005.png)
 ```
