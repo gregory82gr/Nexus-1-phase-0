@@ -3,7 +3,7 @@
 <head>
 <!--
   ================================================================
-  NEXUS-1 — Nuclear Plant Operator Console  (demonstration)
+  NEXUS-1 — Nuclear Plant Operator Console (demonstration)
   Copyright (c) 2026 Agathangelidis Grigorios. All rights reserved.
   Author: Agathangelidis Grigorios
   Original work. Build signature: NX1-094C79E0A366D34F
@@ -1201,8 +1201,18 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       .rc-alm.origin .tx{color:#eafdff;font-weight:600}
       .rc-grp{border-left:2px solid var(--line-hot);padding:5px 0 5px 11px;margin:4px 0 4px 14px}
       .rc-grp .gh{font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--text-dim)}
+      .rc-chip.art{border-color:#ff7a45;color:#ff7a45}
+      .rc-lyr.on.art .sw{border-top:2px dashed #ff7a45}
+      .rc-incsel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+      .rc-incsel .lbl{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--text-mute)}
     </style>
     <section class="page" data-page="rcgraph">
+      <div class="rc-incsel">
+        <span class="lbl">Incident</span>
+        <button class="btn active" data-inc="EVT-2026-0418">EVT-2026-0418 &middot; Feedwater &rarr; trip</button>
+        <button class="btn" data-inc="EVT-2026-0419">EVT-2026-0419 &middot; EMI / sensor artefact</button>
+        <button class="btn" data-inc="EVT-2026-0420">EVT-2026-0420 &middot; Non-conforming rod / QA escape</button>
+      </div>
       <div class="tabbar">
         <button class="btn active" data-rtab="graph">Causal Graph</button>
         <button class="btn" data-rtab="flood">Alarm Flood</button>
@@ -1210,10 +1220,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       </div>
 
       <div id="rtab-graph">
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Causal Fault-Propagation Graph &mdash; EVT-2026-0418</h2><span class="tag" id="rc-sel">click a node to test it as root cause</span></div>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span><span id="rc-gtitle">Causal Fault-Propagation Graph &mdash; EVT-2026-0418</span></h2><span class="tag" id="rc-sel">click a node to test it as root cause</span></div>
           <div class="rc-layers">
             <div class="rc-lyr fta on" data-layer="fta"><span class="sw"></span>Engineered backbone (FTA)</div>
             <div class="rc-lyr ml on" data-layer="ml"><span class="sw"></span>Data-informed edges (ML weight)</div>
+            <div class="rc-lyr art on" data-layer="art"><span class="sw"></span>Artefact edge (EMI &rarr; sensor)</div>
             <div class="rc-lyr rej on" data-layer="rej"><span class="sw"></span>Candidate edge &mdash; rejected</div>
             <button class="btn" id="rc-replay" style="margin-left:auto">&#9654; Replay propagation</button>
           </div>
@@ -1223,26 +1234,26 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
             <span><span class="sw" style="background:var(--amber)"></span>degrading</span>
             <span><span class="sw" style="background:var(--red)"></span>tripped / cascade</span>
             <span><span class="sw" style="background:var(--green)"></span>healthy / ruled out</span>
-            <span>solid = fault-tree edge &middot; dashed violet = learned weight &middot; struck grey = rejected</span>
+            <span>solid = fault-tree &middot; dashed violet = learned weight &middot; dashed orange = artefact &middot; struck grey = rejected / absent</span>
           </div>
-          <div class="note" style="margin-top:7px">The backbone is built from the plant's fault and event trees (PRA/PSA) and component topology &mdash; every edge is auditable. Active alarms light the nodes live; the data-informed layer only re-weights or proposes edges for engineer confirmation, it never defines the causal structure. Toggle the layers above; click a node to highlight everything it explains downstream with propagation delays.</div>
+          <div class="note" id="rc-gnote" style="margin-top:7px">The backbone is built from the plant's fault and event trees (PRA/PSA) and component topology &mdash; every edge is auditable. Active alarms light the nodes live; the data-informed layer only re-weights or proposes edges for engineer confirmation, it never defines the causal structure. Toggle the layers above; click a node to highlight everything it explains downstream with propagation delays.</div>
         </div>
       </div>
 
       <div id="rtab-flood" style="display:none">
         <div class="grid c3" style="margin-bottom:13px">
           <div class="stat"><div class="k">Raw alarms in window</div><div class="v" id="rc-raw">14</div><div class="bar"><i style="width:100%;background:var(--red);box-shadow:0 0 8px var(--red)"></i></div></div>
-          <div class="stat green"><div class="k">After correlation</div><div class="v">1<small>origin + 5 cascade</small></div><div class="bar"><i style="width:12%"></i></div></div>
+          <div class="stat green"><div class="k">After correlation</div><div class="v">1<small id="rc-after">origin + 5 cascade</small></div><div class="bar"><i style="width:12%"></i></div></div>
           <div class="stat violet"><div class="k">Noise suppressed</div><div class="v" id="rc-supp">93<small>%</small></div><div class="bar"><i style="width:93%"></i></div></div>
         </div>
         <div class="rc-flood">
           <div class="panel"><div class="ph"><h2><span class="tick"></span>Raw Alarm Cascade</h2><span class="tag">what the operator sees</span></div>
             <div id="rc-rawlist"></div>
-            <div class="note" style="margin-top:9px">Fourteen alarms in just over four minutes. The true origin (FV-104) is a single low-severity alarm buried in the middle &mdash; easy to miss while the high-severity downstream alarms dominate attention.</div>
+            <div class="note" id="rc-rawnote" style="margin-top:9px">Fourteen alarms in just over four minutes. The true origin (FV-104) is a single low-severity alarm buried in the middle &mdash; easy to miss while the high-severity downstream alarms dominate attention.</div>
           </div>
           <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Correlated View</h2><span class="tag">what the graph shows</span></div>
             <div id="rc-corrlist"></div>
-            <div class="note" style="margin-top:9px">The propagation graph collapses the flood into one originating fault and its downstream cascade, grouped by the path each alarm sits on. The operator is oriented, not drowning &mdash; this is the ISA-18.2 alarm-management payoff.</div>
+            <div class="note" id="rc-corrnote" style="margin-top:9px">The propagation graph collapses the flood into one originating fault and its downstream cascade, grouped by the path each alarm sits on. The operator is oriented, not drowning &mdash; this is the ISA-18.2 alarm-management payoff.</div>
           </div>
         </div>
       </div>
@@ -2785,47 +2796,182 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   const $=id=>document.getElementById(id)||STUB;
   const NW=132,NH=50;
 
-  // nodes: l=name, s=state line, sev=severity colour
-  const N={
-    fv104:{x:24, y:40,  l:'Valve FV-104',      s:'actuator latency',   sev:'red'},
-    bus:  {x:24, y:392, l:'4kV Bus 2A',        s:'voltage transient',  sev:'amber'},
-    sg1:  {x:216,y:40,  l:'SG-1 Level',        s:'low \u2192 low-low', sev:'amber'},
-    sens: {x:216,y:250, l:'Flow Sensor FT-7',  s:'healthy / ruled out',sev:'green'},
-    fwp:  {x:408,y:40,  l:'FW Pump 2A',        s:'overspeed +12%',     sev:'amber'},
-    rcp:  {x:408,y:212, l:'Pump RCP-1B',       s:'vibration high',     sev:'amber'},
-    brg:  {x:600,y:40,  l:'Pump 2A Bearing',   s:'temp + vib rising',  sev:'red'},
-    flow: {x:600,y:212, l:'Primary Loop Flow', s:'0.8 Hz oscillation', sev:'red'},
-    dt:   {x:792,y:120, l:'Core \u0394T',      s:'>3\u03c3 \u2192 >50\u00b0C', sev:'red'},
-    trip: {x:792,y:300, l:'REACTOR TRIP',      s:'17:12:14',           sev:'red'}
+  // ---- incidents (each self-contained) ----
+  // edges: [from, to, layer(fta|ml|art|rej), delay-seconds, optional-label]
+  const INCIDENTS={
+    'EVT-2026-0418':{
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0418',
+      gnote:"The backbone is built from the plant's fault and event trees (PRA/PSA) and component topology \u2014 every edge is auditable. Active alarms light the nodes live; the data-informed layer only re-weights or proposes edges for engineer confirmation, it never defines the causal structure. Toggle the layers above; click a node to highlight everything it explains downstream with propagation delays.",
+      always:['sens'],
+      N:{
+        fv104:{x:24, y:40,  l:'Valve FV-104',      s:'actuator latency',   sev:'red'},
+        bus:  {x:24, y:392, l:'4kV Bus 2A',        s:'voltage transient',  sev:'amber'},
+        sg1:  {x:216,y:40,  l:'SG-1 Level',        s:'low \u2192 low-low', sev:'amber'},
+        sens: {x:216,y:250, l:'Flow Sensor FT-7',  s:'healthy / ruled out',sev:'green'},
+        fwp:  {x:408,y:40,  l:'FW Pump 2A',        s:'overspeed +12%',     sev:'amber'},
+        rcp:  {x:408,y:212, l:'Pump RCP-1B',       s:'vibration high',     sev:'amber'},
+        brg:  {x:600,y:40,  l:'Pump 2A Bearing',   s:'temp + vib rising',  sev:'red'},
+        flow: {x:600,y:212, l:'Primary Loop Flow', s:'0.8 Hz oscillation', sev:'red'},
+        dt:   {x:792,y:120, l:'Core \u0394T',      s:'>3\u03c3 \u2192 >50\u00b0C', sev:'red'},
+        trip: {x:792,y:300, l:'REACTOR TRIP',      s:'17:12:14',           sev:'red'}
+      },
+      E:[['fv104','sg1','fta',36],['sg1','fwp','fta',18],['bus','fwp','ml',2],
+         ['fwp','brg','fta',42],['brg','flow','fta',12],['rcp','flow','fta',10],
+         ['flow','dt','fta',30],['dt','trip','fta',4],['sens','flow','rej',0]],
+      RAW:[
+        {t:'17:07:58',n:'flow', sev:'crit',tx:'Primary loop flow oscillation 0.8 Hz'},
+        {t:'17:08:03',n:'rcp',  sev:'warn',tx:'RCP-1B vibration high'},
+        {t:'17:09:14',n:'brg',  sev:'warn',tx:'Pump 2A bearing temperature rising'},
+        {t:'17:09:20',n:'brg',  sev:'warn',tx:'Pump 2A bearing vibration high'},
+        {t:'17:10:02',n:'fwp',  sev:'warn',tx:'Feedwater pump 2A overspeed +12%'},
+        {t:'17:10:40',n:'sg1',  sev:'warn',tx:'SG-1 level low (58%)'},
+        {t:'17:11:04',n:'fv104',sev:'warn',tx:'Valve FV-104 actuator latency > 200 ms',origin:true},
+        {t:'17:11:20',n:'bus',  sev:'info',tx:'4kV Bus 2A voltage dip \u22124%'},
+        {t:'17:11:48',n:'dt',   sev:'crit',tx:'Core \u0394T deviation > 3\u03c3'},
+        {t:'17:11:50',n:'flow', sev:'crit',tx:'Loop A flow deviation > 3\u03c3'},
+        {t:'17:12:01',n:'sg1',  sev:'crit',tx:'SG-1 level low-low (46%)'},
+        {t:'17:12:08',n:'rcp',  sev:'warn',tx:'RCP-1B vibration sustained'},
+        {t:'17:12:10',n:'dt',   sev:'crit',tx:'Core \u0394T > 50\u00b0C anomaly'},
+        {t:'17:12:14',n:'trip', sev:'crit',tx:'REACTOR TRIP \u2014 high \u0394T'}
+      ],
+      ORDER:[['fv104',0],['bus',260],['sg1',650],['fwp',1050],['rcp',1300],['brg',1650],['flow',2150],['dt',2650],['trip',3050]],
+      CAND:[
+        {id:'fv104',nm:'FV-104 actuator latency',causal:0.66,prov:'fta',tag:'ORIGIN',note:'Upstream trigger. The slow valve starves SG-1, forcing the pump to overspeed and loading the bearing downstream.'},
+        {id:'brg',  nm:'Pump 2A bearing degradation',causal:0.20,prov:'fta',tag:'PROXIMATE',note:'The most-alarmed node \u2014 but it sits downstream of the valve. A loud symptom, not the origin.'},
+        {id:'rcp',  nm:'RCP-1B bearing wear',causal:0.07,prov:'fta',tag:'PARALLEL',note:'Independent vibration source feeding the loop oscillation; partial overlap with the cascade.'},
+        {id:'bus',  nm:'4kV bus voltage transient',causal:0.05,prov:'ml',tag:'CONTRIBUTING',note:'Data-informed edge only, low confidence \u2014 re-weights pump stress but cannot explain the SG-1 drop.'},
+        {id:'sens', nm:'Flow sensor FT-7 fault',causal:0.02,prov:'rej',tag:'RULED OUT',note:'Candidate edge proposed from raw correlation, then rejected \u2014 the sensor cross-checks healthy.'}
+      ],
+      flood:{
+        afterText:'origin + 5 cascade', supp:93,
+        originTs:'17:11:04', originPill:'root', originTx:'FV-104 actuator latency \u2014 originating fault',
+        groups:[
+          {h:'Feedwater path (FV-104 \u2192 SG-1 \u2192 pump \u2192 bearing)',ids:['sg1','fwp','brg']},
+          {h:'Thermal-hydraulic cascade (\u2192 loop flow \u2192 core \u0394T \u2192 trip)',ids:['flow','dt','trip']},
+          {h:'Parallel contributor (independent vibration)',ids:['rcp']},
+          {h:'Data-informed contributor (low weight)',ids:['bus']}
+        ],
+        rawNote:'Fourteen alarms in just over four minutes. The true origin (FV-104) is a single low-severity alarm buried in the middle \u2014 easy to miss while the high-severity downstream alarms dominate attention.',
+        corrNote:'The propagation graph collapses the flood into one originating fault and its downstream cascade, grouped by the path each alarm sits on. The operator is oriented, not drowning \u2014 this is the ISA-18.2 alarm-management payoff.'
+      },
+      rankNote:{
+        causal:'Causal-origin ranking traces the propagation graph upstream. FV-104 fired only a single low-severity alarm, yet it explains the bulk of the cascade \u2014 so the graph promotes it above the noisier downstream symptoms. Confidences are illustrative, derived from edge weights, not identified from plant data.',
+        count:'Naive alarm-count ranking puts the most-alarmed component on top \u2014 here the pump bearing, which is a downstream symptom. Acting on it treats the symptom while the upstream valve fault recurs. This is exactly the failure mode the causal graph exists to prevent.'
+      }
+    },
+    'EVT-2026-0419':{
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0419 (EMI / sensor artefact)',
+      gnote:'A switchgear operation coupled electrical noise into several instrument channels at once. Artefact edges (dashed orange) mark links where an electrical event can corrupt a reading without any physical change. The graph separates a measurement artefact from a real process excursion \u2014 note the struck-grey links to the independent instruments: the corroboration a genuine excursion would have produced, but which is absent here. EMI appears only as a diagnostic fault class; EMC compliance itself is a hardware-qualification responsibility outside this analytics layer.',
+      always:['rtd','flux','proc'],
+      N:{
+        brk:  {x:24, y:196, l:'Switchgear BKR-2A', s:'close transient 17:42:10', sev:'red'},
+        ft9:  {x:300,y:40,  l:'Flow Tx FT-9',      s:'step +18% (artefact)',   sev:'amber'},
+        lt3:  {x:300,y:176, l:'Level Tx LT-3',     s:'spike (artefact)',        sev:'amber'},
+        pt7:  {x:300,y:312, l:'Pressure Tx PT-7',  s:'spike (artefact)',        sev:'amber'},
+        proc: {x:300,y:404, l:'Loss-of-flow (proc)',s:'rejected hypothesis',    sev:'green'},
+        excur:{x:560,y:176, l:'Apparent Excursion', s:'phantom \u2014 unconfirmed', sev:'red'},
+        rtd:  {x:792,y:80,  l:'Loop RTD T-avg',    s:'steady / no change',      sev:'green'},
+        flux: {x:792,y:272, l:'Neutron Flux',      s:'steady / no change',      sev:'green'}
+      },
+      E:[['brk','ft9','art',0,'EMI'],['brk','lt3','art',0,'EMI'],['brk','pt7','art',0,'EMI'],
+         ['ft9','excur','fta',1],['lt3','excur','ml',1],['pt7','excur','ml',1],
+         ['proc','excur','rej',0,'rejected'],
+         ['excur','rtd','rej',0,'no \u0394T'],['excur','flux','rej',0,'no \u0394flux']],
+      RAW:[
+        {t:'17:42:10',n:'brk', sev:'info',tx:'BKR-2A close \u2014 4kV bus transient',origin:true},
+        {t:'17:42:10',n:'ft9', sev:'crit',tx:'Loop A flow step +18%'},
+        {t:'17:42:10',n:'lt3', sev:'warn',tx:'Pressuriser level spike'},
+        {t:'17:42:10',n:'pt7', sev:'warn',tx:'RCS pressure spike'},
+        {t:'17:42:11',n:'excur',sev:'crit',tx:'Loop A flow deviation > 3\u03c3'},
+        {t:'17:42:11',n:'ft9', sev:'warn',tx:'FT-9 rate-of-change limit'},
+        {t:'17:42:12',n:'excur',sev:'crit',tx:'Low-flow pre-trip approach'},
+        {t:'17:42:13',n:'lt3', sev:'info',tx:'LT-3 signal-noise flag'},
+        {t:'17:42:13',n:'pt7', sev:'info',tx:'PT-7 signal-noise flag'},
+        {t:'17:42:18',n:'ft9', sev:'warn',tx:'FT-9 reading self-cleared to nominal'}
+      ],
+      ORDER:[['brk',0],['ft9',300],['lt3',380],['pt7',460],['excur',900],['proc',1300],['rtd',1700],['flux',1850]],
+      CAND:[
+        {id:'brk',  nm:'EMI-induced sensor artefact (BKR-2A)',causal:0.70,prov:'art',tag:'ORIGIN',note:'The switchgear close coupled noise into three unrelated channels at the same instant (17:42:10), and FT-9 self-cleared. Independent RTD and flux readings stayed flat \u2014 no physical change. A measurement artefact, not a process fault.'},
+        {id:'ft9',  nm:'Flow transmitter FT-9 fault',causal:0.16,prov:'fta',tag:'PROXIMATE',note:'The most-alarmed channel \u2014 but the same-instant glitch is shared by LT-3 and PT-7, pointing to a common external cause rather than one failed transmitter.'},
+        {id:'excur',nm:'Real loss-of-flow excursion (process)',causal:0.10,prov:'rej',tag:'RULED OUT',note:'Superficially fits a flow loss, but the corroborating instruments a true excursion would move (temperature, flux) show no response. Hypothesis considered and rejected.'},
+        {id:'lt3',  nm:'Common-mode disturbance (LT-3 / PT-7)',causal:0.04,prov:'ml',tag:'CONTRIBUTING',note:'Data-informed grouping of the simultaneous level/pressure spikes \u2014 consistent with the artefact origin, low independent weight.'}
+      ],
+      flood:{
+        afterText:'artefact source', supp:90,
+        originTs:'17:42:10', originPill:'root', originTx:'BKR-2A switchgear close \u2014 EMI burst (originating event)',
+        groups:[
+          {h:'Simultaneously corrupted channels (artefact, same timestamp)',ids:['ft9','lt3','pt7']},
+          {h:'Apparent excursion (downstream of the corrupted flow signal)',ids:['excur']}
+        ],
+        rawNote:'Ten alarms inside eight seconds, clustered at a single instant (17:42:10). Three unrelated instrument channels glitch on the same timestamp and one self-clears \u2014 the signature of an external disturbance, not a process fault.',
+        corrNote:'The graph attributes the simultaneous multi-channel glitch to the switchgear transient and flags that independent instruments (loop RTD, neutron flux) stayed flat \u2014 a real flow loss would have moved them. The "real excursion" hypothesis is shown but ruled out.'
+      },
+      rankNote:{
+        causal:'Causal-origin ranking attributes the simultaneous, same-timestamp glitch across three channels to the switchgear transient, and weighs the flat independent instruments as evidence against a real excursion. The EMI artefact is promoted above the loudest channel. Confidences are illustrative, not identified from plant data.',
+        count:'Alarm-count ranking puts flow transmitter FT-9 on top \u2014 it raised the most alarms. Trusting that (or the apparent flow excursion) would treat a measurement artefact as a process fault; the real tell is that the disturbance is shared across channels and uncorroborated by independent instruments.'
+      }
+    },
+    'EVT-2026-0420':{
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0420 (non-conforming part / QA escape)',
+      gnote:'A control rod that never met specification was admitted to service through an improperly dispositioned QA waiver, and surfaced months later as abnormal rod worth during a verification test. The provenance / traceability links (solid) are part of the engineered, auditable record \u2014 the root cause here is a process escape, not an in-service failure. The tell-tale signature is that the anomaly was present from installation rather than developed over time, it is isolated to one identified component, and the usual in-service explanations (drive-mechanism wear, prediction error) are ruled out. This represents counterfeit / suspect-item (CFSI) and configuration-control faults as a diagnostic class; the QA and procurement controls themselves live outside this analytics layer.',
+      always:['mech','cal'],
+      N:{
+        waiver:{x:24, y:200, l:'QA Waiver WV-318',   s:'suspect item "use-as-is"', sev:'red'},
+        cr7:   {x:232,y:200, l:'Control Rod CR-7',    s:'non-conforming absorber',  sev:'red'},
+        worth: {x:440,y:70,  l:'Rod Worth (CR-7)',    s:'\u221214% vs predicted',   sev:'red'},
+        drop:  {x:440,y:330, l:'Drop Time (CR-7)',    s:'+0.3 s over limit',        sev:'amber'},
+        cal:   {x:232,y:404, l:'Worth Predictor',     s:'validated / ruled out',    sev:'green'},
+        react: {x:648,y:40,  l:'Reactivity Balance',  s:'below prediction',         sev:'amber'},
+        detect:{x:648,y:200, l:'Rod-drop Test',       s:'FAIL \u2014 CR-7',         sev:'red'},
+        mech:  {x:648,y:360, l:'CRDM Mechanism',      s:'checks healthy / ruled out',sev:'green'}
+      },
+      E:[['waiver','cr7','fta',0,'use-as-is'],['cr7','worth','fta',0,'low B4C'],['cr7','drop','fta',0,'drag'],
+         ['worth','react','fta',0],['worth','detect','fta',0],['drop','detect','fta',0],
+         ['cal','worth','rej',0,'predictor OK'],['mech','detect','rej',0,'mechanism healthy']],
+      RAW:[
+        {t:'09:14:02',n:'worth', sev:'crit',tx:'CR-7 rod worth \u221214% vs predicted',origin:false},
+        {t:'09:14:02',n:'react', sev:'warn',tx:'Bank D reactivity below prediction'},
+        {t:'09:14:20',n:'drop',  sev:'warn',tx:'CR-7 drop time +0.3 s over limit'},
+        {t:'09:14:21',n:'cr7',   sev:'warn',tx:'CR-7 position deviation during drop'},
+        {t:'09:14:25',n:'detect',sev:'crit',tx:'Rod-drop test FAIL \u2014 CR-7'},
+        {t:'09:14:40',n:'worth', sev:'warn',tx:'CR-7 worth retest confirms low'}
+      ],
+      ORDER:[['waiver',0],['cr7',350],['worth',750],['drop',850],['react',1150],['detect',1400],['cal',1700],['mech',1800]],
+      CAND:[
+        {id:'waiver',nm:'Non-conforming rod admitted (QA Waiver WV-318)',causal:0.63,prov:'fta',tag:'ORIGIN',note:'The true origin is a process escape: a suspect absorber was dispositioned "use-as-is" and entered service. It raised no control-room alarm, yet it explains the entire test failure. The anomaly was present from installation \u2014 it never developed in service.'},
+        {id:'cr7',  nm:'Control Rod CR-7 component fault',causal:0.20,prov:'fta',tag:'PROXIMATE',note:'The physical non-conformance \u2014 real, but downstream of the QA decision that admitted it. Replacing the rod fixes this instance; it does not fix the escape that let a suspect part through.'},
+        {id:'mech', nm:'CRDM drive-mechanism wear (in-service)',causal:0.12,prov:'rej',tag:'RULED OUT',note:'The usual reason a rod misbehaves \u2014 but the mechanism checks healthy and the anomaly predates service. The natural assumption, ruled out by the evidence.'},
+        {id:'cal',  nm:'Rod-worth prediction error',causal:0.05,prov:'rej',tag:'RULED OUT',note:'Is the prediction wrong rather than the rod? The predictor is validated against the other banks, which read as expected. Rejected.'}
+      ],
+      flood:{
+        afterText:'process origin (0 alarms)', supp:83,
+        originTs:'prior outage', originPill:'root', originTx:'QA Waiver WV-318 \u2014 non-conforming rod admitted (records event, no alarm)',
+        groups:[
+          {h:'Rod behaviour anomalies (worth / drop / position / reactivity)',ids:['worth','drop','cr7','react']},
+          {h:'Test result',ids:['detect']}
+        ],
+        rawNote:'Six alarms during the rod-drop and reactivity verification test. Every one describes CR-7 misbehaving \u2014 none of them says why. The natural read is "the rod or its drive is faulty, replace it."',
+        corrNote:'The graph traces the anomalies back past the rod itself to the QA waiver that admitted a non-conforming absorber in the first place \u2014 an event that raised no control-room alarm at all. The anomaly was present from installation, not developed in service, and the drive mechanism checks healthy: an admitted latent fault, not an in-service failure.'
+      },
+      rankNote:{
+        causal:'Causal-origin tracing follows the provenance chain back past the rod\u2019s measured anomalies to the QA waiver (WV-318) that dispositioned a suspect absorber "use-as-is". That process event fired no alarm, yet it explains the entire test failure. The remedy is not rod-drive maintenance but removing the non-conforming rod and correcting the disposition process. Confidences are illustrative, not identified from plant data.',
+        count:'Alarm-count ranking points at the rod component itself \u2014 every alarm describes CR-7 misbehaving, so the instinct is to replace the rod or service its drive. That fixes this instance but leaves the real origin \u2014 a QA escape that admits non-conforming parts \u2014 free to recur. The mechanism, the usual suspect, is in fact healthy.'
+      }
+    }
   };
-  // edges: [from, to, layer(fta|ml|rej), delay-seconds]
-  const E=[
-    ['fv104','sg1','fta',36],['sg1','fwp','fta',18],['bus','fwp','ml',2],
-    ['fwp','brg','fta',42],['brg','flow','fta',12],['rcp','flow','fta',10],
-    ['flow','dt','fta',30],['dt','trip','fta',4],['sens','flow','rej',0]
-  ];
-  // raw alarm cascade (each attributed to a node)
-  const RAW=[
-    {t:'17:07:58',n:'flow', sev:'crit',tx:'Primary loop flow oscillation 0.8 Hz'},
-    {t:'17:08:03',n:'rcp',  sev:'warn',tx:'RCP-1B vibration high'},
-    {t:'17:09:14',n:'brg',  sev:'warn',tx:'Pump 2A bearing temperature rising'},
-    {t:'17:09:20',n:'brg',  sev:'warn',tx:'Pump 2A bearing vibration high'},
-    {t:'17:10:02',n:'fwp',  sev:'warn',tx:'Feedwater pump 2A overspeed +12%'},
-    {t:'17:10:40',n:'sg1',  sev:'warn',tx:'SG-1 level low (58%)'},
-    {t:'17:11:04',n:'fv104',sev:'warn',tx:'Valve FV-104 actuator latency > 200 ms',origin:true},
-    {t:'17:11:20',n:'bus',  sev:'info',tx:'4kV Bus 2A voltage dip \u22124%'},
-    {t:'17:11:48',n:'dt',   sev:'crit',tx:'Core \u0394T deviation > 3\u03c3'},
-    {t:'17:11:50',n:'flow', sev:'crit',tx:'Loop A flow deviation > 3\u03c3'},
-    {t:'17:12:01',n:'sg1',  sev:'crit',tx:'SG-1 level low-low (46%)'},
-    {t:'17:12:08',n:'rcp',  sev:'warn',tx:'RCP-1B vibration sustained'},
-    {t:'17:12:10',n:'dt',   sev:'crit',tx:'Core \u0394T > 50\u00b0C anomaly'},
-    {t:'17:12:14',n:'trip', sev:'crit',tx:'REACTOR TRIP \u2014 high \u0394T'}
-  ];
-  const ALMCNT={}; RAW.forEach(a=>ALMCNT[a.n]=(ALMCNT[a.n]||0)+1);
-  const TOTAL=RAW.length;
+
+  // ---- current-incident bindings (reassigned by load) ----
+  let cur='EVT-2026-0418';
+  let N, E, RAW, ALMCNT, TOTAL, CAND, ORDER, FL, RN, ALWAYS;
+  function load(id){
+    cur=id; const D=INCIDENTS[id];
+    N=D.N; E=D.E; RAW=D.RAW; CAND=D.CAND; ORDER=D.ORDER; FL=D.flood; RN=D.rankNote; ALWAYS=D.always||[];
+    ALMCNT={}; RAW.forEach(a=>ALMCNT[a.n]=(ALMCNT[a.n]||0)+1); TOTAL=RAW.length;
+    sel=null; shown=null;
+  }
 
   const COL={green:'var(--green)',amber:'var(--amber)',red:'var(--red)'};
-  const layersOn={fta:true,ml:true,rej:true};
+  const layersOn={fta:true,ml:true,art:true,rej:true};
   let sel=null, shown=null;        // shown: replay reveal set (null = all)
 
   function edgeEnabled(e){return layersOn[e[2]]&&e[2]!=='rej';}
@@ -2840,10 +2986,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function render(){
     const svg=$('rc-svg');if(svg===STUB)return;
     const dn=(sel&&!shown)?downstream(sel):null;
-    const vis=id=>!shown||shown[id]||id==='sens';
+    const vis=id=>!shown||shown[id]||ALWAYS.indexOf(id)>=0;
     let g='<defs>'
       +'<marker id="rah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5f7a80"/></marker>'
       +'<marker id="rahh" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--amber)"/></marker>'
+      +'<marker id="raho" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#ff7a45"/></marker>'
       +'<marker id="rahv" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--violet)"/></marker></defs>';
     // edges
     E.forEach(e=>{
@@ -2855,13 +3002,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       let stroke,dash='',mk='rah',op=0.9;
       if(e[2]==='rej'){stroke='#5f7a80';dash='stroke-dasharray="5 4"';mk='rah';op=0.45;}
       else if(active){stroke='var(--amber)';mk='rahh';}
+      else if(e[2]==='art'){stroke='#ff7a45';dash='stroke-dasharray="2 3"';mk='raho';op=0.85;}
       else if(e[2]==='ml'){stroke='var(--violet)';dash='stroke-dasharray="4 3"';mk='rahv';op=0.8;}
       else{stroke='#27464d';}
       const wdt=active?2.6:(e[2]==='rej'?1.2:2);
       if(dn&&!active&&e[2]!=='rej')op=0.16;
       g+='<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+p[2].toFixed(1)+'" y2="'+p[3].toFixed(1)+'" stroke="'+stroke+'" stroke-width="'+wdt+'" '+dash+' marker-end="url(#'+mk+')" opacity="'+op+'"/>';
       const mx=(p[0]+p[2])/2,my=(p[1]+p[3])/2;
-      if(e[2]==='rej'){g+='<text x="'+mx.toFixed(0)+'" y="'+(my-4).toFixed(0)+'" fill="#5f7a80" font-size="8.5" font-family="IBM Plex Mono" text-anchor="middle">\u2715 rejected</text>';}
+      if(e[2]==='rej'){g+='<text x="'+mx.toFixed(0)+'" y="'+(my-4).toFixed(0)+'" fill="#5f7a80" font-size="8.5" font-family="IBM Plex Mono" text-anchor="middle">\u2715 '+(e[4]||'rejected')+'</text>';}
+      else if(e[2]==='art'){g+='<text x="'+mx.toFixed(0)+'" y="'+(my-4).toFixed(0)+'" fill="#ff7a45" font-size="8" font-family="IBM Plex Mono" text-anchor="middle">'+(e[4]||'artefact')+'</text>';}
       else if(active&&e[3]>0){g+='<text x="'+mx.toFixed(0)+'" y="'+(my-4).toFixed(0)+'" fill="var(--amber)" font-size="8" font-family="IBM Plex Mono" text-anchor="middle">+'+e[3]+'s</text>';}
     });
     // nodes
@@ -2896,65 +3045,59 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     el.onclick=function(){const k=el.dataset.layer;layersOn[k]=!layersOn[k];el.classList.toggle('on',layersOn[k]);el.classList.toggle('off',!layersOn[k]);render();};
   });
   // replay
-  const ORDER=[['fv104',0],['bus',260],['sg1',650],['fwp',1050],['rcp',1300],['brg',1650],['flow',2150],['dt',2650],['trip',3050]];
   let replaying=false;
   $('rc-replay').onclick=function(){
     if(replaying)return;replaying=true;sel=null;$('rc-sel').textContent='replaying propagation\u2026';
     shown={};render();
-    const tmo=[];ORDER.forEach(o=>tmo.push(setTimeout(()=>{shown[o[0]]=1;render();},o[1])));
-    setTimeout(()=>{shown=null;replaying=false;$('rc-sel').textContent='click a node to test it as root cause';render();},3550);
+    const last=ORDER.length?ORDER[ORDER.length-1][1]:0;
+    ORDER.forEach(o=>setTimeout(()=>{if(shown)shown[o[0]]=1,render();},o[1]));
+    setTimeout(()=>{shown=null;replaying=false;$('rc-sel').textContent='click a node to test it as root cause';render();},last+500);
   };
 
   // ---- Alarm Flood tab ----
   function buildFlood(){
+    $('rc-raw').textContent=TOTAL;
+    $('rc-after').textContent=FL.afterText;
+    $('rc-supp').innerHTML=FL.supp+'<small>%</small>';
+    $('rc-rawnote').textContent=FL.rawNote;
+    $('rc-corrnote').textContent=FL.corrNote;
     const raw=$('rc-rawlist');if(raw!==STUB){
-      raw.innerHTML=RAW.map(a=>'<div class="rc-alm'+(a.origin?' origin':'')+'"><span class="ts">'+a.t+'</span><span class="pill '+(a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info')+'" style="flex:none">'+a.sev+'</span><span class="tx">'+a.tx+(a.origin?'  \u2190 true origin':'')+'</span></div>').join('');
+      raw.innerHTML=RAW.map(a=>'<div class="rc-alm'+(a.origin?' origin':'')+'"><span class="ts">'+a.t+'</span><span class="pill '+(a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info')+'" style="flex:none">'+a.sev+'</span><span class="tx">'+a.tx+(a.origin?'  \u2190 originating event':'')+'</span></div>').join('');
     }
     const corr=$('rc-corrlist');if(corr!==STUB){
-      const grp=[
-        {h:'Feedwater path (FV-104 \u2192 SG-1 \u2192 pump \u2192 bearing)',ids:['sg1','fwp','brg']},
-        {h:'Thermal-hydraulic cascade (\u2192 loop flow \u2192 core \u0394T \u2192 trip)',ids:['flow','dt','trip']},
-        {h:'Parallel contributor (independent vibration)',ids:['rcp']},
-        {h:'Data-informed contributor (low weight)',ids:['bus']}
-      ];
-      let html='<div class="rc-alm origin"><span class="ts">17:11:04</span><span class="pill info" style="flex:none">root</span><span class="tx">FV-104 actuator latency \u2014 originating fault</span></div>';
-      grp.forEach(gr=>{const items=RAW.filter(a=>gr.ids.indexOf(a.n)>=0);if(!items.length)return;
+      let html='<div class="rc-alm origin"><span class="ts">'+FL.originTs+'</span><span class="pill info" style="flex:none">'+FL.originPill+'</span><span class="tx">'+FL.originTx+'</span></div>';
+      FL.groups.forEach(gr=>{const items=RAW.filter(a=>gr.ids.indexOf(a.n)>=0);if(!items.length)return;
         html+='<div class="rc-grp"><div class="gh">'+gr.h+' \u00b7 '+items.length+' alarm'+(items.length>1?'s':'')+'</div>'+items.map(a=>'<div class="rc-alm"><span class="ts">'+a.t+'</span><span class="tx">'+a.tx+'</span></div>').join('')+'</div>';});
       corr.innerHTML=html;
     }
   }
 
   // ---- Ranking tab ----
-  const CAND=[
-    {id:'fv104',nm:'FV-104 actuator latency',causal:0.66,alarms:1,explainsN:12,prov:'fta',tag:'ORIGIN',note:'Upstream trigger. The slow valve starves SG-1, forcing the pump to overspeed and loading the bearing downstream.'},
-    {id:'brg',  nm:'Pump 2A bearing degradation',causal:0.20,alarms:2,explainsN:4,prov:'fta',tag:'PROXIMATE',note:'The most-alarmed node \u2014 but it sits downstream of the valve. A loud symptom, not the origin.'},
-    {id:'rcp',  nm:'RCP-1B bearing wear',causal:0.07,alarms:2,explainsN:3,prov:'fta',tag:'PARALLEL',note:'Independent vibration source feeding the loop oscillation; partial overlap with the cascade.'},
-    {id:'bus',  nm:'4kV bus voltage transient',causal:0.05,alarms:1,explainsN:3,prov:'ml',tag:'CONTRIBUTING',note:'Data-informed edge only, low confidence \u2014 re-weights pump stress but cannot explain the SG-1 drop.'},
-    {id:'sens', nm:'Flow sensor FT-7 fault',causal:0.02,alarms:0,explainsN:0,prov:'ml',tag:'RULED OUT',note:'Candidate edge proposed from raw correlation, then rejected \u2014 the sensor cross-checks healthy.'}
-  ];
   let rankMode='causal';
+  const PROVLBL={fta:'fault-tree edge',ml:'data-informed edge',art:'artefact edge',rej:'rejected edge'};
   function buildRank(){
     const body=$('rc-rankbody');if(body===STUB)return;
-    const list=CAND.slice().sort((a,b)=>rankMode==='causal'?b.causal-a.causal:(b.alarms-a.alarms)||(b.explainsN-a.explainsN));
-    const maxA=Math.max.apply(null,CAND.map(c=>c.alarms))||1;
+    const cnt=c=>ALMCNT[c.id]||0;
+    const list=CAND.slice().sort((a,b)=>rankMode==='causal'?b.causal-a.causal:(cnt(b)-cnt(a))||(explains(b.id)-explains(a.id)));
+    const maxA=Math.max.apply(null,CAND.map(cnt))||1;
     body.innerHTML=list.map((c,i)=>{
-      const pct=rankMode==='causal'?Math.round(c.causal*100):Math.round(c.alarms/maxA*100);
+      const a=cnt(c), ex=explains(c.id);
+      const pct=rankMode==='causal'?Math.round(c.causal*100):Math.round(a/maxA*100);
       const barcol=rankMode==='causal'?(i===0?'var(--green)':'var(--cyan)'):'var(--amber)';
       const pillc=c.tag==='ORIGIN'?'ok':c.tag==='RULED OUT'?'na':c.tag==='CONTRIBUTING'?'info':'warn';
-      const val=rankMode==='causal'?(Math.round(c.causal*100)+'% confidence'):(c.alarms+' alarm'+(c.alarms===1?'':'s'));
+      const val=rankMode==='causal'?(Math.round(c.causal*100)+'% confidence'):(a+' alarm'+(a===1?'':'s'));
+      const chipClass=(c.prov==='fta'||c.prov==='ml'||c.prov==='art')?c.prov:'';
       return '<div class="rc-cand'+(c.id===sel?' sel':'')+'" data-rcand="'+c.id+'">'
         +'<div class="top"><div><div class="nm">#'+(i+1)+' \u00b7 '+c.nm+'</div>'
-        +'<div class="meta">'+val+' \u00b7 explains '+c.explainsN+'/'+TOTAL+' alarms</div></div>'
+        +'<div class="meta">'+val+' \u00b7 explains '+ex+'/'+TOTAL+' alarms</div></div>'
         +'<span class="pill '+pillc+'">'+c.tag+'</span></div>'
         +'<div class="cbar"><i style="width:'+pct+'%;background:'+barcol+';box-shadow:0 0 8px '+barcol+'"></i></div>'
-        +'<div class="rc-chips"><span class="rc-chip '+c.prov+'">'+(c.prov==='fta'?'fault-tree edge':'data-informed edge')+'</span>'
-        +'<span class="rc-chip">'+c.alarms+' direct alarm'+(c.alarms===1?'':'s')+'</span></div>'
+        +'<div class="rc-chips"><span class="rc-chip '+chipClass+'">'+PROVLBL[c.prov]+'</span>'
+        +'<span class="rc-chip">'+a+' direct alarm'+(a===1?'':'s')+'</span></div>'
         +'<div class="note" style="margin-top:7px">'+c.note+'</div></div>';
     }).join('');
     body.querySelectorAll('[data-rcand]').forEach(el=>el.onclick=function(){sel=el.dataset.rcand;buildRank();const tag=$('rc-sel');if(tag!==STUB)tag.textContent=N[sel].l+' as root cause \u2014 explains '+explains(sel)+' of '+TOTAL+' alarms';render();});
-    $('rc-ranknote').innerHTML=rankMode==='causal'
-      ? 'Causal-origin ranking traces the propagation graph upstream. FV-104 fired only a single low-severity alarm, yet it explains twelve of fourteen \u2014 so the graph promotes it above the noisier downstream symptoms. Confidences are illustrative, derived from edge weights, not identified from plant data.'
-      : 'Naive alarm-count ranking puts the most-alarmed component on top \u2014 here the pump bearing, which is a downstream symptom. Acting on it treats the symptom while the upstream valve fault recurs. This is exactly the failure mode the causal graph exists to prevent.';
+    $('rc-ranknote').innerHTML=rankMode==='causal'?RN.causal:RN.count;
   }
   $('rc-mode-causal').onclick=function(){rankMode='causal';this.classList.add('active');$('rc-mode-count').classList.remove('active');buildRank();};
   $('rc-mode-count').onclick=function(){rankMode='count';this.classList.add('active');$('rc-mode-causal').classList.remove('active');buildRank();};
@@ -2966,7 +3109,24 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     if(b.dataset.rtab==='graph')render();if(b.dataset.rtab==='flood')buildFlood();if(b.dataset.rtab==='rank')buildRank();
   };});
 
-  buildFlood();buildRank();render();
+  // ---- incident selector ----
+  function refreshAll(){
+    const D=INCIDENTS[cur];
+    $('rc-gtitle').innerHTML=D.title;
+    $('rc-gnote').textContent=D.gnote;
+    $('rc-sel').textContent='click a node to test it as root cause';
+    rankMode='causal';
+    $('rc-mode-causal').classList.add('active');$('rc-mode-count').classList.remove('active');
+    buildFlood();buildRank();render();
+  }
+  document.querySelectorAll('[data-inc]').forEach(function(b){b.onclick=function(){
+    if(replaying)return;
+    document.querySelectorAll('[data-inc]').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    load(b.dataset.inc);refreshAll();
+  };});
+
+  // ---- init ----
+  load(cur);refreshAll();
 })();
 </script>
 
