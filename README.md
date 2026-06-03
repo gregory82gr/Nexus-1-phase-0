@@ -108,6 +108,7 @@ A full set of PDFs accompanies the application:
 - **Glossary of Terms** — a plain-English guide to every term in the console, for non-engineers.
 - **Project Roadmap** — the phased plan, the intended stack, and an indicative effort estimate.
 - **Project Brief** — a one-look overview.
+- **Root Cause Graph**
 
 ## 👤 Author & licence
 
