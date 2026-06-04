@@ -328,6 +328,10 @@
   .p3-label .on{color:var(--green)} .p3-label .off{color:var(--text-dim)}
   .p3-hud{position:absolute;top:10px;left:12px;z-index:3;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim)}
   .p3-hud b{color:#eafdff;font-size:14px}
+  .twin-spark{width:92px;height:20px;display:block}
+  .twin-row{cursor:pointer} .twin-row:hover{background:rgba(34,211,238,.05)} .twin-row.sel{background:rgba(34,211,238,.09)}
+  .twin-u{color:var(--text-dim);font-size:9px;margin-left:3px}
+  .twin-empty{color:var(--text-dim);font-size:11px;padding:46px 0;text-align:center}
 .unitcard{border:1px solid var(--line);border-radius:6px;padding:13px;background:rgba(255,255,255,.012);transition:.15s}
 .unitcard.sel{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
 .unitcard.off{opacity:.62}
@@ -1153,18 +1157,17 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <section class="page" data-page="twin">
       <div class="grid c4" style="margin-bottom:13px">
         <div class="stat"><div class="k">Sync Lag</div><div class="v"><span class="live" data-sig="twinLag" data-dec="1"></span><small>ms</small></div><div class="bar"><i style="width:14%"></i></div></div>
-        <div class="stat green"><div class="k">Model Fidelity</div><div class="v">97.8<small>%</small></div><div class="bar"><i style="width:98%"></i></div></div>
+        <div class="stat green"><div class="k">Model Fidelity</div><div class="v"><span id="twin-fid">97.8</span><small>%</small></div><div class="bar"><i id="twin-fid-bar" style="width:98%"></i></div></div>
         <div class="stat"><div class="k">Signals Mirrored</div><div class="v">1842</div><div class="bar"><i style="width:88%"></i></div></div>
-        <div class="stat amber"><div class="k">Max Deviation</div><div class="v">1.4<small>%</small></div><div class="bar"><i style="width:14%"></i></div></div>
+        <div class="stat amber"><div class="k">Max Deviation</div><div class="v"><span id="twin-maxdev">1.4</span><small>%</small></div><div class="bar"><i id="twin-maxdev-bar" style="width:14%"></i></div></div>
       </div>
       <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Simulation vs Live Plant</h2><span class="tag">Hybrid twin reconciliation</span></div>
-        <table><thead><tr><th>Signal</th><th>Live Plant</th><th>Twin Model</th><th>Deviation</th><th>Status</th></tr></thead><tbody>
-          <tr><td>Reactor Power (%)</td><td class="mono"><span class="live" data-sig="flux" data-dec="1"></span></td><td class="mono"><span class="live" data-sig="flux" data-dec="1" data-jitter="0.5"></span></td><td class="mono">0.3%</td><td><span class="pill ok">Locked</span></td></tr>
-          <tr><td>Core Temp (°C)</td><td class="mono"><span class="live" data-sig="coreTemp" data-dec="1"></span></td><td class="mono"><span class="live" data-sig="coreTemp" data-dec="1" data-jitter="0.6"></span></td><td class="mono">0.2%</td><td><span class="pill ok">Locked</span></td></tr>
-          <tr><td>Output (MWe)</td><td class="mono"><span class="live" data-sig="mwe" data-dec="0"></span></td><td class="mono"><span class="live" data-sig="mwe" data-dec="0" data-jitter="4"></span></td><td class="mono">0.5%</td><td><span class="pill ok">Locked</span></td></tr>
-          <tr><td>Loop A Flow</td><td class="mono"><span class="live" data-sig="loopAflow" data-dec="1"></span></td><td class="mono"><span class="live" data-sig="loopAflow" data-dec="1" data-jitter="0.3"></span></td><td class="mono">1.1%</td><td><span class="pill warn">Drift</span></td></tr>
-        </tbody></table>
-        <div class="note" style="margin-top:11px">The twin reconciles a physics-based simulation against the live telemetry mirror. When deviation exceeds threshold, the model self-corrects and logs a reconciliation event.</div>
+        <table><thead><tr><th>Signal</th><th>Live Plant</th><th>Twin Model</th><th>Deviation</th><th>Trend (residual)</th><th>Status</th></tr></thead><tbody id="twin-tbody"></tbody></table>
+        <div class="note" style="margin-top:11px">Each row compares the model’s expected value against a (simulated) sensor reading; the residual is their gap. <b>Click a signal</b> to chart it below. Transient residual is ordinary sensor noise; sustained, growing residual would flag a sensor fault or model error &mdash; Loop A Flow carries a slow simulated sensor drift to show the difference. Illustrative model, not identified from plant data.</div>
+      </div>
+      <div class="grid c2" style="margin-top:13px">
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Measured vs Model</h2><span class="tag" id="twin-sel-a">&mdash;</span></div><div id="twin-vchart"></div></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Residual vs Tolerance</h2><span class="tag" id="twin-sel-b">&mdash;</span></div><div id="twin-rchart"></div></div>
       </div>
     </section>
 
@@ -3599,6 +3602,118 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   if(nav)nav.addEventListener('click',function(){setTimeout(function(){if(!inited)build();buildBar();resize();},50);});
   window.addEventListener('resize',function(){if(inited&&active())resize();});
   frame();
+})();
+</script>
+<script>
+/* ===== Digital Twin — residual analytics · NX1-094C79E0A366D34F ===== */
+(function(){
+  function $(id){return document.getElementById(id);}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function unit(){var n=window.NEXUS;if(!n)return null;var id=n.getSel&&n.getSel();return (n.units||[]).find(function(u){return u.id===id;})||null;}
+
+  var SIGS=[
+    {k:'flux',      nm:'Reactor Power', u:'%',       dec:1, amp:0.45},
+    {k:'coreTemp',  nm:'Core Temp',     u:'\u00b0C',  dec:1, amp:0.9},
+    {k:'mwe',       nm:'Output',        u:'MWe',     dec:0, amp:0.0035, rel:true},
+    {k:'pressure',  nm:'Primary Press.',u:'bar',     dec:1, amp:0.5},
+    {k:'steamPress',nm:'Steam Press.',  u:'bar',     dec:1, amp:0.35},
+    {k:'loopAflow', nm:'Loop A Flow',   u:'km\u00b3/h',dec:2, amp:0.06, drift:true},
+    {k:'loopBflow', nm:'Loop B Flow',   u:'km\u00b3/h',dec:2, amp:0.06}
+  ];
+  var N=120, st={}, lastId=null, sel='loopAflow', VW=360, VH=150;
+  function reset(){st={};SIGS.forEach(function(g){st[g.k]={m:[],t:[],r:[],ns:0,drift:0};});}
+  reset();
+  function rnd(){return Math.random()*2-1;}
+
+  function sample(){
+    var u=unit();
+    SIGS.forEach(function(g){
+      var b=st[g.k]; var model=(u&&u.st)?(+u.st[g.k]||0):0;
+      b.ns=b.ns*0.6+rnd()*0.4;
+      var amp=g.rel?Math.abs(model)*g.amp:g.amp;
+      var driftAbs=0;
+      if(g.drift){ if(u&&u.online)b.drift=Math.min(1.4,b.drift+0.02); driftAbs=Math.abs(model)*b.drift/100; }
+      var meas=model + b.ns*amp + driftAbs;
+      var dev=Math.abs(meas-model)/Math.max(Math.abs(model),1e-6)*100;
+      b.m.push(meas); b.t.push(model); b.r.push(dev);
+      if(b.m.length>N){b.m.shift(); b.t.shift(); b.r.shift();}
+    });
+  }
+  function curDev(k){var r=st[k].r;return r.length?r[r.length-1]:0;}
+  function stat(d){return d<0.6?['ok','Locked']:d<1.2?['warn','Drift']:['crit','Diverging'];}
+  function col(d){return d<0.6?'var(--green)':d<1.2?'var(--amber)':'var(--red)';}
+
+  function poly(arr,w,h,pad,mn,mx,color,sw){
+    var n=arr.length; if(n<2)return '';
+    var pts=arr.map(function(v,i){var x=pad+i/(n-1)*(w-2*pad);var y=h-pad-((v-mn)/Math.max(mx-mn,1e-6))*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    return '<polyline points="'+pts+'" fill="none" style="stroke:'+color+'" stroke-width="'+sw+'" stroke-linejoin="round"/>';
+  }
+  function spark(r){
+    var w=92,h=20,n=Math.min(30,r.length); if(n<2)return '';
+    var sl=r.slice(r.length-n),mx=Math.max(1.6,Math.max.apply(null,sl)*1.1);
+    var pts=sl.map(function(v,i){return (i/(n-1)*w).toFixed(1)+','+(h-clamp(v/mx,0,1)*h).toFixed(1);}).join(' ');
+    return '<svg class="twin-spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" style="stroke:'+col(sl[sl.length-1])+'" stroke-width="1.4"/></svg>';
+  }
+  function vchart(){
+    var b=st[sel],m=b.m.slice(-60),t=b.t.slice(-60);
+    if(m.length<2)return '<div class="twin-empty">collecting telemetry\u2026</div>';
+    var lo=Math.min(Math.min.apply(null,m),Math.min.apply(null,t));
+    var hi=Math.max(Math.max.apply(null,m),Math.max.apply(null,t));
+    if(hi-lo<1e-6){hi+=1;lo-=1;} var pv=(hi-lo)*0.12;lo-=pv;hi+=pv;
+    return '<svg viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="none" style="width:100%;height:'+VH+'px">'
+      + poly(t,VW,VH,10,lo,hi,'var(--cyan)',1.8)
+      + poly(m,VW,VH,10,lo,hi,col(curDev(sel)),1.1)
+      + '</svg>';
+  }
+  function rchart(){
+    var b=st[sel],r=b.r.slice(-N);
+    if(r.length<2)return '<div class="twin-empty">collecting telemetry\u2026</div>';
+    var pad=12,mx=Math.max(1.8,Math.max.apply(null,r)*1.15),n=r.length,c=col(curDev(sel));
+    var area=r.map(function(v,i){return (pad+i/(n-1)*(VW-2*pad)).toFixed(1)+','+(VH-pad-clamp(v/mx,0,1)*(VH-2*pad)).toFixed(1);});
+    var fill='M'+pad+','+(VH-pad)+' L'+area.join(' L')+' L'+(VW-pad)+','+(VH-pad)+' Z';
+    function yl(val,color){var y=VH-pad-clamp(val/mx,0,1)*(VH-2*pad);return '<line x1="'+pad+'" y1="'+y.toFixed(1)+'" x2="'+(VW-pad)+'" y2="'+y.toFixed(1)+'" style="stroke:'+color+'" stroke-width="0.8" stroke-dasharray="3,3"/>';}
+    return '<svg viewBox="0 0 '+VW+' '+VH+'" preserveAspectRatio="none" style="width:100%;height:'+VH+'px">'
+      + '<path d="'+fill+'" style="fill:'+c+';opacity:0.16"/>'
+      + poly(r,VW,VH,pad,0,mx,c,1.4)
+      + yl(0.6,'var(--amber)') + yl(1.2,'var(--red)')
+      + '</svg>';
+  }
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='twin';}
+  function render(){
+    var tb=$('twin-tbody'); if(!tb)return;
+    var maxdev=0,sumdev=0;
+    tb.innerHTML=SIGS.map(function(g){
+      var b=st[g.k],meas=b.m.length?b.m[b.m.length-1]:0,model=b.t.length?b.t[b.t.length-1]:0,d=curDev(g.k);
+      maxdev=Math.max(maxdev,d);sumdev+=d;var stt=stat(d);
+      return '<tr data-sig="'+g.k+'" class="twin-row'+(g.k===sel?' sel':'')+'">'
+        +'<td>'+g.nm+'<span class="twin-u">'+g.u+'</span></td>'
+        +'<td class="mono">'+meas.toFixed(g.dec)+'</td>'
+        +'<td class="mono">'+model.toFixed(g.dec)+'</td>'
+        +'<td class="mono" style="color:'+col(d)+'">'+d.toFixed(2)+'%</td>'
+        +'<td>'+spark(b.r)+'</td>'
+        +'<td><span class="pill '+stt[0]+'">'+stt[1]+'</span></td></tr>';
+    }).join('');
+    var avg=sumdev/SIGS.length, fid=clamp(100-avg*2.2,90,99.9);
+    if($('twin-fid'))$('twin-fid').textContent=fid.toFixed(1);
+    if($('twin-fid-bar'))$('twin-fid-bar').style.width=fid+'%';
+    if($('twin-maxdev'))$('twin-maxdev').textContent=maxdev.toFixed(1);
+    if($('twin-maxdev-bar'))$('twin-maxdev-bar').style.width=clamp(maxdev/3*100,4,100)+'%';
+    var g=SIGS.filter(function(x){return x.k===sel;})[0];
+    if($('twin-sel-a'))$('twin-sel-a').textContent=g.nm+' ('+g.u+')';
+    if($('twin-sel-b'))$('twin-sel-b').textContent=g.nm+' \u00b7 residual %';
+    if($('twin-vchart'))$('twin-vchart').innerHTML=vchart();
+    if($('twin-rchart'))$('twin-rchart').innerHTML=rchart();
+  }
+  document.addEventListener('click',function(e){
+    var row=e.target.closest&&e.target.closest('.twin-row');
+    if(row&&row.dataset.sig){sel=row.dataset.sig;render();}
+  });
+  setInterval(function(){
+    var u=unit(),id=u?u.id:null;
+    if(id!==lastId){reset();lastId=id;}
+    sample();
+    if(active())render();
+  },1000);
 })();
 </script>
 </body>
