@@ -3,7 +3,7 @@
 <head>
 <!--
   ================================================================
-  NEXUS-1 — Nuclear Plant Operator Console  (demonstration)
+  NEXUS-1 — Nuclear Plant Operator Console (demonstration)
   Copyright (c) 2026 Agathangelidis Grigorios. All rights reserved.
   Author: Agathangelidis Grigorios
   Original work. Build signature: NX1-094C79E0A366D34F
@@ -313,6 +313,21 @@
 .unitpick .ul{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
 .unitpick select{background:var(--panel-2);color:#eafdff;border:1px solid var(--line-hot);border-radius:4px;font-family:'IBM Plex Mono';font-size:11px;padding:5px 8px;outline:none;cursor:pointer}
 .units{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:11px}
+  .p3-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .p3-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line-hot);border-radius:6px;cursor:pointer;font-size:11px;background:rgba(34,211,238,.03);user-select:none;color:var(--text)}
+  .p3-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--text-mute);flex:none}
+  .p3-chip.on .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .p3-chip.sel{border-color:var(--cyan);background:rgba(34,211,238,.10)}
+  .p3-chip small{color:var(--text-dim);font-size:9px}
+  .p3-opt{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+  .p3-opt.on{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,.06)}
+  .p3-stage{position:relative;width:100%;height:520px;overflow:hidden;border-radius:8px;background:radial-gradient(900px 460px at 50% 0%,rgba(34,211,238,.06),transparent 62%)}
+  .p3-stage canvas{display:block;touch-action:none}
+  .p3-label{position:absolute;transform:translate(-50%,-120%);pointer-events:none;font-size:10px;letter-spacing:.3px;white-space:nowrap;padding:2px 8px;border-radius:5px;border:1px solid var(--line-hot);background:rgba(7,11,12,.80);color:var(--text-dim);z-index:3}
+  .p3-label b{color:#eafdff;font-weight:600}
+  .p3-label .on{color:var(--green)} .p3-label .off{color:var(--text-dim)}
+  .p3-hud{position:absolute;top:10px;left:12px;z-index:3;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-dim)}
+  .p3-hud b{color:#eafdff;font-size:14px}
 .unitcard{border:1px solid var(--line);border-radius:6px;padding:13px;background:rgba(255,255,255,.012);transition:.15s}
 .unitcard.sel{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
 .unitcard.off{opacity:.62}
@@ -469,6 +484,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <nav class="nav" id="nav">
       <div class="navitem active" data-p="overview"><span class="ic">&#9635;</span>Overview</div>
       <div class="navitem" data-p="fleet"><span class="ic">&#9783;</span>Plant Fleet</div>
+      <div class="navitem" data-p="plant3d"><span class="ic">&#9638;</span>Plant 3D View</div>
 
       <div class="navgroup open" id="reactor-group">
         <div class="grouphead"><span class="ic">&#11041;</span>Reactor<span class="chev">&#9654;</span></div>
@@ -532,6 +548,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <div class="navitem" data-p="ai"><span class="ic">&#9670;</span>AI Diagnostics</div>
       <div class="navitem" data-p="rlopt"><span class="ic">&#9881;</span>Optimization (RL)<span class="bdg" style="margin-left:auto;background:rgba(157,123,255,.15);color:var(--violet);border:1px solid var(--violet)">BETA</span></div>
       <div class="navitem" data-p="deps"><span class="ic">&#8862;</span>System Dependencies</div>
+      <div class="navitem" data-p="components"><span class="ic">&#9881;</span>Component Registry</div>
       <div class="navitem" data-p="twin"><span class="ic">&#8853;</span>Digital Twin</div>
       <div class="navitem" data-p="trends"><span class="ic">&#8767;</span>Trends &amp; History</div>
       <div class="navitem" data-p="incident"><span class="ic">&#10226;</span>Incident Analysis</div>
@@ -771,6 +788,24 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           <button class="btn" data-rscn="accident">Severe accident</button>
         </div></div>
       <div id="rob-readiness"></div>
+    </section>
+    <section class="page" data-page="plant3d">
+      <div class="panel hot" style="margin-bottom:11px"><div class="ph"><h2><span class="tick"></span>Plant Layout &mdash; Reactors / Steam / Turbine</h2><span class="tag">click a reactor to switch it on or off</span></div>
+        <div class="p3-bar" id="p3-units" style="margin-bottom:9px"></div>
+        <div class="p3-bar">
+          <div class="p3-opt on" data-opt="rotate">&#10227; Auto-rotate</div>
+          <div class="p3-opt on" data-opt="labels">&#9633; Labels</div>
+          <div class="p3-opt on" data-opt="steam">&#8767; Steam flow</div>
+          <span style="font-size:10px;color:var(--text-dim);margin-left:6px">Drag the scene to rotate. Toggling a reactor here also changes it across the whole plant.</span>
+        </div>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden"><div class="p3-stage" id="p3-stage"><div class="p3-hud" id="p3-hud"></div></div></div>
+      <div class="note" style="margin-top:9px">A stylised 3-D schematic of the modular plant: large PWR containments and small SMR modules feed a shared steam header to the turbine-generator. Active units glow and drive the spinning turbine and steam flow; standby units are dark. Representative geometry &mdash; not a survey model.</div>
+    </section>
+    <section class="page" data-page="components">
+      <div id="comp-head"></div>
+      <div id="comp-summary" style="margin-bottom:13px"></div>
+      <div id="comp-systems"></div>
     </section>
     <section class="page" data-page="aging">
       <div id="aging-head"></div>
@@ -1387,7 +1422,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive · advisory'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'about':['About','Author & scope']};
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
@@ -1663,7 +1698,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     renderIncidents();renderCompliance();bus.emit('scram',{unitId:unitId,unit:nm,reason:reason});
   }
   renderIncidents();renderCompliance();
-  window.NEXUS={units:units,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');}};
+  window.NEXUS={units:units,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');},pushAlarm:function(sev,src,msg,st){return pushAlarmObj(sev,src,msg,st);}};
   setupRods();setupAxial();render();drawCharts();renderAlarms();renderFleet();setInterval(masterTick,1500);
 })();
 
@@ -3144,6 +3179,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     reactor3d:{n:'3D Reactor View',w:'Two 3-D cores — telemetry vs simulation (a digital twin).',k:['Left = noisy sensors, right = the model; the controls drive both','Divergence between them is the digital-twin early-warning signal','Drag a core to rotate; fuel colour shows temperature']},
     rlopt:{n:'Advanced Optimization (RL)',w:'Experimental reinforcement-learning optimiser — BETA, twin-only, advisory.',k:['Train the agent inside the twin; watch the reward curve climb','The learned policy is a readable table — no black box','Advisory only, with safety clamps; no control authority on a real plant']},
     deps:{n:'System Dependencies',w:'How components influence one another.',k:['Graph: click a node to trace everything it affects downstream, with delays','Matrix: click a cell to read an influence weight','Causal Chain: the reactor-trip reconstruction + a what-if toggle']},
+    components:{n:'Component Registry',w:'Per-unit equipment inventory with live health.',k:['Each tracked component has a live health that responds to operation and SCRAM cycles','PWR units list loop-type plant; SMR modules list the integral configuration','Faults raise alarms; rollups feed AI Diagnostics, and each item maps to a dependency node']},
+    plant3d:{n:'Plant 3D View',w:'Whole-plant 3-D schematic of the fleet.',k:['Reactors, steam header and turbine-generator in one animated scene','Active units glow and spin the turbine; standby units are dark','Use the chips at the top to switch reactors on/off, and toggle labels, rotation and steam']},
     twin:{n:'Digital Twin',w:'Model-vs-reality reconciliation.',k:['Compares model expectation against (simulated) telemetry']},
     trends:{n:'Trends',w:'Historical time-series of key parameters.',k:['Track parameters over time']},
     ai:{n:'AI Diagnostics',w:'Supervised predictive diagnostics (advisory).',k:['Failure-probability and degradation forecasts','Distinct from the RL optimiser, which learns control policies']},
@@ -3167,11 +3204,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
   const GROUPS=[
-    {g:'Reactor',ids:['core','rods','neutronics','kinetics','reactor3d']},
+    {g:'Reactor',ids:['core','rods','neutronics','kinetics','reactor3d','plant3d']},
     {g:'Fleet, Power & Secondary',ids:['overview','fleet','power','steam','coolant']},
     {g:'Safety & Monitoring',ids:['rad','alarms','incident','audit','sec']},
     {g:'AI, Analysis & Dependencies',ids:['ai','rlopt','deps','twin','trends']},
-    {g:'Inspection & Lifecycle',ids:['rodtype','aging','decommissioning']},
+    {g:'Inspection & Lifecycle',ids:['rodtype','components','aging','decommissioning']},
     {g:'People, Robots & Access',ids:['personnel-overview','personnel-stress','robotics-overview','robotics-readiness','access-presence','access-matrix']},
     {g:'Project',ids:['about','help']}
   ];
@@ -3192,6 +3229,376 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   document.addEventListener('click',function(ev){if(pop.classList.contains('show')&&!pop.contains(ev.target)&&ev.target.id!=='helpbtn')pop.classList.remove('show');});
 
   buildPage();
+})();
+
+/* ===== Component Registry · per-unit equipment health · NX1-094C79E0A366D34F ===== */
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function hash(s){var h=1779033703^s.length;for(var i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return h>>>0;}
+  function rng(seed){var a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function fleet(){return (window.NEXUS&&window.NEXUS.units)||[];}
+  function sel(){return window.NEXUS?window.NEXUS.getSel():null;}
+
+  var SYS={primary:'Primary / Nuclear',secondary:'Secondary / Steam',electrical:'Electrical',safety:'Safety Systems',ic:'Instrumentation & Control'};
+  var SYSORDER=['primary','secondary','electrical','safety','ic'];
+  function isPWR(u){return u.cls&&u.cls.indexOf('PWR')===0;}
+
+  // component templates by reactor kind. n=redundancy count, w=annual wear rate,
+  // sc=per-SCRAM ageing, ld=live load sensitivity, dep=System-Dependency node id.
+  function templates(u){
+    var loops=(u.cap||900)>=1100?4:3;
+    var pwr=[
+      {nm:'Reactor Pressure Vessel',sys:'primary',dep:'power',crit:true,n:1,pfx:'RPV',w:0.20,sc:0.4,ld:0.02,note:'Forged steel vessel; embrittlement-limited'},
+      {nm:'Reactor Coolant Pump',sys:'primary',dep:function(i){return i%2?'coolantB':'coolantA';},crit:true,n:loops,pfx:'RCP',w:1.6,sc:1.5,ld:0.60,note:'Primary circulation; seal & bearing wear'},
+      {nm:'Steam Generator',sys:'primary',dep:'steam',crit:true,n:loops,pfx:'SG',w:1.3,sc:0.6,ld:0.35,note:'U-tube; SCC / tube plugging'},
+      {nm:'Pressurizer',sys:'primary',dep:'coolantA',crit:true,n:1,pfx:'PZR',w:0.7,sc:0.5,ld:0.10,note:'Primary pressure control'},
+      {nm:'Control Rod Drive Mech.',sys:'ic',dep:'rods',crit:true,n:1,pfx:'CRDM',w:1.1,sc:1.8,ld:0.25,note:'Rod positioning; cycles on every demand'},
+      {nm:'Main Feedwater Pump',sys:'secondary',dep:'feedwater',crit:false,n:2,pfx:'FWP',w:1.7,sc:0.9,ld:0.70,note:'Secondary feed; rotating'},
+      {nm:'Main Turbine',sys:'secondary',dep:'turbine',crit:false,n:1,pfx:'TG',w:1.5,sc:0.7,ld:0.80,note:'HP/LP train; vibration-monitored'},
+      {nm:'Main Generator',sys:'electrical',dep:'grid',crit:false,n:1,pfx:'GEN',w:1.0,sc:0.4,ld:0.50,note:'Generator & exciter'},
+      {nm:'Main Condenser',sys:'secondary',dep:'turbine',crit:false,n:1,pfx:'CND',w:0.9,sc:0.2,ld:0.30,note:'Vacuum & tube fouling'},
+      {nm:'Emergency Diesel Generator',sys:'safety',dep:'grid',crit:true,n:2,pfx:'EDG',w:0.6,sc:0.1,ld:0.05,note:'Standby; test-cycle wear'},
+      {nm:'Containment Structure',sys:'safety',dep:'power',crit:true,n:1,pfx:'CONT',w:0.15,sc:0.0,ld:0.0,note:'Prestressed concrete barrier'}
+    ];
+    var smr=[
+      {nm:'Integral Reactor Module',sys:'primary',dep:'power',crit:true,n:1,pfx:'IRM',w:0.18,sc:0.4,ld:0.02,note:'Integral vessel — SG & pressurizer inside'},
+      {nm:'In-Vessel Steam Generator',sys:'primary',dep:'steam',crit:true,n:1,pfx:'ISG',w:1.0,sc:0.5,ld:0.30,note:'Compact SG inside the vessel'},
+      {nm:'Reactor Coolant Pump (compact)',sys:'primary',dep:'coolantA',crit:true,n:2,pfx:'RCP',w:1.3,sc:1.3,ld:0.50,note:'Glandless canned compact pump'},
+      {nm:'Control Rod Drive Mech.',sys:'ic',dep:'rods',crit:true,n:1,pfx:'CRDM',w:1.0,sc:1.8,ld:0.25,note:'Rod positioning'},
+      {nm:'Compact Turbine-Generator',sys:'secondary',dep:'turbine',crit:false,n:1,pfx:'TG',w:1.3,sc:0.6,ld:0.70,note:'Skid turbine-generator set'},
+      {nm:'Feedwater Pump',sys:'secondary',dep:'feedwater',crit:false,n:1,pfx:'FWP',w:1.4,sc:0.8,ld:0.60,note:'Secondary feed'},
+      {nm:'Passive Safety Heat Sink',sys:'safety',dep:'coolantA',crit:true,n:1,pfx:'PSS',w:0.30,sc:0.05,ld:0.0,note:'Passive decay-heat removal — no pumps'},
+      {nm:'Compact Containment',sys:'safety',dep:'power',crit:true,n:1,pfx:'CONT',w:0.12,sc:0.0,ld:0.0,note:'Steel containment, partly below grade'}
+    ];
+    return isPWR(u)?pwr:smr;
+  }
+
+  function ensureComp(u){
+    if(u.components)return;
+    var tpl=templates(u),list=[];
+    tpl.forEach(function(t){
+      for(var i=0;i<t.n;i++){
+        var tag=t.n>1?String.fromCharCode(65+i):'';
+        var id=t.pfx+'-'+u.id.toUpperCase()+(tag?('-'+tag):'');
+        var r=rng(hash(id));
+        var dep=(typeof t.dep==='function')?t.dep(i):t.dep;
+        var service=2+r()*(isPWR(u)?9:5);   // seeded effective years already in service
+        var base=r()*4;                       // as-built condition offset
+        list.push({id:id,nm:t.nm+(t.n>1?(' '+tag):''),sys:t.sys,dep:dep,crit:t.crit,note:t.note,
+          w:t.w,sc:t.sc,ld:t.ld,service:service,base:base,acc:0,redN:t.n,redI:i+1,
+          _warned:false,_faulted:false});
+      }
+    });
+    u.components=list;
+  }
+
+  function flux(u){return (u.online&&u.st)?clamp(u.st.flux,0,110)/100:0;}
+  // live health decline rate, % per duty-tick (illustrative, accelerated)
+  function slope(u,c){
+    if(!u.online)return 0.0006;
+    return c.w*0.002 + c.ld*flux(u)*0.045 + 0.0008;
+  }
+  function health(u,c){
+    var yrs=c.service+(u.simOpYears||0);
+    var scram=(u.scramCycles||0)*c.sc;
+    return clamp(100-c.base-yrs*c.w-scram-c.acc,0,100);
+  }
+  function statKey(h){return h>=85?'ok':h>=70?'monitor':h>=50?'degrading':'fault';}
+  function statLabel(h){return h>=85?'Healthy':h>=70?'Monitor':h>=50?'Degrading':'Fault';}
+  function statCol(h){return h>=85?'var(--green)':h>=50?'var(--amber)':'var(--red)';}
+  function pillCls(h){return h>=85?'ok':h>=50?'warn':'crit';}
+  function horizon(u,c){var h=health(u,c);if(h<=30)return 0;return Math.round((h-30)/Math.max(0.0008,slope(u,c)));}
+  function horStr(d){return d>3650?'>10 yr':'~'+d+' d';}
+  function degProb30(u,c){
+    var h=health(u,c),d=horizon(u,c);
+    var p=clamp((90-h)/90,0,1)*0.6+clamp((150-d)/150,0,1)*0.4;
+    if(!u.online)p*=0.4;
+    return Math.round(clamp(p,0,0.98)*100);
+  }
+
+  function render(){
+    var u=null,f=fleet();for(var i=0;i<f.length;i++){if(f[i].id===sel()){u=f[i];break;}}
+    if(!u){return;}
+    f.forEach(ensureComp);
+    var cs=u.components.map(function(c){return {c:c,h:health(u,c)};});
+    var counts={ok:0,monitor:0,degrading:0,fault:0};
+    cs.forEach(function(o){counts[statKey(o.h)]++;});
+    var worst=cs[0];cs.forEach(function(o){if(o.h<worst.h)worst=o;});
+    var kind=isPWR(u)?'PWR · loop-type':'SMR · integral';
+
+    if($('comp-head'))$('comp-head').innerHTML=
+      '<div class="typehead"><div class="big">&#9881;</div><div style="flex:1">'+
+      '<div class="tn">'+u.name+' &mdash; Component Registry</div>'+
+      '<div class="tf">'+u.cls+' &middot; '+kind+' &middot; '+u.components.length+' tracked components &middot; '+
+      (u.online?'<span style="color:var(--green)">online</span>':'<span style="color:var(--text-dim)">offline</span>')+'</div>'+
+      '<div class="meta">'+
+      '<div>Healthy<b style="color:var(--green)">'+counts.ok+'</b></div>'+
+      '<div>Monitor<b style="color:var(--amber)">'+counts.monitor+'</b></div>'+
+      '<div>Degrading<b style="color:var(--amber)">'+counts.degrading+'</b></div>'+
+      '<div>Fault<b style="color:'+(counts.fault?'var(--red)':'#eafdff')+'">'+counts.fault+'</b></div>'+
+      '<div>SCRAM cycles<b style="color:'+((u.scramCycles||0)?'var(--amber)':'#eafdff')+'">'+(u.scramCycles||0)+'</b></div>'+
+      '<div>Sim. operation<b>+'+(u.simOpYears||0).toFixed(2)+' yr</b></div>'+
+      '</div></div></div>';
+
+    if($('comp-summary'))$('comp-summary').innerHTML=
+      '<div class="panel hot"><div class="ph"><h2><span class="tick"></span>Predictive Digest</h2><span class="tag">feeds AI Diagnostics</span></div>'+
+      '<div class="row"><div class="ln">Highest-risk component<span>'+worst.c.id+'</span></div><div class="rv"><span class="pill '+pillCls(worst.h)+'">'+worst.c.nm+'</span></div></div>'+
+      '<div class="row"><div class="ln">Health</div><div class="rv">'+Math.round(worst.h)+'<span> %</span></div></div>'+
+      '<div class="row"><div class="ln">Est. time to maintenance limit<span>at current duty</span></div><div class="rv">'+horStr(horizon(u,worst.c))+'</div></div>'+
+      '<div class="row"><div class="ln">30-day degradation probability<span>advisory</span></div><div class="rv">'+degProb30(u,worst.c)+'<span> %</span></div></div>'+
+      '<div class="note">Health responds live to operation: running at power wears rotating equipment, and every SCRAM cycle ages the coolant pumps and rod drives. These rollups feed AI Diagnostics and map onto the System Dependencies graph. Illustrative, accelerated model &mdash; not identified from plant data.</div></div>';
+
+    var html='';
+    SYSORDER.forEach(function(sk){
+      var mem=cs.filter(function(o){return o.c.sys===sk;});if(!mem.length)return;
+      html+='<div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>'+SYS[sk]+'</h2><span class="tag">'+mem.length+' item'+(mem.length>1?'s':'')+'</span></div><div class="grid c3">';
+      mem.forEach(function(o){var c=o.c,h=o.h,hz=horizon(u,c);
+        html+='<div class="compcard">'+
+          '<div class="cnm">'+c.nm+(c.crit?' <span class="pill crit" style="font-size:8px;padding:1px 5px;margin-left:4px">SAFETY</span>':'')+'</div>'+
+          '<div class="cmech">'+c.note+'</div>'+
+          '<div class="crow"><span>Tag</span><b class="mono">'+c.id+'</b></div>'+
+          (c.redN>1?'<div class="crow"><span>Redundancy</span><b>'+c.redI+' of '+c.redN+'</b></div>':'')+
+          '<div class="crow"><span>Health</span><b style="color:'+statCol(h)+'">'+Math.round(h)+'%</b></div>'+
+          '<div class="lifebar"><i style="width:'+clamp(h,0,100)+'%;background:'+statCol(h)+';box-shadow:0 0 8px '+statCol(h)+'"></i></div>'+
+          '<div class="crow"><span><span class="pill '+pillCls(h)+'">'+statLabel(h)+'</span></span><b>'+horStr(hz)+'</b></div>'+
+          '<div class="crow"><span>Dependency node</span><b class="mono" style="color:var(--cyan)">'+c.dep+'</b></div>'+
+        '</div>';
+      });
+      html+='</div></div>';
+    });
+    if($('comp-systems'))$('comp-systems').innerHTML=html;
+  }
+
+  function loop(){
+    fleet().forEach(function(u){
+      ensureComp(u);
+      u.components.forEach(function(c){
+        if(u.online)c.acc+=slope(u,c);
+        var h=health(u,c);
+        if(h<50&&!c._faulted){c._faulted=true;c._warned=true;
+          if(window.NEXUS&&window.NEXUS.pushAlarm)window.NEXUS.pushAlarm('crit','Component Registry',u.name+' · '+c.nm+' health '+Math.round(h)+'% — maintenance required','Active');}
+        else if(h<70&&!c._warned){c._warned=true;
+          if(window.NEXUS&&window.NEXUS.pushAlarm)window.NEXUS.pushAlarm('warn','Component Registry',u.name+' · '+c.nm+' degrading ('+Math.round(h)+'%)','Active');}
+        else if(h>=72){c._warned=false;}
+        if(h>=52)c._faulted=false;
+      });
+    });
+    var a=document.querySelector('.page.active');
+    if(a&&a.dataset.page==='components')render();
+  }
+
+  function wire(){var it=document.querySelector('.navitem[data-p="components"]');if(it)it.addEventListener('click',render);}
+  if(document.readyState!=='loading')wire();else document.addEventListener('DOMContentLoaded',wire);
+  setTimeout(render,400);
+  setInterval(loop,1500);
+})();
+
+</script>
+<!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
+<script>
+/* ===== Plant 3D View · whole-plant fleet scene · NX1-094C79E0A366D34F ===== */
+(function(){
+  var STAGE=document.getElementById('p3-stage');
+  if(!STAGE)return;
+
+  function units(){return (window.NEXUS&&window.NEXUS.units)||[];}
+  function sel(){return window.NEXUS?window.NEXUS.getSel():null;}
+  function isPWR(u){return u.cls&&u.cls.indexOf('PWR')===0;}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  // ---- pure path math (testable without three.js) ----
+  function pathMeta(p){var segs=[],tot=0;for(var i=0;i<p.length-1;i++){var a=p[i],b=p[i+1];var d=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);segs.push(d);tot+=d;}return {segs:segs,tot:tot};}
+  function posAlong(p,meta,s){ // s in 0..1
+    var d=clamp(s,0,1)*meta.tot,acc=0;
+    for(var i=0;i<meta.segs.length;i++){
+      if(d<=acc+meta.segs[i]||i===meta.segs.length-1){
+        var f=meta.segs[i]?(d-acc)/meta.segs[i]:0;var a=p[i],b=p[i+1];
+        return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,z:a.z+(b.z-a.z)*f};
+      }
+      acc+=meta.segs[i];
+    }
+    var L=p[p.length-1];return {x:L.x,y:L.y,z:L.z};
+  }
+  if(typeof module!=='undefined'&&module.exports){module.exports={pathMeta:pathMeta,posAlong:posAlong};return;}
+
+  if(!window.THREE){var d=document.createElement('div');d.className='fallback';d.innerHTML='3D view needs the three.js library, which could not load.<br>It needs an internet connection (CDN). The rest of the console works offline.';STAGE.appendChild(d);return;}
+  var T=window.THREE;
+
+  var opt={rotate:true,labels:true,steam:true};
+  var scene,camera,renderer,grp,turbineRotor,parts=[],uM={},labels=[],inited=false,ry=0.55,rx=0.42;
+  var reactorZ=-18,headerZ=-10,sgZ=0,turbineZ=13;
+
+  function mkLabel(html){var el=document.createElement('div');el.className='p3-label';el.innerHTML=html;STAGE.appendChild(el);return el;}
+
+  function build(){
+    var w=STAGE.clientWidth||820,h=STAGE.clientHeight||520;
+    scene=new T.Scene();
+    camera=new T.PerspectiveCamera(46,w/h,0.1,3000);camera.position.set(0,42,92);camera.lookAt(0,4,0);
+    renderer=new T.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
+    STAGE.appendChild(renderer.domElement);
+    scene.add(new T.AmbientLight(0x445a66,0.95));
+    var dl=new T.DirectionalLight(0xffffff,0.85);dl.position.set(22,42,26);scene.add(dl);
+    var dl2=new T.DirectionalLight(0x22d3ee,0.40);dl2.position.set(-24,14,-22);scene.add(dl2);
+    grp=new T.Group();scene.add(grp);
+    var grid=new T.GridHelper(150,30,0x1a2a2e,0x10201f);grid.position.y=-0.02;grp.add(grid);
+
+    var us=units(),n=us.length,sx=20,x0=-(n-1)*sx/2;
+
+    us.forEach(function(u,i){
+      var pwr=isPWR(u),R=pwr?5.4:3.0,Hh=pwr?9:5.5,ux=x0+i*sx;
+      var ug=new T.Group();ug.position.set(ux,0,reactorZ);grp.add(ug);
+      var pad=new T.Mesh(new T.CylinderGeometry(R+1.6,R+1.8,0.8,40),new T.MeshPhongMaterial({color:0x0e1c20}));pad.position.y=0.4;ug.add(pad);
+      var body=new T.Mesh(new T.CylinderGeometry(R,R,Hh,44),new T.MeshPhongMaterial({color:0x16282d,emissive:0x000000,shininess:30}));body.position.y=Hh/2+0.8;ug.add(body);
+      var dome=new T.Mesh(new T.SphereGeometry(R,44,22,0,Math.PI*2,0,Math.PI/2),new T.MeshPhongMaterial({color:0x18313a,emissive:0x000000,shininess:42}));dome.position.y=Hh+0.8;ug.add(dome);
+      var core=new T.Mesh(new T.SphereGeometry(R*0.52,24,16),new T.MeshPhongMaterial({color:0xffb000,emissive:0xffb000,emissiveIntensity:0,transparent:true,opacity:0.92}));core.position.y=Hh*0.5+0.8;ug.add(core);
+      var pipeLen=Math.abs(reactorZ-headerZ);
+      var pipe=new T.Mesh(new T.CylinderGeometry(0.55,0.55,pipeLen,12),new T.MeshPhongMaterial({color:0x2a4750,emissive:0x061a1f}));
+      pipe.rotation.x=Math.PI/2;pipe.position.set(0,1.5,pipeLen/2);ug.add(pipe);
+      uM[u.id]={g:ug,body:body,dome:dome,core:core,R:R,Hh:Hh,ux:ux};
+      labels.push({el:mkLabel(''),kind:'unit',uid:u.id,local:new T.Vector3(ux,Hh+R+2.5,reactorZ)});
+    });
+
+    // ---- steam path: reactors -> header -> steam generator -> turbine -> generator ----
+    function pipeMat(){return new T.MeshPhongMaterial({color:0x2a4750,emissive:0x07242a});}
+    function steamMat(){return new T.MeshPhongMaterial({color:0x2f5a64,emissive:0x0a3a44,shininess:40});}
+    // collection header across X (gathers every reactor feeder)
+    var header=new T.Mesh(new T.CylinderGeometry(0.8,0.8,(n-1)*sx+12,18),pipeMat());
+    header.rotation.z=Math.PI/2;header.position.set(0,1.6,headerZ);grp.add(header);
+    // inlet run from the header centre into the base of the steam generator
+    var inLen=Math.abs(sgZ-headerZ);
+    var inlet=new T.Mesh(new T.CylinderGeometry(0.95,0.95,inLen,18),pipeMat());
+    inlet.rotation.x=Math.PI/2;inlet.position.set(0,1.6,(headerZ+sgZ)/2);grp.add(inlet);
+    // steam generator (vertical vessel ON the centre line, in the flow path)
+    var sgH=10;
+    var sg=new T.Mesh(new T.CylinderGeometry(3.3,3.6,sgH,32),new T.MeshPhongMaterial({color:0x16323a,emissive:0x06181c,shininess:34}));sg.position.set(0,sgH/2+0.5,sgZ);grp.add(sg);
+    var sgCap=new T.Mesh(new T.SphereGeometry(3.3,28,16,0,Math.PI*2,0,Math.PI/2),new T.MeshPhongMaterial({color:0x18313a,emissive:0x06181c}));sgCap.position.set(0,sgH+0.5,sgZ);grp.add(sgCap);
+    labels.push({el:mkLabel('<b>Steam Generator</b>'),kind:'static',local:new T.Vector3(0,sgH+4,sgZ)});
+    // steam outlet line from the SG forward to the turbine (emissive = live steam)
+    var outLen=Math.abs(turbineZ-sgZ)-2;
+    var outlet=new T.Mesh(new T.CylinderGeometry(0.95,0.95,outLen,18),steamMat());
+    outlet.rotation.x=Math.PI/2;outlet.position.set(0,3.6,sgZ+1+outLen/2);grp.add(outlet);
+    grp.__steamLine=outlet;
+    var riser=new T.Mesh(new T.CylinderGeometry(0.9,0.9,sgH-4,16),steamMat());riser.position.set(0,sgH-2,sgZ+2.6);grp.add(riser);
+    // turbine (spinning finned shaft along X, on the centre line)
+    turbineRotor=new T.Group();turbineRotor.position.set(0,3.4,turbineZ);grp.add(turbineRotor);
+    var shaft=new T.Mesh(new T.CylinderGeometry(1.0,1.0,18,24),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b,shininess:90}));shaft.rotation.z=Math.PI/2;turbineRotor.add(shaft);
+    for(var sI=0;sI<3;sI++){
+      var disc=new T.Mesh(new T.CylinderGeometry(2.7,2.7,0.55,24),new T.MeshPhongMaterial({color:0x6f8a92,emissive:0x0c1417,shininess:70}));disc.rotation.z=Math.PI/2;disc.position.x=-5+sI*5;turbineRotor.add(disc);
+      for(var b=0;b<12;b++){var ang=b/12*Math.PI*2;var bl=new T.Mesh(new T.BoxGeometry(0.5,1.7,0.32),new T.MeshPhongMaterial({color:0xbfd2d8,emissive:0x12181b}));bl.position.set(-5+sI*5,Math.cos(ang)*2.3,Math.sin(ang)*2.3);bl.rotation.x=ang;turbineRotor.add(bl);}
+    }
+    labels.push({el:mkLabel('<b>Turbine</b>'),kind:'static',local:new T.Vector3(0,8,turbineZ)});
+    // shaft coupling -> generator -> grid pylon
+    var genX=13;
+    var coup=new T.Mesh(new T.CylinderGeometry(0.7,0.7,genX-9,14),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b}));coup.rotation.z=Math.PI/2;coup.position.set((9+genX)/2,3.4,turbineZ);grp.add(coup);
+    var gen=new T.Mesh(new T.BoxGeometry(7.5,4.4,4.4),new T.MeshPhongMaterial({color:0x16282d,emissive:0x06141a}));gen.position.set(genX,3.2,turbineZ);grp.add(gen);
+    labels.push({el:mkLabel('<b>Generator</b>'),kind:'static',local:new T.Vector3(genX,7.5,turbineZ)});
+    var pyl=new T.Mesh(new T.CylinderGeometry(0.35,0.7,14,8),new T.MeshPhongMaterial({color:0x2a4750}));pyl.position.set(genX+11,7,turbineZ);grp.add(pyl);
+
+    // steam particle pool (per unit a few spheres travelling reactor -> header -> main run -> turbine)
+    us.forEach(function(u){
+      var ux=uM[u.id].ux;
+      var path=[{x:ux,y:1.6,z:reactorZ+2},{x:ux,y:1.6,z:headerZ},{x:0,y:1.6,z:headerZ},{x:0,y:1.6,z:sgZ-1},{x:0,y:8.5,z:sgZ},{x:0,y:3.6,z:sgZ+2},{x:0,y:3.4,z:turbineZ}];
+      var meta=pathMeta(path);
+      for(var k=0;k<3;k++){
+        var sp=new T.Mesh(new T.SphereGeometry(0.45,10,8),new T.MeshPhongMaterial({color:0xbdf3ff,emissive:0x22d3ee,emissiveIntensity:0.9,transparent:true,opacity:0.85}));
+        sp.visible=false;grp.add(sp);
+        parts.push({mesh:sp,uid:u.id,path:path,meta:meta,s:k/3});
+      }
+    });
+
+    var el=renderer.domElement,drag=false,px=0,py=0;el.style.cursor='grab';
+    el.addEventListener('pointerdown',function(e){drag=true;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
+    window.addEventListener('pointerup',function(){if(drag){drag=false;el.style.cursor='grab';}});
+    window.addEventListener('pointermove',function(e){if(!drag)return;ry+=(e.clientX-px)*0.008;rx+=(e.clientY-py)*0.005;rx=clamp(rx,-0.05,0.85);px=e.clientX;py=e.clientY;});
+
+    inited=true;resize();
+  }
+
+  function resize(){if(!renderer)return;var w=STAGE.clientWidth,h=STAGE.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
+
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='plant3d';}
+
+  function buildBar(){
+    var bar=document.getElementById('p3-units');if(!bar)return;
+    bar.innerHTML=units().map(function(u){
+      var on=u.online,mwe=Math.round(Math.max(0,u.st?u.st.mwe:0));
+      return '<div class="p3-chip '+(on?'on':'')+(u.id===sel()?' sel':'')+'" data-u="'+u.id+'"><span class="dot"></span>'+u.name+' <small>'+(on?mwe+' MW':'standby')+'</small></div>';
+    }).join('');
+  }
+
+  function tempCol(f){ // 0..1 -> dim->amber->hot
+    var r=Math.round(120+135*f),g=Math.round(80+96*f),b=Math.round(0+0*f);return (r<<16)|(g<<8)|b;
+  }
+
+  function frame(){
+    requestAnimationFrame(frame);
+    if(!active())return;
+    if(!inited){build();buildBar();}
+    var us=units(),onlineMW=0,onlineCount=0,maxFlux=0;
+    var tnow=Date.now()*0.001;
+    us.forEach(function(u){
+      var m=uM[u.id];if(!m)return;
+      var on=u.online,flux=on&&u.st?clamp(u.st.flux,0,110)/100:0;
+      if(on){onlineCount++;onlineMW+=Math.max(0,u.st?u.st.mwe:0);maxFlux=Math.max(maxFlux,flux);}
+      var pulse=0.55+0.45*Math.sin(tnow*2.2+m.ux);
+      var ei=on?(0.25+0.75*flux)*pulse:0;
+      m.core.material.emissiveIntensity=on?ei*1.1:0;
+      m.core.material.color.setHex(tempCol(flux));m.core.material.emissive.setHex(tempCol(flux));
+      m.body.material.emissive.setHex(on?0x123036:0x000000);m.body.material.emissiveIntensity=on?0.5+0.4*flux:0;
+      m.body.material.color.setHex(on?0x1d3a42:0x141f22);
+      m.dome.material.emissive.setHex(on?0x0e2a31:0x000000);m.dome.material.emissiveIntensity=on?0.45*pulse:0;
+      m.dome.material.color.setHex(on?0x1d3f49:0x16282d);
+    });
+    // turbine spin proportional to online power
+    if(turbineRotor)turbineRotor.rotation.x+=0.02+maxFlux*0.55;
+    if(grp&&grp.__steamLine)grp.__steamLine.material.emissiveIntensity=opt.steam?(0.12+0.9*maxFlux):0.05;
+    // steam particles
+    parts.forEach(function(p){
+      var u=null;for(var i=0;i<us.length;i++){if(us[i].id===p.uid){u=us[i];break;}}
+      var on=u&&u.online,flux=on&&u.st?clamp(u.st.flux,0,110)/100:0;
+      if(!on||!opt.steam){p.mesh.visible=false;return;}
+      p.mesh.visible=true;
+      p.s+=0.0025+flux*0.010;if(p.s>1)p.s-=1;
+      var pos=posAlong(p.path,p.meta,p.s);p.mesh.position.set(pos.x,pos.y,pos.z);
+      p.mesh.material.opacity=0.35+0.5*Math.sin(p.s*Math.PI);
+    });
+    // rotate + render
+    if(opt.rotate)ry+=0.0024;
+    grp.rotation.y=ry;grp.rotation.x=rx;grp.updateMatrixWorld();
+    renderer.render(scene,camera);
+    // labels
+    var w=STAGE.clientWidth,h=STAGE.clientHeight;
+    labels.forEach(function(L){
+      if(!opt.labels){L.el.style.display='none';return;}
+      var v=L.local.clone().applyMatrix4(grp.matrixWorld).project(camera);
+      var on2=v.z<1;
+      if(L.kind==='unit'){var u=null;for(var i=0;i<us.length;i++){if(us[i].id===L.uid){u=us[i];break;}}
+        if(u){var mwe=Math.round(Math.max(0,u.st?u.st.mwe:0));
+          L.el.innerHTML='<b>'+u.name+'</b> · '+(u.online?'<span class="on">'+mwe+' MW</span>':'<span class="off">standby</span>');}}
+      if(!on2){L.el.style.display='none';return;}
+      L.el.style.display='block';
+      L.el.style.left=((v.x*0.5+0.5)*w)+'px';
+      L.el.style.top=((-v.y*0.5+0.5)*h)+'px';
+    });
+    var hud=document.getElementById('p3-hud');
+    if(hud)hud.innerHTML='Plant output <b>'+Math.round(onlineMW)+'</b> MW · '+onlineCount+'/'+us.length+' units online';
+    buildBar();
+  }
+
+  // interactions
+  document.addEventListener('click',function(e){
+    var chip=e.target.closest&&e.target.closest('.p3-chip');
+    if(chip&&chip.dataset.u){if(window.NEXUS&&window.NEXUS.toggleUnit)window.NEXUS.toggleUnit(chip.dataset.u);buildBar();return;}
+    var o=e.target.closest&&e.target.closest('.p3-opt');
+    if(o&&o.dataset.opt){opt[o.dataset.opt]=!opt[o.dataset.opt];o.classList.toggle('on',opt[o.dataset.opt]);
+      if(o.dataset.opt==='labels'&&!opt.labels)labels.forEach(function(L){L.el.style.display='none';});}
+  });
+
+  var nav=document.querySelector('.navitem[data-p="plant3d"]');
+  if(nav)nav.addEventListener('click',function(){setTimeout(function(){if(!inited)build();buildBar();resize();},50);});
+  window.addEventListener('resize',function(){if(inited&&active())resize();});
+  frame();
 })();
 </script>
 </body>
