@@ -1155,6 +1155,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
     <!-- ===== DIGITAL TWIN ===== -->
     <section class="page" data-page="twin">
+      <div id="twin-head" style="margin-bottom:13px"></div>
       <div class="grid c4" style="margin-bottom:13px">
         <div class="stat"><div class="k">Sync Lag</div><div class="v"><span class="live" data-sig="twinLag" data-dec="1"></span><small>ms</small></div><div class="bar"><i style="width:14%"></i></div></div>
         <div class="stat green"><div class="k">Model Fidelity</div><div class="v"><span id="twin-fid">97.8</span><small>%</small></div><div class="bar"><i id="twin-fid-bar" style="width:98%"></i></div></div>
@@ -3628,13 +3629,13 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function sample(){
     var u=unit();
     SIGS.forEach(function(g){
-      var b=st[g.k]; var model=(u&&u.st)?(+u.st[g.k]||0):0;
+      var b=st[g.k]; var model=(u&&u.st)?(+u.st[g.k]||0):0; var on=!!(u&&u.online);
       b.ns=b.ns*0.6+rnd()*0.4;
       var amp=g.rel?Math.abs(model)*g.amp:g.amp;
-      var driftAbs=0;
-      if(g.drift){ if(u&&u.online)b.drift=Math.min(1.4,b.drift+0.02); driftAbs=Math.abs(model)*b.drift/100; }
-      var meas=model + b.ns*amp + driftAbs;
-      var dev=Math.abs(meas-model)/Math.max(Math.abs(model),1e-6)*100;
+      if(g.drift&&on)b.drift=Math.min(1.4,b.drift+0.02);
+      var driftAbs=g.drift?Math.abs(model)*b.drift/100:0;
+      var meas=on?(model + b.ns*amp + driftAbs):model;
+      var dev=on?(Math.abs(meas-model)/Math.max(Math.abs(model),1e-6)*100):0;
       b.m.push(meas); b.t.push(model); b.r.push(dev);
       if(b.m.length>N){b.m.shift(); b.t.shift(); b.r.shift();}
     });
@@ -3681,6 +3682,34 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='twin';}
   function render(){
     var tb=$('twin-tbody'); if(!tb)return;
+    var u=unit(), on=!!(u&&u.online);
+    if($('twin-head')){
+      var nm=u?u.name:'No unit', cls=u?u.cls:'';
+      $('twin-head').innerHTML='<div class="typehead"><div class="big">\u21c4</div><div style="flex:1">'
+        +'<div class="tn">'+nm+' \u2014 Digital Twin</div>'
+        +'<div class="tf">'+cls+(cls?' \u00b7 ':'')+SIGS.length+' signals mirrored \u00b7 '
+        +(on?'<span style="color:var(--green)">online \u2014 telemetry live</span>':'<span style="color:var(--text-dim)">offline \u2014 telemetry mirror inactive</span>')+'</div></div></div>';
+    }
+    if(!on){
+      tb.innerHTML=SIGS.map(function(g){
+        var b=st[g.k],model=b.t.length?b.t[b.t.length-1]:0;
+        return '<tr class="twin-row"><td>'+g.nm+'<span class="twin-u">'+g.u+'</span></td>'
+          +'<td class="mono" style="color:var(--text-dim)">'+model.toFixed(g.dec)+'</td>'
+          +'<td class="mono" style="color:var(--text-dim)">'+model.toFixed(g.dec)+'</td>'
+          +'<td class="mono" style="color:var(--text-dim)">&mdash;</td><td></td>'
+          +'<td><span class="pill" style="background:rgba(120,140,150,.14);color:var(--text-dim);border-color:var(--line)">Offline</span></td></tr>';
+      }).join('');
+      if($('twin-fid'))$('twin-fid').textContent='\u2014';
+      if($('twin-fid-bar'))$('twin-fid-bar').style.width='0%';
+      if($('twin-maxdev'))$('twin-maxdev').textContent='\u2014';
+      if($('twin-maxdev-bar'))$('twin-maxdev-bar').style.width='0%';
+      if($('twin-sel-a'))$('twin-sel-a').textContent='offline';
+      if($('twin-sel-b'))$('twin-sel-b').textContent='offline';
+      var msg='<div class="twin-empty">Selected unit is offline \u2014 no live telemetry to reconcile.</div>';
+      if($('twin-vchart'))$('twin-vchart').innerHTML=msg;
+      if($('twin-rchart'))$('twin-rchart').innerHTML=msg;
+      return;
+    }
     var maxdev=0,sumdev=0;
     tb.innerHTML=SIGS.map(function(g){
       var b=st[g.k],meas=b.m.length?b.m[b.m.length-1]:0,model=b.t.length?b.t[b.t.length-1]:0,d=curDev(g.k);
