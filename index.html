@@ -3490,7 +3490,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     'access-presence':{n:'Zone Access — Live Presence',w:'Who and what is in each zone.',k:['Unauthorised presence is flagged as a violation','Toggle simulated movement to see it change']},
     'access-matrix':{n:'Permissions Matrix',w:'Zone authorisation policy.',k:['Which class of person/vehicle/robot may enter which zone']},
     about:{n:'About',w:'Author and scope of the project.',k:['Read this for what is real vs. simulated, and the author background']},
-    training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, deep power reduction, reactor-trip response and a xenon-transient drill','The xenon drill runs at 600x so the multi-hour Xe-135 swing plays out in real time','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
+    training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, deep power reduction, reactor-trip response and a xenon-transient drill','A load-follow drill tracks a stepping grid-demand schedule (100 → 85 → 95 → 80%)','The xenon drill runs at 600x so the multi-hour Xe-135 swing plays out in real time','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
   const GROUPS=[
@@ -4054,7 +4054,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     {id:'xenon',name:'Xenon Transient Mgmt',diff:'Advanced',type:'hold',xenon:true,scale:600,
      brief:'100% \u2192 60%, hold \u00b13% as Xe-135 peaks (run at 600\u00d7)',
      target:60,band:3,holdReq:40,ceil:108,floor:45,limit:300,
-     objs:[{k:'enter',t:'Bring power into the 57\u201363% band'},{k:'hold',t:'Hold \u00b13% for 40 s as Xe-135 transients'},{k:'notrip',t:'No SCRAM, overshoot, or undershoot < 45%'}]}
+     objs:[{k:'enter',t:'Bring power into the 57\u201363% band'},{k:'hold',t:'Hold \u00b13% for 40 s as Xe-135 transients'},{k:'notrip',t:'No SCRAM, overshoot, or undershoot < 45%'}]},
+    {id:'loadfollow',name:'Load-Follow (Grid Demand)',diff:'Intermediate',type:'follow',band:3,ceil:108,floor:55,
+     brief:'Track grid demand 100 \u2192 85 \u2192 95 \u2192 80%, within \u00b13%',
+     sched:[{p:100,d:8},{p:85,d:12},{p:95,d:12},{p:80,d:12}],
+     objs:[{k:'track',t:'Match each grid setpoint within \u00b13%'},{k:'time',t:'Stay on demand for most of the schedule'},{k:'notrip',t:'No SCRAM, overshoot or undershoot < 55%'}]}
   ];
 
   var sel=null, phase='idle', frozen=false, xePrev=null;
@@ -4094,14 +4098,19 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   }
 
   // ---- band visual ----
+  function followTotal(d){var t=0;for(var i=0;i<d.sched.length;i++)t+=d.sched[i].d;return t;}
+  function followTarget(d,el){var acc=0;for(var i=0;i<d.sched.length;i++){acc+=d.sched[i].d;if(el<acc)return d.sched[i].p;}return d.sched[d.sched.length-1].p;}
   function updateBand(){
     var z=$('trn-zone'),tl=$('trn-tgtline'),mk=$('trn-mk');
-    var span=110;
-    if(sel&&sel.type==='hold'){
-      var lo=(sel.target-sel.band)/span*100, hi=(sel.target+sel.band)/span*100;
+    var span=110, tgt=null;
+    if(sel&&sel.type==='hold')tgt=sel.target;
+    else if(sel&&sel.type==='follow')tgt=followTarget(sel,(st&&st.elapsed)||0);
+    if(tgt!=null){
+      var lo=(tgt-sel.band)/span*100, hi=(tgt+sel.band)/span*100;
       if(z){z.style.display='block';z.style.left=lo+'%';z.style.width=(hi-lo)+'%';}
-      if(tl){tl.style.display='block';tl.style.left=(sel.target/span*100)+'%';}
-    }else{if(z)z.style.display='none';if(tl)tl.style.display='none';}
+      if(tl){tl.style.display='block';tl.style.left=(tgt/span*100)+'%';}
+      if($('trn-tgt'))$('trn-tgt').textContent=Math.round(tgt)+'%';
+    }else{if(z)z.style.display='none';if(tl)tl.style.display='none';if($('trn-tgt'))$('trn-tgt').textContent='\u2014';}
     var k=K();var p=k?k.state().power:100;
     if(mk)mk.style.left=Math.max(0,Math.min(100,p/span*100))+'%';
   }
@@ -4159,6 +4168,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       rows.push(['Band excursions',st.excursions]);
       if(sel.xenon)rows.push(['Peak Xe-135',(st.xePeak||0).toFixed(0)+'% of eq']);
       rows.push(['Elapsed',st.elapsed.toFixed(0)+' s']);
+    }else if(sel.type==='follow'){
+      rows.push(['On demand',st.inBand.toFixed(1)+' / '+followTotal(sel)+' s']);
+      rows.push(['Setpoint misses',st.excursions]);
+      rows.push(['Schedule',sel.sched.map(function(x){return x.p+'%';}).join(' \u2192 ')]);
     }else{
       rows.push(['Reaction time',st.reactT!=null?st.reactT.toFixed(2)+' s':'\u2014']);
       rows.push(['Premature trip',st.premature?'yes':'no']);
@@ -4219,6 +4232,24 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       if(st.inBand>=sel.holdReq){st.flags.notrip='done';return finish('PASS',Math.max(40,Math.min(100,100-st.excursions*8)),'Held '+sel.target+'% \u00b1'+sel.band+'% for the required '+sel.holdReq+' s.');}
       // timeout
       if(st.elapsed>sel.limit)return finish('FAIL',Math.round(st.inBand/sel.holdReq*60),'Ran out of time before completing the hold.');
+    }
+    else if(sel.type==='follow'){
+      var T=followTotal(sel), tgt=followTarget(sel,st.elapsed);
+      if($('trn-brief'))$('trn-brief').textContent='Grid demand: '+Math.round(tgt)+'%';
+      var onT=Math.abs(s.power-tgt)<=sel.band;
+      if(onT){st.inBand+=dt;if(!st.wasIn)st.flags.track='done';st.wasIn=true;}
+      else{if(st.wasIn)st.excursions++;st.wasIn=false;}
+      if($('trn-progbar'))$('trn-progbar').style.width=(Math.min(1,st.elapsed/T)*100)+'%';
+      var live=Math.round(Math.min(1,st.inBand/(T*0.85))*100-st.excursions*4);
+      if($('trn-score'))$('trn-score').textContent=Math.max(0,live);
+      if(st.inBand>=T*0.7)st.flags.time='done';
+      renderObjs();
+      if(s.scram){st.flags.notrip='fail';st.tripped=true;return finish('FAIL',0,'Unplanned SCRAM during load-follow trips the unit.');}
+      if(s.power>sel.ceil){st.flags.notrip='fail';return finish('FAIL',Math.max(0,Math.round(st.inBand/T*50)),'Power overshoot beyond '+sel.ceil+'% — high-flux trip.');}
+      if(sel.floor&&s.power<sel.floor){st.flags.notrip='fail';return finish('FAIL',Math.max(0,Math.round(st.inBand/T*50)),'Power dropped below '+sel.floor+'% — undershoot.');}
+      if(st.elapsed>=T){var frac=st.inBand/T;var score=Math.max(0,Math.min(100,Math.round(frac/0.85*100-st.excursions*4)));
+        st.flags.notrip='done';if(frac>=0.7)st.flags.time='done';
+        return finish(score>=60?'PASS':'FAIL',score,'Tracked the grid schedule; on demand '+(frac*100).toFixed(0)+'% of the '+T+' s.');}
     }
     else if(sel.type==='trip'){
       // premature trip before cue
