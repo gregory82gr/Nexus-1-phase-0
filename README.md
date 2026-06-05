@@ -147,4 +147,4 @@ arising from its use, whether authorized or not.
 
 Build signature: `NX1-094C79E0A366D34F`
 
-© 2026 Grigorios Agathangelidis. **MIT License** See [`LICENSE.txt`](LICENSE.txt). This is a demonstration and educational tool; it is not a licensed analysis tool and is not connected to any real reactor.
+© 2026 Grigorios Agathangelidis. **MIT License** See [`LICENSE.md`](LICENSE.md). This is a demonstration and educational tool; it is not a licensed analysis tool and is not connected to any real reactor.
