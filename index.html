@@ -534,6 +534,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="subnav">
           <div class="subitem" data-p="aging">Aging &amp; Degradation</div>
           <div class="subitem" data-p="decommissioning">Decommissioning</div>
+          <div class="subitem" data-p="waste">Waste &amp; Spent Fuel</div>
         </div>
       </div>
 
@@ -688,6 +689,51 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   </div>
 </section>
 
+    <style id="wst-style">
+      .wst-tbl{width:100%;border-collapse:collapse;font-size:11px}
+      .wst-tbl th{text-align:left;font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-mute);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line-hot)}
+      .wst-tbl td{padding:8px;border-bottom:1px solid var(--line);color:var(--text);vertical-align:middle}
+      .wst-tbl td.n{font-family:'IBM Plex Mono';color:var(--cyan);text-align:right;white-space:nowrap}
+      .wst-bar{height:7px;border-radius:4px;background:var(--bg-grid);border:1px solid var(--line);overflow:hidden;margin-top:5px}
+      .wst-bar i{display:block;height:100%;border-radius:4px}
+      .wst-unit{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:9px;background:var(--panel)}
+      .wst-unit .uh{display:flex;justify-content:space-between;align-items:baseline;font-family:'Chakra Petch';font-size:12px;letter-spacing:.4px}
+      .wst-unit .ud{font-size:10px;color:var(--text-dim);margin-top:4px;display:flex;flex-wrap:wrap;gap:10px}
+      .wst-unit .ud b{color:var(--text);font-family:'IBM Plex Mono'}
+      .wst-flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+      .wst-stage{flex:1;min-width:120px;border:1px solid var(--line);border-radius:6px;padding:10px 11px;background:var(--panel);position:relative;margin:4px}
+      .wst-stage .sn{font-family:'Chakra Petch';font-size:11px;letter-spacing:.4px;color:var(--text)}
+      .wst-stage .sv{font-family:'IBM Plex Mono';font-size:17px;color:var(--cyan);margin-top:5px}
+      .wst-stage .sv small{font-size:9px;color:var(--text-dim)}
+      .wst-stage .sd{font-size:9px;color:var(--text-mute);margin-top:4px;line-height:1.45}
+      .wst-arrow{align-self:center;color:var(--text-mute);font-size:15px;padding:0 2px}
+      .wst-dh{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+      .wst-dh .k{border:1px solid var(--line);border-radius:5px;padding:8px 10px}
+      .wst-dh .k .l{font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--text-mute)}
+      .wst-dh .k .v{font-family:'IBM Plex Mono';font-size:18px;color:var(--cyan);margin-top:3px}
+      .wst-dh .k .v small{font-size:10px;color:var(--text-dim)}
+      #wst-yrs{width:100%;accent-color:var(--cyan)}
+    </style>
+    <section class="page" data-page="waste">
+      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Waste &amp; Spent Fuel</h2><span class="tag">representative &middot; demonstration</span></div>
+        <div class="note" style="font-size:11px;line-height:1.7;color:var(--text)">Fleet-wide waste inventory driven by each unit's operating history (cumulative burnup), online state and decommissioning progress. Spent-fuel and activity figures are <b>representative decay models for demonstration</b>, not a real inventory. Decommissioning a unit on the <b>Decommissioning</b> page feeds its dismantling debris into the totals below.</div>
+      </div>
+      <div class="panel" style="margin-bottom:13px" id="wst-inv-wrap"><div class="ph"><h2><span class="tick"></span>Fleet Waste Inventory</h2><span class="tag" id="wst-inv-tag">by classification</span></div><div id="wst-inv"></div></div>
+      <div class="grid c2" style="margin-bottom:13px">
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Spent-Fuel Storage</h2><span class="tag">per unit</span></div><div id="wst-storage"></div></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Decay Heat &amp; Activity</h2><span class="tag">after discharge</span></div>
+          <div class="wst-dh"><div class="k"><div class="l">Decay heat</div><div class="v"><span id="wst-dhv">&mdash;</span> <small>kW</small></div></div><div class="k"><div class="l">Activity (of initial)</div><div class="v"><span id="wst-actv">&mdash;</span> <small>%</small></div></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim)"><span>Years since discharge</span><span class="mono" style="color:var(--cyan)"><span id="wst-yrslbl">0.0</span> yr</span></div>
+          <input type="range" id="wst-yrs" min="0" max="40" step="0.5" value="0">
+          <svg id="wst-decaycurve" viewBox="0 0 440 130" style="width:100%;height:120px;margin-top:4px"></svg>
+          <div class="note" style="margin-top:6px;line-height:1.55">Spent fuel must cool in the pool (here ~5 yr, amber line) before it is cool enough to move to dry-cask storage. The long tail is Cs-137 / Sr-90 (~30 yr half-life).</div>
+        </div>
+      </div>
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Disposal Pathway</h2><span class="tag">spent fuel route</span></div>
+        <div class="wst-flow" id="wst-pathway"></div>
+        <div class="note" style="margin-top:9px;line-height:1.6">High-dose cask handling is exactly the kind of task the <b>Robotics</b> fleet exists for. A deep geological repository is a decades-long, national-policy matter &mdash; shown here as <b>roadmap</b>, not an operational stage.</div>
+      </div>
+    </section>
     <section class="page" data-page="deps">
       <div class="tabbar">
         <button class="btn active" data-dtab="graph">Dependency Graph</button>
@@ -1588,7 +1634,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive · advisory'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
@@ -3485,6 +3531,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     sec:{n:'OT Security',w:'Operational-technology security posture.',k:['Zero-trust, segmentation, HSM, MFA, intrusion detection status']},
     rodtype:{n:'Rod Inspection (NDT)',w:'Non-destructive testing for a rod type.',k:['A simulated radiograph and the six standard NDT methods','Safety and control rods show SCRAM demand cycles from this session']},
     aging:{n:'Aging & Degradation',w:'Component ageing for the selected unit.',k:['Life consumed per component, with trend sparklines','Grows with simulated operating time and with SCRAM thermal cycles']},
+    waste:{n:'Waste & Spent Fuel',w:'Fleet-wide waste inventory driven by operating history and decommissioning.',k:['Spent-fuel and waste volumes grow with each unit\u2019s burnup and operating time','Per-unit spent-fuel pool occupancy, dry-cask count and time-to-full','A decay-heat/activity curve shows why fuel cools in the pool before dry storage','Decommissioning a unit feeds its dismantling debris into the totals','Representative decay models for demonstration — not a real inventory']},
     decommissioning:{n:'Decommissioning',w:'Dismantling lifecycle.',k:['Begin decommissioning a unit — stages, radiological decay, waste volumes']},
     'personnel-overview':{n:'Personnel',w:'Staffing overview.',k:['Sector rosters and critical-role coverage']},
     'personnel-stress':{n:'Staffing Stress Test',w:'Absence resilience.',k:['Scenarios resolve to MET / DEGRADED / BREACH']},
@@ -3502,7 +3549,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     {g:'Fleet, Power & Secondary',ids:['overview','fleet','power','steam','coolant']},
     {g:'Safety & Monitoring',ids:['rad','alarms','incident','audit','sec']},
     {g:'AI, Analysis & Dependencies',ids:['ai','rlopt','deps','twin','trends']},
-    {g:'Inspection & Lifecycle',ids:['rodtype','components','aging','decommissioning']},
+    {g:'Inspection & Lifecycle',ids:['rodtype','components','aging','decommissioning','waste']},
     {g:'People, Robots & Access',ids:['personnel-overview','personnel-stress','robotics-overview','robotics-readiness','access-presence','access-matrix']},
     {g:'Project',ids:['about','help']}
   ];
@@ -4322,6 +4369,124 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   }
 
   renderCards();wire();renderObjs();
+})();
+</script>
+<script>
+/* NEXUS-1 Waste & Spent Fuel — fleet-driven inventory, storage, decay & disposal. Build NX1-094C79E0A366D34F */
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='waste';}
+  var YEAR=2026, COOL=5, PER_CASK=32;
+  var COMMISSIONED={u1:1986,u2:1995,sa:2024,sb:2024,sc:2025};
+  function fleet(){return (window.NEXUS&&window.NEXUS.units)||[];}
+  function commissioned(u){return u.commissioned||COMMISSIONED[u.id]||2015;}
+  function isPWR(u){return (u.cls||'').indexOf('PWR')===0;}
+  function opYears(u){return Math.max(0,(YEAR-commissioned(u))+(u.simOpYears||0));}
+
+  function model(u){
+    var cf=isPWR(u)?0.9:0.92;
+    var oy=opYears(u)*cf;
+    var rate=(u.cap/900)*(isPWR(u)?34:18);          // assemblies discharged / operating yr
+    var perTHM=isPWR(u)?0.46:0.12;                   // tonnes heavy metal / assembly
+    var asm=Math.round(oy*rate);
+    var tHM=asm*perTHM;
+    var poolCap=Math.max(1,Math.round((u.cap/900)*1200));
+    var cooled=Math.round(Math.max(0,oy-COOL)*rate);
+    var casks=Math.floor(cooled/PER_CASK);
+    var pool=Math.max(0,asm-casks*PER_CASK);
+    var poolPct=Math.min(100,pool/poolCap*100);
+    var rateNow=(u.online&&u.phase!=='decommissioning')?rate:0;
+    var ytf=rateNow>0?Math.max(0,(poolCap-pool)/rateNow):Infinity;
+    var llwOp=(u.cap/900)*25*oy, ilwOp=(u.cap/900)*3*oy+(u.scramCycles||0)*0.5, vllwOp=(u.cap/900)*40*oy;
+    var wf=Math.max(0,Math.min(1,((u.decomProgress||0)-50)/50));
+    var vllwD=u.cap*180*wf, llwD=u.cap*45*wf, ilwD=u.cap*6*wf;
+    return {asm:asm,tHM:tHM,pool:pool,poolCap:poolCap,poolPct:poolPct,casks:casks,ytf:ytf,
+      llw:llwOp+llwD, ilw:ilwOp+ilwD, vllw:vllwOp+vllwD, act:tHM*1200,
+      decom:(u.phase==='decommissioning'), online:(u.online&&u.phase!=='decommissioning')};
+  }
+  function totals(){var T={asm:0,tHM:0,pool:0,poolCap:0,casks:0,llw:0,ilw:0,vllw:0,act:0,opUnits:0};
+    fleet().forEach(function(u){var m=model(u);T.asm+=m.asm;T.tHM+=m.tHM;T.pool+=m.pool;T.poolCap+=m.poolCap;T.casks+=m.casks;T.llw+=m.llw;T.ilw+=m.ilw;T.vllw+=m.vllw;T.act+=m.act;if(m.online)T.opUnits++;});
+    return T;}
+  function fmt(n){n=Math.round(n);return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f');}
+
+  function renderInv(){
+    var el=$('wst-inv');if(!el)return;var T=totals();
+    var maxV=Math.max(1,T.vllw,T.llw,T.ilw);
+    function row(cls,sub,vol,unit,col,act){
+      return '<tr><td><b style="font-family:\'Chakra Petch\';letter-spacing:.3px">'+cls+'</b><div class="note" style="margin:2px 0 0">'+sub+'</div>'+
+        '<div class="wst-bar"><i style="width:'+Math.min(100,vol/maxV*100)+'%;background:'+col+'"></i></div></td>'+
+        '<td class="n">'+fmt(vol)+' <small style="color:var(--text-dim)">'+unit+'</small></td>'+
+        '<td class="n">'+act+'</td></tr>';
+    }
+    el.innerHTML='<table class="wst-tbl"><thead><tr><th>Classification &amp; source</th><th style="text-align:right">Quantity</th><th style="text-align:right">Activity</th></tr></thead><tbody>'+
+      '<tr><td><b style="font-family:\'Chakra Petch\';color:var(--amber);letter-spacing:.3px">Spent fuel / HLW</b><div class="note" style="margin:2px 0 0">discharged assemblies from operation &middot; '+fmt(T.asm)+' assemblies</div></td>'+
+        '<td class="n" style="color:var(--amber)">'+fmt(T.tHM)+' <small style="color:var(--text-dim)">tHM</small></td>'+
+        '<td class="n" style="color:var(--amber)">'+fmt(T.act/1000)+' <small style="color:var(--text-dim)">PBq</small></td></tr>'+
+      row('ILW','intermediate level &middot; resins, filters, components',T.ilw,'m\u00b3','var(--red)','\u2014')+
+      row('LLW','low level &middot; contaminated consumables + dismantling',T.llw,'m\u00b3','var(--amber)','\u2014')+
+      row('VLLW','very low level &middot; bulk dismantling debris',T.vllw,'m\u00b3','var(--green)','\u2014')+
+      '</tbody></table>';
+    var tag=$('wst-inv-tag');if(tag)tag.textContent=T.opUnits+' unit'+(T.opUnits===1?'':'s')+' generating';
+  }
+
+  function renderStorage(){
+    var el=$('wst-storage');if(!el)return;
+    el.innerHTML=fleet().map(function(u){var m=model(u);
+      var col=m.poolPct>90?'var(--red)':m.poolPct>70?'var(--amber)':'var(--green)';
+      var ytf=m.decom?'shut down':(!isFinite(m.ytf)?'offline':(m.ytf>99?'>99 yr':m.ytf.toFixed(1)+' yr'));
+      return '<div class="wst-unit"><div class="uh"><span>'+u.name+' <span class="note">'+(u.cls||'')+'</span></span>'+
+        '<span class="pill '+(m.decom?'warn':m.online?'ok':'na')+'">'+(m.decom?'decommissioning':m.online?'operating':'offline')+'</span></div>'+
+        '<div class="wst-bar"><i style="width:'+m.poolPct+'%;background:'+col+'"></i></div>'+
+        '<div class="ud"><span>Pool <b>'+fmt(m.pool)+' / '+fmt(m.poolCap)+'</b> asm</span><span>Dry casks <b>'+m.casks+'</b></span><span>Spent fuel <b>'+fmt(m.tHM)+'</b> tHM</span><span>Pool full in <b>'+ytf+'</b></span></div></div>';
+    }).join('');
+  }
+
+  function renderPathway(){
+    var el=$('wst-pathway');if(!el)return;var T=totals();
+    var stages=[
+      {n:'In-core',v:T.opUnits,u:'units generating',d:'fuel under irradiation',pill:'ok'},
+      {n:'Spent-fuel pool',v:fmt(T.pool),u:'assemblies (wet)',d:'\u2265 '+COOL+' yr cooling',pill:'ok'},
+      {n:'Dry-cask store',v:fmt(T.casks),u:'casks (interim)',d:'passively cooled',pill:'ok'},
+      {n:'Conditioning',v:fmt(T.tHM),u:'tHM eligible',d:'encapsulation / vitrification',pill:'info'},
+      {n:'Geological repository',v:'\u2014',u:'roadmap',d:'national policy, decades',pill:'na'}
+    ];
+    el.innerHTML=stages.map(function(s,i){
+      return (i?'<div class="wst-arrow">&#10148;</div>':'')+
+        '<div class="wst-stage"><div class="sn">'+s.n+'</div><div class="sv">'+s.v+' <small>'+s.u+'</small></div><div class="sd">'+s.d+'</div><span class="pill '+s.pill+'" style="position:absolute;top:9px;right:9px;font-size:8px">'+s.pill.toUpperCase()+'</span></div>';
+    }).join('');
+  }
+
+  function renderAll(){renderInv();renderStorage();renderPathway();}
+
+  // ---- decay panel (built once; not fleet-driven) ----
+  function decayHeat(t){return 200*(0.72*Math.exp(-t/0.7)+0.28*Math.exp(-t/43));} // kW, representative batch
+  function actFrac(t){return 100*(0.80*Math.exp(-t/0.5)+0.20*Math.exp(-t/43));}    // % of initial
+  function drawCurve(){
+    var svg=$('wst-decaycurve');if(!svg)return;var W=440,H=130,pad=14,TM=40;
+    var p0=decayHeat(0);var pts='';
+    for(var i=0;i<=80;i++){var t=i/80*TM;var x=pad+t/TM*(W-2*pad);var y=H-pad-(decayHeat(t)/p0)*(H-2*pad);pts+=x.toFixed(1)+','+y.toFixed(1)+' ';}
+    var cx=pad+COOL/TM*(W-2*pad);
+    svg.innerHTML='<polyline points="'+pts+'" fill="none" stroke="var(--cyan)" stroke-width="2"/>'+
+      '<line x1="'+cx.toFixed(1)+'" y1="0" x2="'+cx.toFixed(1)+'" y2="'+H+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3"/>'+
+      '<text x="'+(cx+4).toFixed(1)+'" y="14" fill="var(--amber)" font-size="9" font-family="IBM Plex Mono">cask-eligible</text>'+
+      '<line id="wst-mk" x1="'+pad+'" y1="0" x2="'+pad+'" y2="'+H+'" stroke="#eafdff" stroke-width="1" opacity="0.5"/>';
+  }
+  function updateDecay(){
+    var t=+($('wst-yrs')?$('wst-yrs').value:0);
+    if($('wst-yrslbl'))$('wst-yrslbl').textContent=t.toFixed(1);
+    if($('wst-dhv'))$('wst-dhv').textContent=decayHeat(t).toFixed(decayHeat(t)<10?1:0);
+    if($('wst-actv'))$('wst-actv').textContent=actFrac(t).toFixed(actFrac(t)<10?1:0);
+    var mk=document.getElementById('wst-mk');if(mk){var W=440,pad=14,TM=40;mk.setAttribute('x1',(pad+t/TM*(W-2*pad)).toFixed(1));mk.setAttribute('x2',(pad+t/TM*(W-2*pad)).toFixed(1));}
+  }
+
+  // ---- wiring + refresh ----
+  function init(){
+    drawCurve();updateDecay();renderAll();
+    var sl=$('wst-yrs');if(sl)sl.oninput=updateDecay;
+    var nav=document.querySelector('.subitem[data-p="waste"]');if(nav)nav.addEventListener('click',function(){setTimeout(renderAll,0);});
+  }
+  setInterval(function(){if(active())renderAll();},1200);
+  if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>
 </body>
