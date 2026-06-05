@@ -130,6 +130,21 @@ A full set of PDFs accompanies the application:
 
 Created by **Grigorios Agathangelidis** (Electrical & Software Engineering) as a personal project — an effort to study the nuclear-energy domain and apply software-architecture, simulation, visualisation and systems-design skills to it. It does not claim nuclear-engineering expertise, and it is careful to mark where its models are illustrative.
 
+## IMPORTANT NOTICE REGARDING NUCLEAR USE
+
+This software is provided for **demonstration, educational, and research purposes only**.
+
+NOT INTENDED FOR USE IN:
+- Real-time control of any nuclear reactor, fuel handling, or safety system
+- Operational decision-making at any nuclear facility
+- Any application where failure could lead to radiological release, property damage, or personal injury
+
+The author makes no claims regarding the accuracy, completeness, or fitness for any operational purpose. 
+All models are representative, not validated or certified for any specific reactor design.
+
+By using this software, you agree that the author and copyright holder bear no liability for any consequences 
+arising from its use, whether authorized or not.
+
 Build signature: `NX1-094C79E0A366D34F`
 
 © 2026 Grigorios Agathangelidis. **All rights reserved.** See [`LICENSE.txt`](LICENSE.txt). This is a demonstration and educational tool; it is not a licensed analysis tool and is not connected to any real reactor.
