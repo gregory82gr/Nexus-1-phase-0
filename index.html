@@ -658,6 +658,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       </div>
       <div class="kl" style="font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-mute)">Power vs target band</div>
       <div class="trn-band" id="trn-bandwrap"><div class="zone" id="trn-zone" style="display:none"></div><div class="tgt" id="trn-tgtline" style="display:none"></div><div class="mk" id="trn-mk" style="left:90%"></div></div>
+      <div id="trn-xewrap" style="display:none;margin:-6px 0 11px;font-size:11px;letter-spacing:.4px"><span style="color:var(--text-mute);text-transform:uppercase;font-size:8.5px;letter-spacing:1.2px">Xenon-135</span> &nbsp;<b id="trn-xe" class="mono" style="color:var(--amber)">100</b><span style="color:var(--text-dim)">% of equilibrium</span> &nbsp;<span id="trn-xetrend" style="color:var(--text-dim)"></span></div>
 
       <div class="trn-ctrl">
         <div style="display:flex;justify-content:space-between;align-items:center"><span class="note">Control rod bank (reactivity)</span><span class="mono" style="font-size:11px;color:var(--cyan)"><span id="trn-rodval">0</span> pcm</span></div>
@@ -2700,7 +2701,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('pause').onclick=function(){paused=!paused;this.textContent=paused?'Run':'Pause';this.classList.toggle('active',paused);};
   $('reset').onclick=()=>{S=fresh();setRod(0);fillH();render();};
 
-  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},
+  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},
     pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
     reset:function(){S=fresh();setRod(0);fillH();render();},
     setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
@@ -3470,7 +3471,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     'access-presence':{n:'Zone Access — Live Presence',w:'Who and what is in each zone.',k:['Unauthorised presence is flagged as a violation','Toggle simulated movement to see it change']},
     'access-matrix':{n:'Permissions Matrix',w:'Zone authorisation policy.',k:['Which class of person/vehicle/robot may enter which zone']},
     about:{n:'About',w:'Author and scope of the project.',k:['Read this for what is real vs. simulated, and the author background']},
-    training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, reactor-trip response and approach-to-power drills','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
+    training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, deep power reduction, reactor-trip response and a xenon-transient drill','The xenon drill runs at 600x so the multi-hour Xe-135 swing plays out in real time','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
   const GROUPS=[
@@ -4030,10 +4031,14 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     {id:'trip',name:'Reactor Trip Response',diff:'Core',type:'trip',
      brief:'SCRAM on the trip cue — scored on reaction time',
      cueMin:4,cueMax:11,timeout:20,
-     objs:[{k:'wait',t:'Stand by \u2014 monitor for the trip cue'},{k:'react',t:'SCRAM when the trip parameter trips'},{k:'nofalse',t:'No premature (anticipatory) trip'}]}
+     objs:[{k:'wait',t:'Stand by \u2014 monitor for the trip cue'},{k:'react',t:'SCRAM when the trip parameter trips'},{k:'nofalse',t:'No premature (anticipatory) trip'}]},
+    {id:'xenon',name:'Xenon Transient Mgmt',diff:'Advanced',type:'hold',xenon:true,scale:600,
+     brief:'100% \u2192 60%, hold \u00b13% as Xe-135 peaks (run at 600\u00d7)',
+     target:60,band:3,holdReq:40,ceil:108,floor:45,limit:300,
+     objs:[{k:'enter',t:'Bring power into the 57\u201363% band'},{k:'hold',t:'Hold \u00b13% for 40 s as Xe-135 transients'},{k:'notrip',t:'No SCRAM, overshoot, or undershoot < 45%'}]}
   ];
 
-  var sel=null, phase='idle', frozen=false;
+  var sel=null, phase='idle', frozen=false, xePrev=null;
   var st={};  // running drill state
 
   // ---- drill cards ----
@@ -4083,10 +4088,13 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   }
 
   // ---- master controls ----
+  function setTrnScale(s){var k=K();if(k)k.setScale(s);document.querySelectorAll('[data-trnts]').forEach(function(b){b.classList.toggle('active',(+b.dataset.trnts)===s);});}
   function startDrill(){
     var k=K();if(!sel||!k)return;
     k.resume();frozen=false;if($('trn-freeze'))$('trn-freeze').classList.remove('active');
     k.reset();                       // defined initial condition: steady 100%
+    setTrnScale(sel.xenon?(sel.scale||600):1);
+    xePrev=null;
     phase='running';
     st={t0:performance.now(),elapsed:0,inBand:0,excursions:0,wasIn:false,tripped:false,
         flags:{},cueAt:null,cued:false,reactT:null,premature:false,done:false,verdict:'',score:0,last:performance.now()};
@@ -4130,6 +4138,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     if(sel.type==='hold'){
       rows.push(['Time in band',st.inBand.toFixed(1)+' / '+sel.holdReq+' s']);
       rows.push(['Band excursions',st.excursions]);
+      if(sel.xenon)rows.push(['Peak Xe-135',(st.xePeak||0).toFixed(0)+'% of eq']);
       rows.push(['Elapsed',st.elapsed.toFixed(0)+' s']);
     }else{
       rows.push(['Reaction time',st.reactT!=null?st.reactT.toFixed(2)+' s':'\u2014']);
@@ -4155,6 +4164,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       var per=s.period;
       if($('trn-period'))$('trn-period').innerHTML=(!isFinite(per)||Math.abs(per)>9999)?'\u221e':((per>=0?'+':'')+per.toFixed(per<100&&per>-100?1:0));
       var sl=$('trn-rod-slider');if(sl&&document.activeElement!==sl){sl.value=Math.round(s.rodPcm);if($('trn-rodval'))$('trn-rodval').textContent=Math.round(s.rodPcm);}
+      var xw=$('trn-xewrap');
+      if(sel&&sel.xenon){
+        if(xw)xw.style.display='block';
+        var xe=s.xe!=null?s.xe:100;var xel=$('trn-xe');if(xel)xel.textContent=xe.toFixed(0);
+        var d=xe-(xePrev==null?xe:xePrev);xePrev=xe;
+        var tr=$('trn-xetrend');
+        if(tr){tr.textContent=d>0.05?'\u2191 rising \u2014 withdraw rods to hold power':d<-0.05?'\u2193 falling \u2014 insert rods to hold power':'\u2014 near steady';tr.style.color=d>0.05?'var(--amber)':d<-0.05?'var(--cyan)':'var(--text-dim)';}
+        if(xel)xel.style.color=xe>105?'var(--amber)':xe<95?'var(--cyan)':'var(--text)';
+      } else if(xw){xw.style.display='none';}
       updateBand();
     }
     if(phase!=='running'||frozen){st&&(st.last=performance.now());return;}
@@ -4165,6 +4183,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
     if(sel.type==='hold'){
       var inBand=Math.abs(s.power-sel.target)<=sel.band;
+      if(sel.xenon)st.xePeak=Math.max(st.xePeak||0,s.xe||0);
       if(inBand){st.inBand+=dt;if(!st.wasIn){st.flags.enter='done';}st.wasIn=true;}
       else{if(st.wasIn)st.excursions++;st.wasIn=false;}
       // live score preview
