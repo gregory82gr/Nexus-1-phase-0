@@ -587,6 +587,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <div id="dtab-graph">
         <div class="panel hot"><div class="ph"><h2><span class="tick"></span>System Dependency Graph</h2><span class="tag" id="dep-sel">click a node to trace propagation</span></div>
           <svg id="dep-svg" class="dep-svg" viewBox="0 0 980 440" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="dep-tip" class="devtip" role="tooltip"></div>
           <div class="tlegend"><span><span class="sw" style="background:var(--green)"></span>nominal</span><span><span class="sw" style="background:var(--amber)"></span>degrading</span><span><span class="sw" style="background:var(--red)"></span>limit / tripped</span><span><span class="sw" style="background:var(--violet)"></span>feedback (negative)</span></div>
           <div class="note" style="margin-top:6px">Node colours are driven live by the unit selected in the top bar. Click any node to highlight everything it influences downstream, with approximate propagation delays. Solid arrows are forward influence; dashed violet are negative feedback loops.</div>
         </div>
@@ -1244,6 +1245,21 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       .rc-lyr.on.art .sw{border-top:2px dashed #ff7a45}
       .rc-incsel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px}
       .rc-incsel .lbl{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--text-mute)}
+      /* device hovercard */
+      .devtip{position:fixed;z-index:90;display:none;pointer-events:none;width:250px;background:linear-gradient(180deg,#0e1a1d,#0a1214);border:1px solid var(--line-hot);border-radius:7px;padding:10px 11px 9px;box-shadow:0 10px 30px rgba(0,0,0,.55);font-family:'IBM Plex Mono',monospace}
+      .devtip .hd{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+      .devtip .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+      .devtip .ttl{font-family:'Chakra Petch';font-size:11.5px;font-weight:700;color:#eafdff;letter-spacing:.5px}
+      .devtip .org{margin-left:auto;font-size:7.5px;letter-spacing:1px;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:1px 4px}
+      .devtip .kind{font-size:9px;letter-spacing:.4px;text-transform:uppercase;color:var(--cyan)}
+      .devtip .kind b{color:var(--text-dim);font-weight:400}
+      .devtip .fn{font-size:9.5px;color:var(--text);margin:5px 0 7px;line-height:1.35}
+      .devtip table{width:100%;border-collapse:collapse}
+      .devtip td{font-size:9px;padding:2px 0;vertical-align:top}
+      .devtip td:first-child{color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;padding-right:10px}
+      .devtip td:last-child{color:#cfe3e6;text-align:right}
+      .devtip .st{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);font-size:8.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+      .devtip .ft{margin-top:5px;font-size:7.5px;color:var(--text-mute);letter-spacing:.3px}
     </style>
     <section class="page" data-page="rcgraph">
       <div class="rc-incsel">
@@ -1268,6 +1284,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
             <button class="btn" id="rc-replay" style="margin-left:auto">&#9654; Replay propagation</button>
           </div>
           <svg id="rc-svg" class="rc-svg" viewBox="0 0 980 470" preserveAspectRatio="xMidYMid meet"></svg>
+          <div id="rc-tip" class="devtip" role="tooltip"></div>
           <div class="tlegend">
             <span><span class="sw" style="background:var(--red)"></span>fault origin</span>
             <span><span class="sw" style="background:var(--amber)"></span>degrading</span>
@@ -2769,9 +2786,64 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       g+='<text x="'+(n.x+12)+'" y="'+(n.y+33)+'" fill="'+col+'" font-size="9.5" font-family="IBM Plex Mono">'+(s._v[id]||'')+'</text>';
       if(dn&&dn.seen[id]&&id!==sel&&dn.t[id]>0)g+='<text x="'+(n.x+NW-6)+'" y="'+(n.y+12)+'" fill="var(--amber)" font-size="8" font-family="IBM Plex Mono" text-anchor="end">+'+(dn.t[id]>=1?dn.t[id].toFixed(0)+'s':(dn.t[id]*1000).toFixed(0)+'ms')+'</text>';
       g+='</g>';});
-    svg.innerHTML=g;}
+    svg.innerHTML=g;depRefreshTip(svg);}
   function clickNode(id){sel=(sel===id)?null:id;$('dep-sel').textContent=sel?('tracing from '+N[sel].l+' \u2014 click again to clear'):'click a node to trace propagation';render();}
   $('dep-svg').addEventListener('click',function(e){const g=e.target.closest('[data-node]');if(g)clickNode(g.getAttribute('data-node'));});
+
+  // ---- system characteristic hovercards ----
+  // Per-system spec cards for the dependency nodes. Illustrative demonstration
+  // data (consistent with the rest of the console, not identified from plant data).
+  const DEPDEV={
+   rods:{k:'Reactivity Control System',c:'Safety \u00b7 Class 1E',fn:'Neutron-absorbing control-rod banks that regulate core reactivity and scram',s:[['Banks','Control + shutdown'],['Drive','Magnetic-jack CRDM'],['Scram','< 2 s full insert'],['Absorber','Ag-In-Cd / B4C']]},
+   reactivity:{k:'Process Signal \u2014 neutronics',c:'Derived measurement',fn:'Net core reactivity balance summed over all feedback sources',s:[['Units','pcm'],['Critical','0 pcm (k=1)'],['Inputs','rods, fuel-T, Xe, flow'],['Delayed-n','\u03b2 \u2248 650 pcm']]},
+   flux:{k:'Neutron Flux',c:'Excore instrumentation',fn:'Power-range neutron flux \u2014 the promptest indicator of core power',s:[['Detector','Fission chamber'],['Range','0\u2013125 % power'],['Channels','4 excore'],['Bandwidth','~ms']]},
+   power:{k:'Thermal Power',c:'Derived measurement',fn:'Core thermal output from neutron flux and the coolant calorimetric',s:[['Units','% rated'],['Calorimetric','\u0394T \u00d7 flow'],['Lag vs flux','~1\u20132 s'],['Trip','overpower / high \u0394T']]},
+   xenon:{k:'Fission-Product Poison',c:'Neutronic feedback',fn:'Xe-135 absorber that builds and decays slowly, shifting reactivity',s:[['Half-life','\u2248 9.2 h'],['Peak','~9 h after trip'],['Worth','up to ~2800 pcm'],['Effect','slow negative']]},
+   fuelT:{k:'Fuel Temperature',c:'Doppler feedback',fn:'Fuel-pellet temperature \u2014 prompt negative reactivity feedback',s:[['Coefficient','negative (Doppler)'],['Normal','300\u2013640 \u00b0C'],['Limit','centreline < 1800 \u00b0C'],['Response','prompt']]},
+   coolantA:{k:'Primary Coolant Loop A',c:'NSSS \u00b7 RCS',fn:'Removes core heat to the steam generator via the loop-A pump',s:[['Pump','RCP-1A'],['Hot leg','\u2248 323 \u00b0C'],['Cold leg','\u2248 289 \u00b0C'],['Pressure','15.5 MPa']]},
+   coolantB:{k:'Primary Coolant Loop B',c:'NSSS \u00b7 RCS',fn:'Parallel primary loop removing core heat through the loop-B pump',s:[['Pump','RCP-1B'],['Hot leg','\u2248 323 \u00b0C'],['Cold leg','\u2248 289 \u00b0C'],['Pressure','15.5 MPa']]},
+   feedwater:{k:'Feedwater System',c:'Secondary side',fn:'Returns condensate to the steam generators to sustain steam production',s:[['Pumps','FW Pump 2A/2B'],['Temp','\u2248 220 \u00b0C'],['Control','SG level + steam flow'],['Heaters','multi-stage FWH']]},
+   steam:{k:'Steam Generator',c:'Heat exchanger',fn:'Transfers primary heat to the secondary side, producing dry steam',s:[['Type','U-tube recirculating'],['Pressure','\u2248 6.9 MPa'],['Tubes','Inconel bundle'],['Level','62 % NR nominal']]},
+   turbine:{k:'Steam Turbine',c:'Energy conversion',fn:'Expands steam across HP/LP stages to drive the generator shaft',s:[['Speed','3000 rpm (50 Hz)'],['Stages','HP + 2\u00d7 LP'],['Inlet','\u2248 6.9 MPa'],['Exhaust','to condenser']]},
+   grid:{k:'Grid Interface',c:'Electrical export',fn:'Synchronises the generator output to the transmission network',s:[['Generator','3-ph synchronous'],['Voltage','400 kV via GSU'],['Frequency','50 Hz'],['Output','live MW reading']]}
+  };
+  function depEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  let depHoverId=null;
+  function depShowTip(id,el){
+    const tip=$('dep-tip');if(tip===STUB)return;
+    const n=N[id];if(!n)return;
+    const sv=status();const col=COL[sv[id]]||'var(--green)';const d=DEPDEV[id];
+    let h='<div class="hd"><span class="dot" style="background:'+col+'"></span><span class="ttl">'+depEsc(n.l)+'</span></div>';
+    if(d){
+      h+='<div class="kind">'+depEsc(d.k)+(d.c?' \u00b7 <b>'+depEsc(d.c)+'</b>':'')+'</div>';
+      h+='<div class="fn">'+depEsc(d.fn)+'</div>';
+      h+='<table>'+d.s.map(r=>'<tr><td>'+depEsc(r[0])+'</td><td>'+depEsc(r[1])+'</td></tr>').join('')+'</table>';
+    }
+    h+='<div class="st">live \u00b7 '+depEsc(sv._v[id]||'\u2014')+'</div>';
+    h+='<div class="ft">illustrative specification \u2014 demonstration data</div>';
+    tip.innerHTML=h;tip.style.display='block';
+    const r=el.getBoundingClientRect(),tr=tip.getBoundingClientRect();
+    let left=r.left+r.width/2-tr.width/2, top=r.top-tr.height-10;
+    if(top<8)top=r.bottom+10;
+    left=Math.max(8,Math.min(left,window.innerWidth-tr.width-8));
+    tip.style.left=left.toFixed(0)+'px';tip.style.top=top.toFixed(0)+'px';
+  }
+  function depHideTip(){const tip=$('dep-tip');if(tip!==STUB)tip.style.display='none';}
+  function depRefreshTip(svg){           // called at the end of each render()
+    if(!depHoverId||!svg||!svg.querySelector)return;
+    const el=svg.querySelector('[data-node="'+depHoverId+'"]');
+    if(el)depShowTip(depHoverId,el);else{depHoverId=null;depHideTip();}
+  }
+  (function(){
+    const dsvg=$('dep-svg');if(dsvg===STUB)return;
+    dsvg.addEventListener('mousemove',function(e){
+      const t=e.target.closest('[data-node]');
+      if(t){depHoverId=t.getAttribute('data-node');depShowTip(depHoverId,t);}
+      else{depHoverId=null;depHideTip();}
+    });
+    dsvg.addEventListener('mouseleave',function(){depHoverId=null;depHideTip();});
+    window.addEventListener('scroll',depHideTip,true);
+  })();
   setInterval(function(){const a=document.querySelector('.page.active');if(a&&a.dataset.page==='deps'){render();const su=(window.NEXUS&&window.NEXUS.getSel)?window.NEXUS.getSel():null;if(su!==lastMtxUnit){buildMatrix();buildChain();}}},800);
 
   // ---- matrix ----
@@ -3078,6 +3150,75 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     render();
   }
   $('rc-svg').addEventListener('click',function(e){const t=e.target.closest('[data-rnode]');if(t)clickNode(t.getAttribute('data-rnode'));});
+
+  // ---- device characteristic hovercards ----
+  // Per-incident spec cards keyed by node id. Illustrative demonstration data
+  // (consistent with the page's "not identified from plant data" framing).
+  const DEV={
+   'EVT-2026-0418':{
+     fv104:{k:'Motor-Operated Valve',c:'Safety-related \u00b7 Class 1E',fn:'Main feedwater flow control & isolation to Steam Generator 1',s:[['Line size','6 in / DN150'],['Actuator','Electric MOV'],['Stroke time','12 s'],['Design press.','17.2 MPa']]},
+     bus:{k:'Medium-Voltage Bus',c:'Electrical distribution',fn:'4 kV supply to the Train-2A balance-of-plant loads',s:[['Voltage','4.16 kV 3-ph'],['Rating','2000 A'],['Fault level','40 kA'],['Source','UAT / EDG']]},
+     sg1:{k:'Steam Generator Level',c:'Process signal',fn:'Narrow-range water level in SG-1 \u2014 feedwater control variable',s:[['Range','0\u2013100 % NR'],['Normal','62 \u00b1 5 %'],['Lo / Lo-Lo','58 % / 46 %'],['Sensor','3\u00d7 \u0394P, 2oo3']]},
+     sens:{k:'Flow Transmitter',c:'Instrumentation',fn:'Primary-loop flow measurement, cross-checked for fault rejection',s:[['Tag','FT-7'],['Range','0\u2013120 % flow'],['Accuracy','\u00b10.5 % span'],['Signal','4\u201320 mA HART']]},
+     fwp:{k:'Feedwater Pump',c:'Rotating equipment',fn:'Delivers feedwater from the deaerator to the steam generators',s:[['Tag','FW Pump 2A'],['Type','Multistage centrifugal'],['Rated flow','1800 m\u00b3/h'],['Head','820 m'],['Drive','6.6 kV, 7 MW']]},
+     rcp:{k:'Reactor Coolant Pump',c:'Rotating equipment \u00b7 NSSS',fn:'Circulates primary coolant through the core on loop B',s:[['Tag','RCP-1B'],['Type','Vertical centrifugal'],['Rated flow','22 500 m\u00b3/h'],['Speed','1485 rpm'],['Motor','6.6 kV, 6 MW']]},
+     brg:{k:'Pump Bearing Assembly',c:'Mechanical component',fn:'Radial/thrust support for the FW Pump 2A shaft',s:[['Type','Tilting-pad journal'],['Temp alarm','95 \u00b0C'],['Vib alarm','7.1 mm/s rms'],['Monitor','RTD + accel.']]},
+     flow:{k:'Process Signal',c:'Derived measurement',fn:'Primary loop volumetric flow \u2014 thermal-hydraulic indicator',s:[['Range','0\u2013120 %'],['Trip approach','< 90 %'],['Osc. flag','0.8 Hz'],['Source','3\u00d7 FT loop B']]},
+     dt:{k:'Process Signal',c:'Protection-relevant',fn:'Core temperature rise (T_hot \u2212 T_cold) \u2014 overpower / DNB indicator',s:[['Normal \u0394T','\u2248 34 \u00b0C'],['Alarm','> 3\u03c3 dev.'],['Anomaly','> 50 \u00b0C'],['Source','loop RTDs']]},
+     trip:{k:'Protection Action',c:'Reactor Protection System',fn:'Automatic reactor trip \u2014 all rods inserted on a safety signal',s:[['Trigger','High Core \u0394T'],['Logic','2-out-of-4'],['Rod insert','< 2 s'],['Class','1E fail-safe']]}
+   },
+   'EVT-2026-0419':{
+     brk:{k:'Switchgear Breaker',c:'Electrical \u00b7 4 kV',fn:'Bus-2A feeder breaker \u2014 close transient coupled EMI into instruments',s:[['Tag','BKR-2A'],['Voltage','4.16 kV'],['Current','1250 A'],['Interrupt','40 kA'],['Type','Vacuum']]},
+     ft9:{k:'Flow Transmitter',c:'Instrumentation',fn:'Loop-A flow measurement (channel corrupted by the EMI artefact)',s:[['Tag','FT-9'],['Range','0\u2013120 % flow'],['Accuracy','\u00b10.5 % span'],['Signal','4\u201320 mA HART']]},
+     lt3:{k:'Level Transmitter',c:'Instrumentation',fn:'Pressuriser level measurement (transient artefact spike)',s:[['Tag','LT-3'],['Range','0\u2013100 %'],['Accuracy','\u00b10.4 % span'],['Type','\u0394P capacitance']]},
+     pt7:{k:'Pressure Transmitter',c:'Instrumentation',fn:'RCS pressure measurement (transient artefact spike)',s:[['Tag','PT-7'],['Range','0\u201320 MPa'],['Accuracy','\u00b10.3 % span'],['Type','Piezoresistive']]},
+     proc:{k:'Diagnostic Hypothesis',c:'Rejected',fn:'Candidate real loss-of-flow event \u2014 tested against the evidence and ruled out',s:[['Class','Process excursion'],['For','apparent flow drop'],['Against','RTD & flux flat'],['Verdict','rejected']]},
+     excur:{k:'Phantom Event',c:'Unconfirmed',fn:'Apparent excursion inferred from a corrupted flow signal',s:[['Origin','FT-9 artefact'],['Corrob.','none'],['Self-cleared','yes, 8 s'],['Status','not physical']]},
+     rtd:{k:'Resistance Thermometer',c:'Instrumentation',fn:'Loop average-temperature sensor \u2014 independent corroborating channel',s:[['Type','4-wire Pt RTD'],['Range','0\u2013350 \u00b0C'],['Accuracy','\u00b10.3 \u00b0C'],['Response','flat (no \u0394)']]},
+     flux:{k:'Neutron Flux Detector',c:'Excore instrumentation',fn:'Power-range neutron flux \u2014 independent corroborating channel',s:[['Type','Fission chamber'],['Range','0\u2013125 % pwr'],['Channels','4 excore'],['Response','flat (no \u0394)']]}
+   },
+   'EVT-2026-0420':{
+     waiver:{k:'QA Disposition Record',c:'Configuration control',fn:'Non-conformance waiver that admitted a suspect absorber "use-as-is"',s:[['ID','WV-318'],['Disposition','use-as-is'],['Item','rod absorber'],['Alarm','none (process)']]},
+     cr7:{k:'Control Rod',c:'Reactivity control \u00b7 safety',fn:'Neutron-absorbing control rod, Bank D position CR-7',s:[['Tag','CR-7'],['Absorber','Ag-In-Cd / B4C'],['Bank','D'],['Defect','low B4C']]},
+     worth:{k:'Process Signal',c:'Measured parameter',fn:'Integral reactivity worth of CR-7 vs prediction',s:[['Units','pcm'],['Deviation','\u221214 % vs pred.'],['Method','rod-swap'],['Limit','\u00b110 %']]},
+     drop:{k:'Process Signal',c:'Measured parameter',fn:'Free-fall scram insertion time for CR-7',s:[['Spec','\u2264 2.2 s'],['Measured','+0.3 s over'],['Cause','absorber drag'],['Test','rod-drop']]},
+     cal:{k:'Software Model',c:'Analytical \u00b7 ruled out',fn:'Core-physics rod-worth predictor \u2014 validated against the other banks',s:[['Type','Nodal diffusion'],['Validation','vs banks A\u2013C'],['Status','in tolerance'],['Verdict','not the fault']]},
+     react:{k:'Process Signal',c:'Derived measurement',fn:'Overall core reactivity balance during the verification test',s:[['Units','pcm'],['Observed','below pred.'],['Driver','CR-7 low worth'],['Bank','D']]},
+     detect:{k:'Verification Test',c:'Surveillance procedure',fn:'Periodic rod-drop & worth surveillance test',s:[['Result','FAIL \u2014 CR-7'],['Scope','Bank D'],['Basis','Tech-Spec SR'],['Outcome','rod removed']]},
+     mech:{k:'Control Rod Drive',c:'Mechanical \u00b7 ruled out',fn:'CRDM that positions and releases CR-7',s:[['Type','Magnetic-jack'],['Action','lift/move/release'],['Inspection','within wear limits'],['Verdict','healthy']]}
+   }
+  };
+  const SEVCOL={red:'var(--red)',amber:'var(--amber)',green:'var(--green)'};
+  function rcOriginId(){const c=(typeof CAND!=='undefined'&&CAND)?CAND.find(x=>x.tag==='ORIGIN'):null;return c?c.id:null;}
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function rcShowTip(id,el){
+    const tip=$('rc-tip');if(tip===STUB)return;
+    const n=N[id];if(!n)return;
+    const d=(DEV[cur]||{})[id];
+    const col=SEVCOL[n.sev]||'var(--cyan)';
+    let h='<div class="hd"><span class="dot" style="background:'+col+'"></span><span class="ttl">'+esc(n.l)+'</span>'
+        +(id===rcOriginId()?'<span class="org">ORIGIN</span>':'')+'</div>';
+    if(d){
+      h+='<div class="kind">'+esc(d.k)+(d.c?' \u00b7 <b>'+esc(d.c)+'</b>':'')+'</div>';
+      h+='<div class="fn">'+esc(d.fn)+'</div>';
+      h+='<table>'+d.s.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</table>';
+    }
+    h+='<div class="st">status \u00b7 '+esc(n.s)+'</div>';
+    h+='<div class="ft">illustrative specification \u2014 demonstration data</div>';
+    tip.innerHTML=h;tip.style.display='block';
+    const r=el.getBoundingClientRect(),tr=tip.getBoundingClientRect();
+    let left=r.left+r.width/2-tr.width/2, top=r.top-tr.height-10;
+    if(top<8)top=r.bottom+10;
+    left=Math.max(8,Math.min(left,window.innerWidth-tr.width-8));
+    tip.style.left=left.toFixed(0)+'px';tip.style.top=top.toFixed(0)+'px';
+  }
+  function rcHideTip(){const tip=$('rc-tip');if(tip!==STUB)tip.style.display='none';}
+  (function(){
+    const svg=$('rc-svg');if(svg===STUB)return;
+    svg.addEventListener('mouseover',function(e){const t=e.target.closest('[data-rnode]');if(t)rcShowTip(t.getAttribute('data-rnode'),t);});
+    svg.addEventListener('mouseout',function(e){const t=e.target.closest('[data-rnode]');if(t&&!t.contains(e.relatedTarget))rcHideTip();});
+    window.addEventListener('scroll',rcHideTip,true);
+  })();
 
   // layer toggles
   document.querySelectorAll('.rc-lyr[data-layer]').forEach(function(el){
