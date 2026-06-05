@@ -23,6 +23,7 @@ This repository is **Phase 0**: the demonstration and design phase. The path to 
 - [Quick start](#-quick-start)
 - [Screenshots](#-screenshots)
 - [Features](#-features)
+- [Reactor physics](#-reactor-physics)
 - [Real vs. simulated](#-real-vs-simulated)
 - [Architecture & roadmap](#-architecture--roadmap)
 - [Documentation](#-documentation)
@@ -53,6 +54,8 @@ cd <repo-name>
 
 **First tour (shows how the screens connect):** open **Reactor → Control Rods**, move the rod bank, then press **SCRAM**. Now check **Incident Analysis** and **Compliance** to see the event recorded, and **Rod Inspection** to see the rods flagged for post-trip inspection — one action rippling across the whole system.
 
+**Lost on any screen?** Every page has a contextual **“?”** button, and the sidebar **Help & Guide** page explains what each screen does and how the parts connect.
+
 ## 🖼️ Screenshots
 
 > Add a few PNGs to a `docs/` folder and reference them here, for example:
@@ -67,22 +70,33 @@ cd <repo-name>
 
 ## ✨ Features
 
-- **Fleet & overview** — multi-unit fleet (PWR units + SMR modules) with on/off toggling, grid aggregation, and a unit selector that propagates across the unit-specific screens.
-- **Reactor** — per-unit core map, interactive control rods + SCRAM, neutronics, a genuine **point-kinetics** simulator (6 delayed-neutron groups; Doppler / moderator / xenon feedback), and a **3D digital-twin view** (telemetry vs. model).
-- **Secondary & electrical** — steam/secondary, coolant loops, power & grid synchronisation.
-- **Monitoring & safety** — radiation, alarms, incident analysis, a hash-sealed compliance/audit log, and OT-security posture.
+- **Fleet & overview** — multi-unit fleet (PWR units + SMR modules) with on/off toggling, grid aggregation, and a unit selector that propagates across the unit-specific screens. Each unit type drives its own reactor core-map sizing, flux/temperature/rod rendering and live physics. A whole-plant **Plant 3D View** shows reactors, the steam header and the turbine-generators in one animated scene.
+- **Reactor** — per-unit core map, interactive control rods + SCRAM, neutronics, a genuine **point-kinetics** simulator (6 delayed-neutron groups; Doppler / moderator / xenon-135 feedback; a two-node fuel/coolant thermal model; coupled iodine–xenon poisoning; stable operator-splitting integration), and a **3D digital-twin view** with two side-by-side cores — noisy telemetry vs. clean model — whose divergence is the twin early-warning signal. See [Reactor physics](#-reactor-physics).
+- **Secondary & electrical** — steam/secondary (steam generators, turbine train, condenser), coolant loops / thermal-hydraulics, power & grid synchronisation.
+- **Monitoring & safety** — radiation, alarms & events, incident analysis, a hash-sealed compliance/audit log, and OT-security posture.
 - **Analysis & intelligence** — AI predictive diagnostics; an experimental **reinforcement-learning optimiser** (BETA, twin-only, advisory, interpretable); a **system-dependencies** graph / influence-matrix / causal-chain; digital twin; and trends.
 - **Root cause graph** — a causal fault-propagation graph built on an engineered fault-tree backbone (auditable, regulator-aligned), overlaid with live alarm state and a low-confidence data-informed layer (ML-weighted edges, plus rejected candidate edges held out for engineer confirmation); collapses an alarm flood into a single origin and its downstream cascade, and ranks hypotheses by causal origin rather than alarm volume — surfacing the upstream cause over the loudest symptom. Advisory only, never feeding control or safety actuation.
-- **Integrity & lifecycle** — rod inspection (NDT), component ageing & degradation, and decommissioning.
+- **Integrity & lifecycle** — rod inspection (NDT), a per-unit component registry with live health, component ageing & degradation, and decommissioning.
 - **People, robots & access** — personnel + staffing stress test, a robotic/vehicle fleet + mission readiness, and zone access (live presence + permissions matrix).
+- **Help & guidance** — a sidebar **Help & Guide** page organising every screen by theme, plus a per-page contextual **“?”** panel, both drawn from a single shared help model.
 - **Connected behaviour** — a SCRAM ripples into incidents, compliance, inspection, and ageing; operation accrues component life; the unit selector drives the relevant screens.
+
+## 🔬 Reactor physics
+
+The console deliberately carries **two layers** of reactor physics, and they are documented honestly in the [Reactor Physics Reference](#-documentation):
+
+- **Reactor Kinetics tab — the rigorous model.** A genuine point-kinetics solver integrating the standard reactor-dynamics equations with six delayed-neutron precursor groups (U-235 data), coupled to Doppler (fuel-temperature), moderator (coolant-temperature) and xenon-135 feedback, a lumped two-node thermal model, and an operator-splitting integration scheme (exact precursor update, implicit neutron update, explicit slow nodes) that stays stable despite the stiffness of the equations. The *structure* is the real physics and reproduces the correct qualitative phenomena — prompt jump, reactor period, power self-regulation through negative feedback, the delayed-neutron tail on SCRAM, and the post-shutdown xenon transient.
+- **Neutronics tab — the illustrative model.** Its excore-detector readings (source / intermediate range, startup rate), reactivity-balance rows and axial-flux shape are driven by the lightweight per-unit fleet model plus monotonic display mappings — chosen to behave plausibly, and clearly labelled as presentation logic rather than first-principles neutronics.
+
+In both layers the numerical **constants** are representative textbook-order values, not tuned to a specific reactor. Every equation and constant is set out in the Reactor Physics Reference PDF.
 
 ## 🔬 Real vs. simulated
 
 | Real / genuine | Simulated / illustrative |
 | --- | --- |
 | The interface, navigation, visualisations and interactions are working code. | All data is generated in the browser; nothing connects to a real plant. |
-| The reactor-kinetics physics and the RL agent are real in structure and genuinely compute/learn. | Their constants are representative, not tuned to a specific reactor. |
+| The **Reactor Kinetics** solver and the RL agent are real in structure and genuinely compute/learn. | Their constants are representative, not tuned to a specific reactor. |
+| The **Neutronics** tab uses honest, clearly-labelled display mappings driven by the fleet model. | It does not run the point-kinetics solver; its detector readings and balance rows are illustrative. |
 | Workflows reflect real industry concepts (NDT, staffing rules, dose limits, decommissioning stages). | Ageing figures, dependency weights, names, ratings and dates are plausible placeholders. |
 
 ## 🏗️ Architecture & roadmap
@@ -104,11 +118,13 @@ The goal is a platform active in all of its modes — **Training, Shadow, Adviso
 
 A full set of PDFs accompanies the application:
 
+- **Reactor Physics Reference** *(new)* — the equations, constants and numerical methods behind the **Neutronics** and **Reactor Kinetics** tabs: the genuine point-kinetics model (6 delayed-neutron groups, Doppler / moderator / xenon-135 feedback, two-node thermal model, operator-splitting integration) and — clearly labelled as illustrative — the display model that drives the Neutronics tab. Written to be read alongside the source.
 - **Functional Guide (Phase 0)** — an analytical walk-through of every screen and how the parts connect.
 - **Glossary of Terms** — a plain-English guide to every term in the console, for non-engineers.
+- **Root Cause Analysis Engine** — how the causal fault-propagation engine works: the fault-tree backbone, the live alarm overlay, and the held-out ML-weighted candidate edges, with hypothesis ranking by causal origin. Advisory only.
+- **Root Cause Graph** — the graph view of fault propagation and alarm correlation.
 - **Project Roadmap** — the phased plan, the intended stack, and an indicative effort estimate.
 - **Project Brief** — a one-look overview.
-- **Root Cause Graph**
 
 ## 👤 Author & licence
 
