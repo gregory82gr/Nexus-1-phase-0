@@ -472,6 +472,9 @@
 .help-item .hw{font-size:10.5px;color:var(--text-dim);margin:2px 0 5px}
 .help-item ul{margin:0 0 0 16px;padding:0}
 .help-item li{font-size:10px;color:var(--text-dim);line-height:1.6}
+.hsec{display:flex;align-items:baseline;gap:11px;margin:2px 0 12px;padding:9px 14px;border:1px solid var(--line-hot);border-radius:6px;background:linear-gradient(90deg,rgba(34,211,238,.06),transparent)}
+.hsec .hx{font-family:'Chakra Petch';font-size:14px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700}
+.hsec .hd{font-size:9.5px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
 /* ===== merge overrides ===== */
 .app{grid-template-columns:236px 1fr}
 main::before{inset:58px 0 0 236px}
@@ -3504,10 +3507,44 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   ];
   function itemHTML(id){const e=HELP[id];if(!e)return '';return '<div class="help-item"><div class="hn">'+e.n+'</div><div class="hw">'+e.w+'</div>'+(e.k&&e.k.length?'<ul>'+e.k.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'')+'</div>';}
   function buildPage(){const el=$('help-body');if(el===STUB)return;
-    let html='<div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Help &amp; Guide</h2><span class="tag">how to read this console</span></div>'+
-      '<div class="note" style="font-size:11px;line-height:1.8;color:var(--text)">NEXUS-1 is a <b>demonstration</b> — nothing is connected to a real plant, and the models are studied and representative, not validated. Navigate with the sidebar. Status colours throughout mean <b style="color:var(--green)">green</b> nominal, <b style="color:var(--amber)">amber</b> degrading, <b style="color:var(--red)">red</b> limit reached or tripped. The console behaves as a connected system: a <b>SCRAM</b> propagates into the incident log, compliance record, rod-inspection workload and component ageing. For quick help on whatever screen you are viewing, press the <b>?</b> button in the top bar.</div></div>';
-    GROUPS.forEach(gr=>{html+='<div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>'+gr.g+'</h2></div>'+gr.ids.map(itemHTML).join('')+'</div>';});
-    el.innerHTML=html;}
+    function panel(t,tag,inner){return '<div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>'+t+'</h2>'+(tag?'<span class="tag">'+tag+'</span>':'')+'</div>'+inner+'</div>';}
+    function item(n,w){return '<div class="help-item"><div class="hn">'+n+'</div><div class="hw">'+w+'</div></div>';}
+    function banner(x,d,c){return '<div class="hsec"><span class="hx" style="color:'+c+'">'+x+'</span><span class="hd">'+d+'</span></div>';}
+    var H=[];
+    H.push('<div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Help &amp; Guide</h2><span class="tag">two parts: guide + help</span></div><div class="note" style="font-size:11px;line-height:1.8;color:var(--text)">This page has two parts. The <b style="color:var(--cyan)">Guide</b> orients you \u2014 what NEXUS-1 is, how to read it, and a suggested path through the console. The <b style="color:var(--violet)">Help</b> is a reference \u2014 what every individual screen does, plus troubleshooting. For quick help on the screen you are currently viewing, press the <b>?</b> button in the top bar.</div></div>');
+    // ===== GUIDE =====
+    H.push(banner('Guide','orientation \u00b7 start here','var(--cyan)'));
+    H.push(panel('What NEXUS-1 is (and is not)','scope',
+      '<div class="note" style="font-size:11px;line-height:1.8;color:var(--text)">NEXUS-1 is a <b>demonstration / portfolio console</b>. Everything runs in <b>Simulation Mode</b> \u2014 nothing is connected to a real reactor. The physics models are <b>studied and representative</b>, not validated engineering tools, and the platform has <b>no control authority</b> over anything real. AI and reinforcement-learning outputs are <b>advisory only</b>.</div>'));
+    H.push(panel('How to read the console','conventions',
+      item('Status colours','<b style="color:var(--green)">Green</b> nominal \u00b7 <b style="color:var(--amber)">amber</b> degrading \u00b7 <b style="color:var(--red)">red</b> a limit reached or the reactor tripped.')+
+      item('Unit selector (top bar)','Most reactor screens follow the fleet unit you select there.')+
+      item('Operating-mode pills (top bar)','<b>Sim</b> and <b>Train</b> are active \u2014 they jump to the Overview and to Training Mode. <b>Shadow, Advisory, Superv.</b> and <b>Hybrid</b> are roadmap, not active at Phase 0.')+
+      item('It behaves as a connected system','A <b>SCRAM</b> propagates: it writes to Incident Analysis and the Compliance log, adds a rod-inspection demand cycle, and ages components.')+
+      item('The ? button','The top-bar <b>?</b> gives quick help for whatever screen you are viewing.')));
+    H.push(panel('A suggested tour','where to start',
+      item('1 \u00b7 Overview','Whole-plant snapshot for the selected unit.')+
+      item('2 \u00b7 Plant Fleet','Switch PWR units and SMR modules on/off; choose the active unit.')+
+      item('3 \u00b7 Reactor Kinetics','The real point-kinetics simulator \u2014 nudge reactivity and watch power, period, temperature and xenon respond.')+
+      item('4 \u00b7 3D Reactor View','Telemetry beside the model \u2014 the digital-twin idea, where divergence is an early-warning signal.')+
+      item('5 \u00b7 Training Mode','Fly the reactor yourself against scored drills (see the next panel).')+
+      item('6 \u00b7 Optimization (RL)','Watch an agent learn a rod-control policy; read the \u201cWhat Train policy does\u201d panel there first.')+
+      item('7 \u00b7 Root Cause Graph','Collapse a flood of alarms down to a single underlying cause.')+
+      item('8 \u00b7 Lifecycle, People, Robots, Access','The surrounding operational modules \u2014 ageing, decommissioning, staffing, robotic fleet and zone access.')));
+    H.push(panel('Training Mode and Optimization (RL) \u2014 how they relate','new features',
+      item('Training Mode (you fly it)','You control the reactor against the <b>real kinetics model</b>. Five drills \u2014 Power Maneuver, Deep Power Reduction, Reactor Trip Response, Xenon Transient Management, and Load-Follow \u2014 each with objectives, a live score, and a debrief logged as a TRAINING entry.')+
+      item('Optimization (RL) (the machine learns it)','An agent learns a similar power-holding / load-follow task <b>automatically</b>, by trial and error inside a fast surrogate model. The result is a small, readable table \u2014 advisory only.')+
+      item('The link','Training Mode is a human doing the task; RL is a machine learning the same kind of task. Neither has authority over a real plant.')));
+    // ===== HELP =====
+    H.push(banner('Help','reference \u00b7 look up a screen','var(--violet)'));
+    GROUPS.forEach(function(gr){H.push('<div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>'+gr.g+'</h2></div>'+gr.ids.map(itemHTML).join('')+'</div>');});
+    H.push(panel('Troubleshooting &amp; FAQ','common questions',
+      item('A 3D view is blank or shows a message','The 3D scenes need the three.js library loaded over the internet. The rest of the console works offline.')+
+      item('A Training drill is not scoring','Press <b>Start</b> to arm it. Holds are scored in real seconds; the Xenon drill auto-runs at 600\u00d7 so the slow transient is visible.')+
+      item('The RL \u201cApply\u201d button does nothing','Train the policy first \u2014 run it to <i>policy ready</i>. Apply is advisory and clamped, with no authority on a real plant.')+
+      item('A top-bar mode pill seems dead','Only <b>Sim</b> and <b>Train</b> are active. Shadow, Advisory, Superv. and Hybrid are roadmap modes.')+
+      item('Numbers differ between screens after switching units','Some panels refresh immediately, others on the next tick. Reactor screens follow the selected unit.')));
+    el.innerHTML=H.join('');}
 
   // popover
   const pop=document.createElement('div');pop.className='helppop';pop.id='helppop';document.body.appendChild(pop);
