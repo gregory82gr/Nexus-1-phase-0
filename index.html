@@ -70,6 +70,10 @@
   .mode{font-family:'Chakra Petch';font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;padding:4px 9px;border:1px solid var(--line);border-radius:3px;color:var(--text-mute);cursor:pointer;transition:.15s}
   .mode:hover{color:var(--text-dim);border-color:var(--line-hot)}
   .mode.active{color:#031014;background:var(--cyan);border-color:var(--cyan);font-weight:600}
+  .mode.soon{opacity:.42;cursor:help;border-style:dashed}
+  .mode.soon:hover{opacity:.7;color:var(--text-mute);border-color:var(--line)}
+  .mode-toast{position:fixed;z-index:9999;background:var(--panel-2);border:1px solid var(--amber);color:var(--text);font-size:10.5px;letter-spacing:.4px;padding:7px 11px;border-radius:5px;box-shadow:0 6px 22px rgba(0,0,0,.5);opacity:0;transform:translateY(-4px);pointer-events:none;transition:.18s;max-width:300px}
+  .mode-toast.show{opacity:1;transform:translateY(0)}
   .clk{text-align:right}.clk .t{font-size:17px;font-weight:600;color:#eafdff;letter-spacing:1px}.clk .d{font-size:8.5px;color:var(--text-dim);letter-spacing:1.3px;text-transform:uppercase}
   .pstate{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--green);border-radius:4px;background:rgba(61,220,132,.08);transition:.3s}
   .pstate .d{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 1.8s infinite}
@@ -489,6 +493,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <div class="navitem active" data-p="overview"><span class="ic">&#9635;</span>Overview</div>
       <div class="navitem" data-p="fleet"><span class="ic">&#9783;</span>Plant Fleet</div>
       <div class="navitem" data-p="plant3d"><span class="ic">&#9638;</span>Plant 3D View</div>
+      <div class="navitem" data-p="training"><span class="ic">&#9684;</span>Training Mode<span class="bdg" style="margin-left:auto;background:rgba(255,176,0,.14);color:var(--amber);border:1px solid var(--amber)">DRILL</span></div>
 
       <div class="navgroup open" id="reactor-group">
         <div class="grouphead"><span class="ic">&#11041;</span>Reactor<span class="chev">&#9654;</span></div>
@@ -568,7 +573,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   <header class="topbar">
     <div class="ttl" id="pgtitle">Plant Overview<small id="pgsub">Unit 1 &middot; Full power operation</small></div>
     <div style="display:flex;align-items:center;gap:18px">
-      <div class="modes" id="modes"><div class="mode active">Sim</div><div class="mode">Train</div><div class="mode">Shadow</div><div class="mode">Advisory</div><div class="mode">Superv.</div><div class="mode">Hybrid</div></div>
+      <div class="modes" id="modes" title="Operating modes (per Project Description)"><div class="mode active" data-mode="sim" title="Simulation Mode — fully virtual plant. Active.">Sim</div><div class="mode" data-mode="train" title="Training Mode — guided drills on the live model. Active.">Train</div><div class="mode soon" data-mode="shadow" title="Shadow Mode — roadmap, not active at Phase 0">Shadow</div><div class="mode soon" data-mode="advisory" title="Advisory Mode — roadmap, not active at Phase 0">Advisory</div><div class="mode soon" data-mode="superv" title="Supervisory Mode — roadmap, not active at Phase 0">Superv.</div><div class="mode soon" data-mode="hybrid" title="Hybrid Digital Twin Mode — roadmap, not active at Phase 0">Hybrid</div></div>
       <div class="unitpick"><span class="ul">Unit</span><select id="unitsel"></select></div>
       <button class="helpbtn" id="helpbtn" title="Help for this page">?</button>
       <div class="clk"><div class="t" id="clock">--:--:--</div><div class="d" id="date">&mdash; UTC</div></div>
@@ -577,7 +582,107 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   </header>
 
   <main>
-    <section class="page" data-page="help"><div id="help-body"></div></section>
+    <style id="trn-style">
+  .trn-banner{display:flex;align-items:center;gap:12px;border:1px solid var(--amber);background:repeating-linear-gradient(45deg,rgba(255,176,0,.07),rgba(255,176,0,.07) 10px,rgba(255,176,0,.03) 10px,rgba(255,176,0,.03) 20px);border-radius:6px;padding:11px 14px;margin-bottom:13px}
+  .trn-banner .bdot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 9px var(--amber);flex:none;animation:trnpulse 1.6s infinite}
+  @keyframes trnpulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .trn-banner b{color:var(--amber);letter-spacing:1px}
+  .trn-grid{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:13px;align-items:start}
+  @media(max-width:1100px){.trn-grid{grid-template-columns:1fr}}
+  .trn-card{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:11px 12px;cursor:pointer;margin-bottom:9px;transition:.15s}
+  .trn-card:hover{border-color:var(--line-hot)}
+  .trn-card.sel{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(34,211,238,.25) inset}
+  .trn-card .ct{font-family:'Chakra Petch';font-size:12px;color:var(--text);letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .trn-card .cd{font-size:10px;color:var(--text-dim);line-height:1.55;margin-top:5px}
+  .trn-read{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+  .trn-kpi{border:1px solid var(--line);border-radius:5px;padding:9px 10px;background:var(--panel)}
+  .trn-kpi .kl{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-mute)}
+  .trn-kpi .kv{font-family:'IBM Plex Mono';font-size:21px;color:var(--cyan);margin-top:3px;line-height:1}
+  .trn-kpi .kv small{font-size:10px;color:var(--text-dim)}
+  .trn-band{position:relative;height:30px;border:1px solid var(--line);border-radius:5px;background:var(--bg-grid);overflow:hidden;margin:4px 0 13px}
+  .trn-band .zone{position:absolute;top:0;bottom:0;background:rgba(61,220,132,.16);border-left:1px dashed rgba(61,220,132,.5);border-right:1px dashed rgba(61,220,132,.5)}
+  .trn-band .mk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transition:left .18s linear}
+  .trn-band .tgt{position:absolute;top:0;bottom:0;width:2px;background:var(--amber)}
+  .trn-ctrl{border-top:1px solid var(--line);margin-top:11px;padding-top:11px}
+  .trn-ctrl input[type=range]{width:100%;accent-color:var(--cyan);margin:6px 0}
+  .trn-objs{list-style:none;margin:7px 0 0;padding:0}
+  .trn-objs li{display:flex;align-items:flex-start;gap:8px;font-size:10.5px;color:var(--text-dim);line-height:1.5;padding:5px 0;border-bottom:1px solid var(--line)}
+  .trn-objs li .ck{width:14px;height:14px;border:1px solid var(--line-hot);border-radius:3px;flex:none;margin-top:1px;text-align:center;line-height:13px;font-size:10px;color:var(--text-mute)}
+  .trn-objs li.done{color:var(--text)}
+  .trn-objs li.done .ck{background:var(--green);border-color:var(--green);color:#031014}
+  .trn-objs li.fail .ck{background:var(--red);border-color:var(--red);color:#fff}
+  .trn-score{font-family:'IBM Plex Mono';font-size:46px;line-height:1;color:var(--cyan)}
+  .trn-prog{height:7px;border-radius:4px;background:var(--bg-grid);border:1px solid var(--line);overflow:hidden;margin-top:7px}
+  .trn-prog i{display:block;height:100%;width:0;background:var(--cyan);transition:width .2s}
+  .trn-debrief{margin-top:12px;border:1px solid var(--line-hot);border-radius:6px;padding:12px 13px;background:var(--panel-2);display:none}
+  .trn-debrief.show{display:block}
+  .trn-verdict{font-family:'Chakra Petch';font-size:15px;letter-spacing:1px}
+  .trn-stat{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);padding:4px 0;border-bottom:1px solid var(--line)}
+  .trn-stat span:last-child{color:var(--text);font-family:'IBM Plex Mono'}
+  .trn-speed{display:flex;gap:5px}
+</style>
+<section class="page" data-page="training">
+  <div class="trn-banner"><span class="bdot"></span><div style="font-size:11px;color:var(--text);line-height:1.55"><b>TRAINING EXERCISE &mdash; NOT A LIVE PLANT.</b> Drills run on the console's point-kinetics simulator (the Reactor Kinetics model). For skills demonstration only &mdash; this is not a certified operator-training simulator and confers no qualification.</div></div>
+
+  <div class="panel hot" style="margin-bottom:13px">
+    <div class="ph"><h2><span class="tick"></span>Drill Control</h2><span class="tag" id="trn-status">Idle &mdash; select a drill</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center">
+      <button class="btn" id="trn-start">&#9654; Start drill</button>
+      <button class="btn" id="trn-abort">Abort</button>
+      <button class="btn" id="trn-freeze">&#10073;&#10073; Freeze</button>
+      <button class="btn danger" id="trn-resetrx">Reset reactor</button>
+      <span class="note" style="margin-left:6px">Time&times;</span>
+      <span class="trn-speed">
+        <button class="btn active" data-trnts="1">1&times;</button>
+        <button class="btn" data-trnts="10">10&times;</button>
+        <button class="btn" data-trnts="60">60&times;</button>
+        <button class="btn" data-trnts="600">600&times;</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="trn-grid">
+    <div class="panel">
+      <div class="ph"><h2><span class="tick"></span>Drills</h2><span class="tag">point-kinetics</span></div>
+      <div id="trn-drills"></div>
+      <div class="note" style="margin-top:9px;line-height:1.6">Each drill scores your control of the live reactor model. Power, period, temperature and xenon feedback are the same physics used on the Reactor Kinetics screen.</div>
+    </div>
+
+    <div class="panel hot">
+      <div class="ph"><h2><span class="tick"></span>Live Reactor</h2><span class="tag" id="trn-brief">no drill selected</span></div>
+      <div class="trn-read">
+        <div class="trn-kpi"><div class="kl">Reactor Power</div><div class="kv"><span id="trn-pow">100</span><small>%</small></div></div>
+        <div class="trn-kpi"><div class="kl">Target</div><div class="kv" style="color:var(--amber)"><span id="trn-tgt">&mdash;</span></div></div>
+        <div class="trn-kpi"><div class="kl">Reactor Period</div><div class="kv"><span id="trn-period">&infin;</span><small>s</small></div></div>
+        <div class="trn-kpi"><div class="kl">Rod reactivity</div><div class="kv"><span id="trn-rod">0</span><small>pcm</small></div></div>
+      </div>
+      <div class="kl" style="font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-mute)">Power vs target band</div>
+      <div class="trn-band" id="trn-bandwrap"><div class="zone" id="trn-zone" style="display:none"></div><div class="tgt" id="trn-tgtline" style="display:none"></div><div class="mk" id="trn-mk" style="left:90%"></div></div>
+
+      <div class="trn-ctrl">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="note">Control rod bank (reactivity)</span><span class="mono" style="font-size:11px;color:var(--cyan)"><span id="trn-rodval">0</span> pcm</span></div>
+        <input type="range" id="trn-rod-slider" min="-400" max="120" step="1" value="0">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+          <button class="btn" data-trnstep="-50">&minus;50</button>
+          <button class="btn" data-trnstep="-10">&minus;10</button>
+          <button class="btn" data-trnstep="10">+10</button>
+          <button class="btn" data-trnstep="50">+50</button>
+          <button class="btn" id="trn-crit">Critical (0)</button>
+          <button class="btn danger" id="trn-scrambtn">&#9888; SCRAM</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h2><span class="tick"></span>Objective &amp; Score</h2><span class="tag" id="trn-clock">00:00</span></div>
+      <div style="display:flex;align-items:flex-end;gap:10px"><div class="trn-score"><span id="trn-score">&mdash;</span></div><div class="note" style="padding-bottom:6px">/ 100</div></div>
+      <div class="trn-prog"><i id="trn-progbar"></i></div>
+      <ul class="trn-objs" id="trn-objs"><li><span class="ck"></span>Select a drill to load its objectives.</li></ul>
+      <div class="trn-debrief" id="trn-debrief"></div>
+    </div>
+  </div>
+</section>
+
     <section class="page" data-page="deps">
       <div class="tabbar">
         <button class="btn active" data-dtab="graph">Dependency Graph</button>
@@ -1434,7 +1539,23 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     $('#date').textContent=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}).toUpperCase()+' · UTC';}
   tick();setInterval(tick,1000);
 
-  $$('#modes .mode').forEach(m=>m.onclick=()=>{$('#modes .active').classList.remove('active');m.classList.add('active');});
+  (function(){
+    var modeEls=$$('#modes .mode');
+    var toast=document.createElement('div');toast.className='mode-toast';document.body.appendChild(toast);var tt;
+    function showToast(msg,el){toast.textContent=msg;var r=el.getBoundingClientRect();
+      toast.style.left=Math.round(r.left)+'px';toast.style.top=Math.round(r.bottom+8)+'px';
+      toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},2600);}
+    function syncPills(){var a=document.querySelector('.page.active');var pg=a?a.dataset.page:'';
+      modeEls.forEach(function(m){var k=m.dataset.mode;
+        m.classList.toggle('active',(k==='train'&&pg==='training')||(k==='sim'&&pg!=='training'));});}
+    modeEls.forEach(function(m){m.onclick=function(){var k=m.dataset.mode;
+      if(k==='sim'){go('overview');}
+      else if(k==='train'){go('training');}
+      else{showToast(m.textContent.trim()+' Mode \u2014 roadmap, not active at Phase 0. NEXUS-1 runs in Simulation Mode.',m);}
+      syncPills();};});
+    document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-p]'))setTimeout(syncPills,0);});
+    syncPills();
+  })();
 
   // ---- nav (top-level + expandable group + sub-items) ----
   const titles={overview:['Plant Overview','Unit 1 · Full power operation'],fleet:['Plant Fleet','Multi-unit / modular operation'],core:['Reactor Core','PWR · 157 fuel assemblies'],
@@ -1443,7 +1564,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive · advisory'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
@@ -2579,7 +2700,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('pause').onclick=function(){paused=!paused;this.textContent=paused?'Run':'Pause';this.classList.toggle('active',paused);};
   $('reset').onclick=()=>{S=fresh();setRod(0);fillH();render();};
 
-  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);}};
+  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},
+    pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
+    reset:function(){S=fresh();setRod(0);fillH();render();},
+    setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
   setRod(0);render();
 })();
 </script>
@@ -3346,10 +3470,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     'access-presence':{n:'Zone Access — Live Presence',w:'Who and what is in each zone.',k:['Unauthorised presence is flagged as a violation','Toggle simulated movement to see it change']},
     'access-matrix':{n:'Permissions Matrix',w:'Zone authorisation policy.',k:['Which class of person/vehicle/robot may enter which zone']},
     about:{n:'About',w:'Author and scope of the project.',k:['Read this for what is real vs. simulated, and the author background']},
+    training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, reactor-trip response and approach-to-power drills','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
   const GROUPS=[
-    {g:'Reactor',ids:['core','rods','neutronics','kinetics','reactor3d','plant3d']},
+    {g:'Reactor',ids:['core','rods','neutronics','kinetics','reactor3d','plant3d','training']},
     {g:'Fleet, Power & Secondary',ids:['overview','fleet','power','steam','coolant']},
     {g:'Safety & Monitoring',ids:['rad','alarms','incident','audit','sec']},
     {g:'AI, Analysis & Dependencies',ids:['ai','rlopt','deps','twin','trends']},
@@ -3884,6 +4009,212 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     sample();
     if(active())render();
   },1000);
+})();
+</script>
+<script>
+/* NEXUS-1 Training Mode — drills on the live point-kinetics model. Build NX1-094C79E0A366D34F */
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='training';}
+  function K(){return window.KIN||null;}
+
+  var DRILLS=[
+    {id:'maneuver',name:'Power Maneuver',diff:'Core',type:'hold',
+     brief:'100% \u2192 80%, hold \u00b12% for 25 s',
+     target:80,band:2,holdReq:25,ceil:108,floor:60,limit:200,
+     objs:[{k:'enter',t:'Bring power into the 78\u201382% band'},{k:'hold',t:'Hold in band for 25 s cumulative'},{k:'notrip',t:'No unplanned SCRAM or overshoot'}]},
+    {id:'reduce',name:'Deep Power Reduction',diff:'Intermediate',type:'hold',
+     brief:'100% \u2192 50%, hold \u00b13% for 20 s, no undershoot < 40%',
+     target:50,band:3,holdReq:20,ceil:108,floor:40,limit:240,
+     objs:[{k:'enter',t:'Bring power into the 47\u201353% band'},{k:'hold',t:'Hold in band for 20 s cumulative'},{k:'notrip',t:'No SCRAM, overshoot or undershoot < 40%'}]},
+    {id:'trip',name:'Reactor Trip Response',diff:'Core',type:'trip',
+     brief:'SCRAM on the trip cue — scored on reaction time',
+     cueMin:4,cueMax:11,timeout:20,
+     objs:[{k:'wait',t:'Stand by \u2014 monitor for the trip cue'},{k:'react',t:'SCRAM when the trip parameter trips'},{k:'nofalse',t:'No premature (anticipatory) trip'}]}
+  ];
+
+  var sel=null, phase='idle', frozen=false;
+  var st={};  // running drill state
+
+  // ---- drill cards ----
+  function renderCards(){
+    var el=$('trn-drills');if(!el)return;
+    el.innerHTML=DRILLS.map(function(d){
+      return '<div class="trn-card'+(sel&&sel.id===d.id?' sel':'')+'" data-drill="'+d.id+'">'+
+        '<div class="ct">'+d.name+'<span class="pill info">'+d.diff+'</span></div>'+
+        '<div class="cd">'+d.brief+'</div></div>';
+    }).join('');
+    el.querySelectorAll('[data-drill]').forEach(function(c){c.onclick=function(){if(phase==='running')return;selectDrill(c.dataset.drill);};});
+  }
+  function selectDrill(id){
+    sel=DRILLS.filter(function(d){return d.id===id;})[0]||null;
+    phase='idle';st={};
+    if($('trn-brief'))$('trn-brief').textContent=sel?sel.brief:'no drill selected';
+    if($('trn-status'))$('trn-status').textContent=sel?('Ready \u2014 '+sel.name):'Idle \u2014 select a drill';
+    if($('trn-debrief')){$('trn-debrief').classList.remove('show');$('trn-debrief').innerHTML='';}
+    if($('trn-score'))$('trn-score').textContent='\u2014';
+    if($('trn-progbar'))$('trn-progbar').style.width='0';
+    renderCards();renderObjs();updateBand();
+  }
+
+  function renderObjs(){
+    var el=$('trn-objs');if(!el)return;
+    if(!sel){el.innerHTML='<li><span class="ck"></span>Select a drill to load its objectives.</li>';return;}
+    var f=st.flags||{};
+    el.innerHTML=sel.objs.map(function(o){
+      var cls='',mark='';
+      if(f[o.k]==='done'){cls=' done';mark='\u2713';}
+      else if(f[o.k]==='fail'){cls=' fail';mark='\u2715';}
+      return '<li class="'+cls+'"><span class="ck">'+mark+'</span>'+o.t+'</li>';
+    }).join('');
+  }
+
+  // ---- band visual ----
+  function updateBand(){
+    var z=$('trn-zone'),tl=$('trn-tgtline'),mk=$('trn-mk');
+    var span=110;
+    if(sel&&sel.type==='hold'){
+      var lo=(sel.target-sel.band)/span*100, hi=(sel.target+sel.band)/span*100;
+      if(z){z.style.display='block';z.style.left=lo+'%';z.style.width=(hi-lo)+'%';}
+      if(tl){tl.style.display='block';tl.style.left=(sel.target/span*100)+'%';}
+    }else{if(z)z.style.display='none';if(tl)tl.style.display='none';}
+    var k=K();var p=k?k.state().power:100;
+    if(mk)mk.style.left=Math.max(0,Math.min(100,p/span*100))+'%';
+  }
+
+  // ---- master controls ----
+  function startDrill(){
+    var k=K();if(!sel||!k)return;
+    k.resume();frozen=false;if($('trn-freeze'))$('trn-freeze').classList.remove('active');
+    k.reset();                       // defined initial condition: steady 100%
+    phase='running';
+    st={t0:performance.now(),elapsed:0,inBand:0,excursions:0,wasIn:false,tripped:false,
+        flags:{},cueAt:null,cued:false,reactT:null,premature:false,done:false,verdict:'',score:0,last:performance.now()};
+    if(sel.type==='trip'){st.cueAt=sel.cueMin+Math.random()*(sel.cueMax-sel.cueMin);st.flags.wait='done';}
+    if($('trn-debrief')){$('trn-debrief').classList.remove('show');$('trn-debrief').innerHTML='';}
+    if($('trn-status'))$('trn-status').textContent='RUNNING \u2014 '+sel.name;
+    if($('trn-score'))$('trn-score').textContent='0';
+    renderObjs();
+  }
+  function abortDrill(){
+    if(phase!=='running')return;
+    phase='idle';
+    if($('trn-status'))$('trn-status').textContent='Aborted \u2014 '+(sel?sel.name:'');
+  }
+  function toggleFreeze(){
+    var k=K();if(!k)return;
+    frozen=!frozen;if(frozen)k.pause();else k.resume();
+    if($('trn-freeze'))$('trn-freeze').classList.toggle('active',frozen);
+    if($('trn-status')&&phase==='running')$('trn-status').textContent=(frozen?'FROZEN \u2014 ':'RUNNING \u2014 ')+sel.name;
+  }
+
+  // ---- completion / scoring ----
+  function finish(verdict,score,detail){
+    phase='done';st.done=true;st.verdict=verdict;st.score=score;
+    if($('trn-score'))$('trn-score').textContent=score;
+    if($('trn-status'))$('trn-status').textContent=verdict+' \u2014 '+sel.name+' ('+score+'/100)';
+    var col=verdict==='PASS'?'var(--green)':'var(--red)';
+    var db=$('trn-debrief');
+    if(db){
+      db.innerHTML='<div class="trn-verdict" style="color:'+col+'">'+verdict+' \u00b7 '+score+'/100</div>'+
+        '<div class="note" style="margin:6px 0 9px">'+detail+'</div>'+
+        statsHTML()+
+        '<div class="note" style="margin-top:9px">Logged to Incident Analysis &amp; Compliance as a TRAINING entry. Press Start to run again.</div>';
+      db.classList.add('show');
+    }
+    logDrill(verdict,score,detail);
+    renderObjs();
+  }
+  function statsHTML(){
+    var rows=[];
+    if(sel.type==='hold'){
+      rows.push(['Time in band',st.inBand.toFixed(1)+' / '+sel.holdReq+' s']);
+      rows.push(['Band excursions',st.excursions]);
+      rows.push(['Elapsed',st.elapsed.toFixed(0)+' s']);
+    }else{
+      rows.push(['Reaction time',st.reactT!=null?st.reactT.toFixed(2)+' s':'\u2014']);
+      rows.push(['Premature trip',st.premature?'yes':'no']);
+    }
+    return rows.map(function(r){return '<div class="trn-stat"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>';}).join('');
+  }
+  function logDrill(verdict,score,detail){
+    var NX=window.NEXUS;if(!NX)return;var now=new Date();
+    function seal(){return Math.random().toString(16).slice(2,6)+'\u2026'+Math.random().toString(16).slice(2,4);}
+    if(NX.incidents){NX.incidents.unshift({t:now,sev:verdict==='PASS'?'':'warn',head:'TRAINING \u00b7 '+sel.name+' \u2014 '+verdict,detail:'Score '+score+'/100. '+detail+' (simulator drill — no plant effect)'});if(NX.renderIncidents)NX.renderIncidents();}
+    if(NX.compliance){NX.compliance.unshift({t:now,actor:'Trainee',action:'TRAINING drill: '+sel.name+' \u2014 '+verdict+' ('+score+'/100)',type:'Event',seal:seal()});if(NX.renderCompliance)NX.renderCompliance();}
+  }
+
+  // ---- the loop ----
+  function loop(){
+    var k=K();if(!k){return;}
+    var s=k.state();
+    // live readouts (always, when page visible)
+    if(active()){
+      if($('trn-pow'))$('trn-pow').textContent=s.power>=10?s.power.toFixed(0):s.power.toFixed(2);
+      if($('trn-rod'))$('trn-rod').textContent=Math.round(s.rodPcm);
+      var per=s.period;
+      if($('trn-period'))$('trn-period').innerHTML=(!isFinite(per)||Math.abs(per)>9999)?'\u221e':((per>=0?'+':'')+per.toFixed(per<100&&per>-100?1:0));
+      var sl=$('trn-rod-slider');if(sl&&document.activeElement!==sl){sl.value=Math.round(s.rodPcm);if($('trn-rodval'))$('trn-rodval').textContent=Math.round(s.rodPcm);}
+      updateBand();
+    }
+    if(phase!=='running'||frozen){st&&(st.last=performance.now());return;}
+
+    var now=performance.now();var dt=Math.min(0.5,(now-(st.last||now))/1000);st.last=now;
+    st.elapsed+=dt;
+    if($('trn-clock'))$('trn-clock').textContent=fmt(st.elapsed);
+
+    if(sel.type==='hold'){
+      var inBand=Math.abs(s.power-sel.target)<=sel.band;
+      if(inBand){st.inBand+=dt;if(!st.wasIn){st.flags.enter='done';}st.wasIn=true;}
+      else{if(st.wasIn)st.excursions++;st.wasIn=false;}
+      // live score preview
+      var prog=Math.min(1,st.inBand/sel.holdReq);
+      if($('trn-progbar'))$('trn-progbar').style.width=(prog*100)+'%';
+      if($('trn-score'))$('trn-score').textContent=Math.round(prog*Math.max(40,100-st.excursions*8));
+      if(st.inBand>=sel.holdReq)st.flags.hold='done';
+      renderObjs();
+      // fail conditions
+      if(s.scram){st.flags.notrip='fail';st.tripped=true;return finish('FAIL',Math.max(0,Math.round(st.inBand/sel.holdReq*45)),'Unplanned SCRAM during a routine maneuver trips the unit.');}
+      if(s.power>sel.ceil){st.flags.notrip='fail';return finish('FAIL',Math.max(0,Math.round(st.inBand/sel.holdReq*40)),'Power overshoot beyond '+sel.ceil+'% — high-flux trip.');}
+      if(sel.floor&&s.power<sel.floor){st.flags.notrip='fail';return finish('FAIL',Math.max(0,Math.round(st.inBand/sel.holdReq*40)),'Power dropped below '+sel.floor+'% — undershoot.');}
+      // success
+      if(st.inBand>=sel.holdReq){st.flags.notrip='done';return finish('PASS',Math.max(40,Math.min(100,100-st.excursions*8)),'Held '+sel.target+'% \u00b1'+sel.band+'% for the required '+sel.holdReq+' s.');}
+      // timeout
+      if(st.elapsed>sel.limit)return finish('FAIL',Math.round(st.inBand/sel.holdReq*60),'Ran out of time before completing the hold.');
+    }
+    else if(sel.type==='trip'){
+      // premature trip before cue
+      if(!st.cued&&s.scram){st.premature=true;st.flags.nofalse='fail';st.flags.react='fail';return finish('FAIL',0,'Reactor tripped before the trip parameter exceeded its setpoint — anticipatory trip.');}
+      if(!st.cued&&st.elapsed>=st.cueAt){st.cued=true;st.cueTime=now;st.flags.react='pending';
+        if($('trn-status'))$('trn-status').textContent='\u26a0 TRIP CUE \u2014 SCRAM NOW';
+        if($('trn-brief'))$('trn-brief').textContent='Steam-generator low-low level — SCRAM required';
+      }
+      if($('trn-progbar'))$('trn-progbar').style.width=(st.cued?100:Math.min(95,st.elapsed/st.cueAt*100))+'%';
+      if(st.cued&&s.scram){st.reactT=(now-st.cueTime)/1000;st.flags.react='done';st.flags.nofalse='done';
+        var sc=Math.max(0,Math.min(100,Math.round(100*(12-st.reactT)/(12-1.5))));
+        return finish(sc>=50?'PASS':'FAIL',sc,'Reacted in '+st.reactT.toFixed(2)+' s after the trip parameter exceeded its setpoint.');}
+      if(st.cued&&(now-st.cueTime)/1000>sel.timeout){st.flags.react='fail';return finish('FAIL',0,'No SCRAM within '+sel.timeout+' s of the trip cue.');}
+      renderObjs();
+    }
+  }
+  function fmt(s){var m=Math.floor(s/60),x=Math.floor(s%60);return (m<10?'0':'')+m+':'+(x<10?'0':'')+x;}
+  setInterval(loop,200);
+
+  // ---- control strip wiring ----
+  function setRod(v){var k=K();if(!k)return;v=Math.max(-400,Math.min(120,v));k.setRod(v);if($('trn-rod-slider'))$('trn-rod-slider').value=v;if($('trn-rodval'))$('trn-rodval').textContent=Math.round(v);}
+  function wire(){
+    var sl=$('trn-rod-slider');if(sl)sl.oninput=function(){setRod(+sl.value);};
+    document.querySelectorAll('[data-trnstep]').forEach(function(b){b.onclick=function(){var k=K();if(!k)return;setRod((k.state().rodPcm||0)+ +b.dataset.trnstep);};});
+    if($('trn-crit'))$('trn-crit').onclick=function(){setRod(0);};
+    if($('trn-scrambtn'))$('trn-scrambtn').onclick=function(){var k=K();if(k)k.scram();};
+    if($('trn-start'))$('trn-start').onclick=startDrill;
+    if($('trn-abort'))$('trn-abort').onclick=abortDrill;
+    if($('trn-freeze'))$('trn-freeze').onclick=toggleFreeze;
+    if($('trn-resetrx'))$('trn-resetrx').onclick=function(){var k=K();if(k){k.reset();}phase='idle';if($('trn-status'))$('trn-status').textContent=sel?('Ready \u2014 '+sel.name):'Idle \u2014 select a drill';if($('trn-debrief')){$('trn-debrief').classList.remove('show');}};
+    document.querySelectorAll('[data-trnts]').forEach(function(b){b.onclick=function(){var k=K();if(k)k.setScale(+b.dataset.trnts);document.querySelectorAll('[data-trnts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');};});
+  }
+
+  renderCards();wire();renderObjs();
 })();
 </script>
 </body>
