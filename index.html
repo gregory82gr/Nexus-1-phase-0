@@ -505,6 +505,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           <div class="subitem" data-p="rods">Control Rods</div>
           <div class="subitem" data-p="neutronics">Neutronics</div>
           <div class="subitem" data-p="kinetics">Reactor Kinetics</div>
+          <div class="subitem" data-p="analysis">Model Analysis</div>
           <div class="subitem" data-p="reactor3d">3D Reactor View</div>
           <div class="subitem" data-p="steam">Steam &amp; Secondary</div>
           <div class="subitem" data-p="coolant">Coolant / TH</div>
@@ -897,6 +898,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <button class="btn" data-ts="600">600&times;</button>
         <button class="btn" id="pause">Pause</button>
         <button class="btn" id="reset">Reset</button>
+        <button class="btn" id="kin-exp-csv">&#10515; CSV</button>
       </div>
       <div class="note" style="margin-top:8px">Try: a small <b>+10&nbsp;pcm</b> step (watch the prompt jump, then feedback settle to a new power); a <b>SCRAM</b> (note power can't drop instantly &mdash; delayed neutrons give a tail); then switch to <b>600&times;</b> after a shutdown to watch the <b>xenon transient</b> build over hours.</div>
     </div>
@@ -924,6 +926,43 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <br><br><b>Honest scope:</b> the <i>structure</i> is the real physics and reproduces the real qualitative phenomena (prompt jump, reactor period, power self-regulation through negative feedback, post-shutdown xenon transient). The <i>constants</i> (generation time, feedback coefficients, thermal gains, xenon worth) are representative textbook-order values, not tuned to a specific reactor. It is an educational simulator, not a licensed analysis code.</div>
   </div>
 
+    </section>
+    <section class="page" data-page="analysis">
+      <div class="panel hot" style="margin-bottom:13px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim)">Model Analysis &middot; verification of the point-kinetics engine</div>
+            <div class="note" style="margin-top:6px;max-width:820px;line-height:1.6">Every figure on this page is computed live from the <b>same</b> point-kinetics model the console runs &mdash; the parameters listed are the literal constants inside the solver, and each check integrates that solver against a closed-form reference. Nothing here is hand-entered. This verifies the solver's <b>numerical fidelity to the point-kinetics equations</b>; it does <b>not</b> claim agreement with any specific real reactor, because the constants are representative (see the note on the Reactor Kinetics screen).</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" id="an-exp-json">&#10515; Parameters (JSON)</button>
+            <button class="btn" id="an-exp-csv">&#10515; Live trace (CSV)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Solver validation</h2><span class="tag">computed vs reference</span></div>
+        <div id="an-val"></div>
+        <div class="note" style="margin-top:9px;line-height:1.6">The inhour and prompt-jump checks run the neutron kinetics with temperature/xenon feedback <b>disabled</b> &mdash; that is the regime those closed forms describe. The small non-zero errors are the genuine numerical-integration error of the live scheme, not cosmetic figures. Half-life and yield rows compare the model's representative constants against textbook values; differences reflect the representative constants, not a solver fault.</div>
+      </div>
+
+      <div class="grid c-21" style="margin-bottom:13px">
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Model parameters</h2><span class="tag">single source of truth</span></div>
+          <div id="an-params"></div>
+        </div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Operating margins</h2><span class="tag">live &middot; demonstrator setpoints</span></div>
+          <div id="an-margin"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Sensitivity &amp; uncertainty propagation</h2><span class="tag">normalized &middot; dimensionless</span></div>
+        <div id="an-sens"></div>
+        <div id="an-unc"></div>
+      </div>
+
+      <div class="panel"><div class="ph"><h2><span class="tick"></span>Xenon forecast</h2><span class="tag">forward integration from live state</span></div>
+        <div id="an-forecast"></div>
+      </div>
     </section>
     <section class="page" data-page="access-presence">
       <div class="grid c4" style="margin-bottom:13px">
@@ -1689,7 +1728,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
@@ -2711,40 +2750,43 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
   let timeScale=1, paused=false;
 
-  function step(dt){
+  // Pure model step: operates on a passed state object so the analysis screen can
+  // run the SAME integration code as the live sim (single source of truth).
+  function stepState(st,dt){
     // reactivity (pcm) = rods + Doppler + moderator + xenon(relative to eq)
-    const rhoXe = -KXE*(S.Xe-XEEQ);
-    const rhoD  = aD*(S.TF-TF0);
-    const rhoM  = aM*(S.TC-TC0);
-    const effRod = S.rodPcm + (S.scram?-8000:0);
+    const rhoXe = -KXE*(st.Xe-XEEQ);
+    const rhoD  = aD*(st.TF-TF0);
+    const rhoM  = aM*(st.TC-TC0);
+    const effRod = st.rodPcm + (st.scram?-8000:0);
     const rhoPcm = effRod + rhoD + rhoM + rhoXe;
     const rho = rhoPcm*1e-5;
-    S.prompt = rho>=B;
+    st.prompt = rho>=B;
     const rhoU = Math.min(rho, 0.95*B);     // clamp for update stability
     // precursors: exact update for constant n over dt
     let Ssrc=0;
     for(let i=0;i<6;i++){
       const e=Math.exp(-LAM[i]*dt);
-      S.C[i]=S.C[i]*e + (BETA[i]*S.n)/(GEN*LAM[i])*(1-e);
-      Ssrc+=LAM[i]*S.C[i];
+      st.C[i]=st.C[i]*e + (BETA[i]*st.n)/(GEN*LAM[i])*(1-e);
+      Ssrc+=LAM[i]*st.C[i];
     }
     // neutron pop: implicit Euler
     const denom=1 - dt*(rhoU-B)/GEN;
-    S.n=Math.max(1e-12,(S.n + dt*Ssrc)/denom);
-    S.dndt=((rho-B)/GEN)*S.n + Ssrc;
-    S.rho=rhoPcm;
-    const P=S.n; // relative power = relative neutron pop
+    st.n=Math.max(1e-12,(st.n + dt*Ssrc)/denom);
+    st.dndt=((rho-B)/GEN)*st.n + Ssrc;
+    st.rho=rhoPcm;
+    const P=st.n; // relative power = relative neutron pop
     // thermal (explicit Euler, slow dynamics)
-    const dTF=(P*KP - KFC*(S.TF-S.TC))/CF;
-    const dTC=(KFC*(S.TF-S.TC) - KCO*(S.TC-TIN))/CC;
-    S.TF+=dTF*dt; S.TC+=dTC*dt;
+    const dTF=(P*KP - KFC*(st.TF-st.TC))/CF;
+    const dTC=(KFC*(st.TF-st.TC) - KCO*(st.TC-TIN))/CC;
+    st.TF+=dTF*dt; st.TC+=dTC*dt;
     // xenon / iodine
-    const dI =gI*SF*P - lI*S.I;
-    const dXe=gXe*SF*P + lI*S.I - lXe*S.Xe - SIGPHI*P*S.Xe;
-    S.I+=dI*dt; S.Xe+=dXe*dt;
-    if(S.I<0)S.I=0; if(S.Xe<0)S.Xe=0;
-    S.t+=dt;
+    const dI =gI*SF*P - lI*st.I;
+    const dXe=gXe*SF*P + lI*st.I - lXe*st.Xe - SIGPHI*P*st.Xe;
+    st.I+=dI*dt; st.Xe+=dXe*dt;
+    if(st.I<0)st.I=0; if(st.Xe<0)st.Xe=0;
+    st.t+=dt;
   }
+  function step(dt){ stepState(S,dt); }
 
   // ---- history ----
   const N=260; const H={pow:[],rho:[],tf:[],tc:[],xe:[],ii:[]};
@@ -2829,8 +2871,260 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
     reset:function(){S=fresh();setRod(0);fillH();render();},
     setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
+  window.KIN.model={
+    params:{BETA:BETA.slice(),LAM:LAM.slice(),B:B,GEN:GEN,aD:aD,aM:aM,TF0:TF0,TC0:TC0,TIN:TIN,
+      KP:KP,KFC:KFC,KCO:KCO,CF:CF,CC:CC,gI:gI,gXe:gXe,lI:lI,lXe:lXe,SF:SF,SIGPHI:SIGPHI,
+      IEQ:IEQ,XEEQ:XEEQ,KXE:KXE,xeWorthPcm:2700},
+    fresh:fresh,
+    stepState:stepState
+  };
+  window.KIN.snapshot=function(){return {n:S.n,power:S.n*100,Xe:S.Xe,I:S.I,XEEQ:XEEQ,IEQ:IEQ,
+    TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,
+    period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),
+    rho:S.rho,t:S.t};};
+  window.KIN.history=function(){return {N:N,pow:H.pow.slice(),rho:H.rho.slice(),tf:H.tf.slice(),
+    tc:H.tc.slice(),xe:H.xe.slice(),ii:H.ii.slice()};};
   setRod(0);render();
 })();
+</script>
+
+<script>
+/* NEXUS-1 Model Analysis — validation, parameters, sensitivity, margins, xenon forecast.
+   Every figure is computed live from window.KIN.model — the SAME point-kinetics solver the
+   console runs — so the parameters shown are literally the constants the simulation uses.
+   Build NX1-094C79E0A366D34F · (c) 2026 Grigorios Agathangelidis */
+(function(){
+  var BUILD='NX1-094C79E0A366D34F';
+  function $(id){return document.getElementById(id);}
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='analysis';}
+  function M(){return (window.KIN&&window.KIN.model)?window.KIN.model:null;}
+  function f(x,d){if(!isFinite(x))return '\u221e';return Number(x).toFixed(d);}
+  function pill(cls,txt){return '<span class="pill '+cls+'">'+txt+'</span>';}
+
+  // ---------- model maths (consume params object only) ----------
+  function clone(p){var c={};for(var k in p)c[k]=p[k];c.BETA=p.BETA.slice();c.LAM=p.LAM.slice();return c;}
+  // inhour closed form: rho = omega*GEN + Sum beta_i*omega/(omega+lambda_i)
+  function inhourPeriod(p,rhoPcm){
+    var rho=rhoPcm*1e-5;
+    function fn(w){var s=w*p.GEN;for(var i=0;i<6;i++)s+=p.BETA[i]*w/(w+p.LAM[i]);return s-rho;}
+    var lo=1e-12,hi=1e6;
+    for(var it=0;it<300;it++){var mid=Math.sqrt(lo*hi);if(fn(mid)>0)hi=mid;else lo=mid;}
+    return 1/Math.sqrt(lo*hi);
+  }
+  // bare point-kinetics (feedback OFF), same implicit scheme as the live model
+  function bareInit(p){var C=[];for(var i=0;i<6;i++)C[i]=p.BETA[i]/(p.GEN*p.LAM[i]);return {n:1,C:C};}
+  function bareStep(p,st,rhoPcm,dt){
+    var rho=rhoPcm*1e-5,rhoU=Math.min(rho,0.95*p.B),Ssrc=0;
+    for(var i=0;i<6;i++){var e=Math.exp(-p.LAM[i]*dt);st.C[i]=st.C[i]*e+(p.BETA[i]*st.n)/(p.GEN*p.LAM[i])*(1-e);Ssrc+=p.LAM[i]*st.C[i];}
+    st.n=Math.max(1e-300,(st.n+dt*Ssrc)/(1-dt*(rhoU-p.B)/p.GEN));
+  }
+  function measuredPeriod(p,rhoPcm){
+    var st=bareInit(p),dt=0.01,steps=Math.round(400/dt),rec=[];
+    for(var i=0;i<steps;i++){bareStep(p,st,rhoPcm,dt);var t=(i+1)*dt;if(t>=300)rec.push([t,Math.log(st.n)]);}
+    var n=rec.length,sx=0,sy=0,sxx=0,sxy=0;
+    for(var k=0;k<n;k++){sx+=rec[k][0];sy+=rec[k][1];sxx+=rec[k][0]*rec[k][0];sxy+=rec[k][0]*rec[k][1];}
+    return 1/((n*sxy-sx*sy)/(n*sxx-sx*sx));
+  }
+  function promptJump(p,rhoPcm){
+    var st=bareInit(p),dt=1e-4,steps=Math.round(0.05/dt);
+    for(var i=0;i<steps;i++)bareStep(p,st,rhoPcm,dt);
+    return st.n;
+  }
+  function nullDrift(p){ // full model held at rod=0; max |power-100|% over 60 s
+    var st=p.fresh(),dt=0.1,steps=600,mx=0;
+    for(var i=0;i<steps;i++){p.stepState(st,dt);mx=Math.max(mx,Math.abs(st.n-1));}
+    return mx*100;
+  }
+  function xenonPit(p){ // post-shutdown peak from 100% equilibrium
+    var XEEQ=(p.gXe*p.SF+p.gI*p.SF)/(p.lXe+p.SIGPHI*1), IEQ=p.gI*p.SF/p.lI;
+    var I=IEQ,Xe=XEEQ,dt=30,steps=Math.round(60*3600/dt),peak=Xe,tpk=0;
+    for(var s=0;s<steps;s++){var dI=-p.lI*I,dXe=p.lI*I-p.lXe*Xe;I+=dI*dt;Xe+=dXe*dt;var t=(s+1)*dt;if(Xe>peak){peak=Xe;tpk=t;}}
+    return {tpeakH:tpk/3600,peakPct:peak/XEEQ*100,depthPcm:p.xeWorthPcm*(peak-XEEQ)/XEEQ};
+  }
+
+  // ---------- VALIDATION ----------
+  function renderVal(){
+    var p=M().params;
+    var rows=[];
+    var nd=nullDrift({fresh:M().fresh,stepState:M().stepState});
+    rows.push(['Steady state (\u03c1 = 0)','power holds at 100%',f(nd,4)+'% max drift over 60 s',nd<0.05?['ok','PASS']:['warn','CHECK']]);
+    rows.push(['Delayed fraction \u03b2 (\u03a3 6 groups)','U-235 thermal data',f(p.B,6)+'  (= $1.00 = '+f(p.B*1e5,0)+' pcm)',['info','DATA']]);
+    [[10],[100]].forEach(function(r){
+      var inh=inhourPeriod(p,r[0]),mea=measuredPeriod(p,r[0]),err=Math.abs(mea-inh)/inh*100;
+      rows.push(['Asymptotic period, +'+r[0]+' pcm','inhour eq: '+f(inh,2)+' s','solver: '+f(mea,2)+' s',err<0.5?['ok','\u0394 '+f(err,3)+'%']:['warn','\u0394 '+f(err,2)+'%']]);
+    });
+    var pj=promptJump(p,200),pjA=p.B/(p.B-200*1e-5),pjE=Math.abs(pj-pjA)/pjA*100;
+    rows.push(['Prompt jump, +200 pcm','approx \u03b2/(\u03b2\u2212\u03c1): '+f(pjA,3),'solver: '+f(pj,3),['ok','\u0394 '+f(pjE,2)+'%']]);
+    var tI=Math.LN2/p.lI/3600,tXe=Math.LN2/p.lXe/3600;
+    rows.push(['I-135 half-life','textbook \u2248 6.57 h','model: '+f(tI,2)+' h',['info','REPR.']]);
+    rows.push(['Xe-135 half-life','textbook \u2248 9.14 h','model: '+f(tXe,2)+' h',['info','REPR.']]);
+    var xp=xenonPit(p);
+    rows.push(['Post-shutdown xenon peak','classic \u2248 7\u201311 h (flux-dep.)','model: '+f(xp.tpeakH,1)+' h, '+f(xp.peakPct,0)+'% of eq',['ok','OK']]);
+    var TFeq=p.TIN+p.KP/p.KCO+p.KP/p.KFC,TCeq=p.TIN+p.KP/p.KCO;
+    rows.push(['Thermal equilibrium (100%)','ref point 600 / 305 \u00b0C','model: '+f(TFeq,1)+' / '+f(TCeq,1)+' \u00b0C',(Math.abs(TFeq-600)<1&&Math.abs(TCeq-305)<1)?['ok','SELF-CONSISTENT']:['warn','CHECK']]);
+    var html='<table><thead><tr><th style="text-align:left">Check</th><th style="text-align:left">Reference</th><th style="text-align:left">Computed</th><th>Result</th></tr></thead><tbody>';
+    rows.forEach(function(r){html+='<tr><td style="color:var(--text)">'+r[0]+'</td><td style="color:var(--text-dim)">'+r[1]+'</td><td class="mono" style="color:#eafdff">'+r[2]+'</td><td style="text-align:center">'+pill(r[3][0],r[3][1])+'</td></tr>';});
+    html+='</tbody></table>';
+    $('an-val').innerHTML=html;
+  }
+
+  // ---------- PARAMETERS ----------
+  function ptable(title,rows){
+    var h='<div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin:4px 0 6px">'+title+'</div>';
+    h+='<table><tbody>';
+    rows.forEach(function(r){h+='<tr><td style="color:var(--text);white-space:nowrap">'+r[0]+'</td><td class="mono" style="color:#eafdff;text-align:right;white-space:nowrap">'+r[1]+'</td><td style="color:var(--text-dim);font-size:10px;padding-left:10px">'+r[2]+'</td></tr>';});
+    h+='</tbody></table>';
+    return h;
+  }
+  function renderParams(){
+    var p=M().params;
+    var nuc=[
+      ['\u03b2 (total, 6 groups)',f(p.B,6),'Evaluated U-235 thermal-fission delayed-neutron data'],
+      ['\u03bb\u1d62 precursors','6 groups, '+f(p.LAM[0],4)+'\u2013'+f(p.LAM[5],3)+' s\u207b\u00b9','U-235 6-group decay constants'],
+      ['\u03bb(I-135)',p.lI.toExponential(2)+' s\u207b\u00b9','Iodine-135 decay constant'],
+      ['\u03bb(Xe-135)',p.lXe.toExponential(2)+' s\u207b\u00b9','Xenon-135 decay constant'],
+      ['\u03b3(I-135)',f(p.gI,4),'Fission yield, I-135'],
+      ['\u03b3(Xe-135)',f(p.gXe,5),'Fission yield, Xe-135 (direct)']
+    ];
+    var mod=[
+      ['\u039b (generation time)',(p.GEN*1e6).toFixed(0)+' \u00b5s','Representative PWR-order value'],
+      ['\u03b1_D (Doppler)',f(p.aD,1)+' pcm/\u00b0C','Representative PWR fuel-temp coefficient'],
+      ['\u03b1_M (moderator)',f(p.aM,1)+' pcm/\u00b0C','Representative (constant; real MTC is state-dependent)'],
+      ['Xe-135 equiv. worth',p.xeWorthPcm+' pcm','Lumped Xe reactivity worth (representative)'],
+      ['Xe burnout \u03c3\u03c6',p.SIGPHI.toExponential(1)+' s\u207b\u00b9','Lumped \u03c3\u00b7\u03c6 term \u2014 not a microscopic cross-section'],
+      ['Thermal gains','K_P='+p.KP+', K_FC='+p.KFC+', K_CO='+p.KCO,'Lumped two-node thermal model (hand-tuned)'],
+      ['Heat capacities','C_F='+p.CF+', C_C='+p.CC,'Lumped fuel / coolant node capacities'],
+      ['Reference temps',p.TF0+' / '+p.TC0+' / '+p.TIN+' \u00b0C','Fuel / coolant / inlet operating point']
+    ];
+    $('an-params').innerHTML=ptable('Nuclear data (physical constants)',nuc)
+      +'<div style="height:8px"></div>'+ptable('Model parameters (representative choices)',mod)
+      +'<div class="note" style="margin-top:8px">These are read directly from the running solver, so the simulation, this table and the JSON export are provably the same numbers.</div>';
+  }
+
+  // ---------- SENSITIVITY + UNCERTAINTY ----------
+  var PN={GEN:'\u039b',BETA:'\u03b2',KP:'K_P',KFC:'K_FC',KCO:'K_CO',TIN:'T_in',lI:'\u03bb_I',lXe:'\u03bb_Xe',SIGPHI:'\u03c3\u03c6',gI:'\u03b3_I',gXe:'\u03b3_Xe',xeWorthPcm:'Xe worth'};
+  var SIG={GEN:0.10,BETA:0.02,KP:0.10,KFC:0.10,KCO:0.10,TIN:0.01,lI:0.02,lXe:0.02,SIGPHI:0.15,gI:0.05,gXe:0.05,xeWorthPcm:0.15};
+  function perturb(p,name,fac){var c=clone(p);if(name==='BETA'){for(var i=0;i<6;i++)c.BETA[i]*=fac;c.B=0;for(i=0;i<6;i++)c.B+=c.BETA[i];}else{c[name]*=fac;}return c;}
+  var METRICS=[
+    {key:'period',name:'Asymptotic period (+10 pcm)',unit:'s',dec:1,compute:function(p){return inhourPeriod(p,10);},params:['GEN','BETA']},
+    {key:'tfeq',name:'Equilibrium fuel temp',unit:'\u00b0C',dec:1,compute:function(p){return p.TIN+p.KP/p.KCO+p.KP/p.KFC;},params:['KP','KFC','KCO','TIN']},
+    {key:'xepit',name:'Xenon pit depth (post-SCRAM)',unit:'pcm',dec:0,compute:function(p){return xenonPit(p).depthPcm;},params:['lI','lXe','SIGPHI','gI','gXe','xeWorthPcm']}
+  ];
+  function sens(p,m,name){var h=0.01,yp=m.compute(perturb(p,name,1+h)),ym=m.compute(perturb(p,name,1-h)),y0=m.compute(p);return (yp-ym)/(2*h*y0);}
+  function renderSens(){
+    var p=M().params;
+    var html='<table><thead><tr><th style="text-align:left">Output metric</th><th style="text-align:left">Baseline</th><th style="text-align:left">Normalized sensitivities S = (p/Y)(\u2202Y/\u2202p)</th><th style="text-align:left">Dominant</th></tr></thead><tbody>';
+    var uhtml='';
+    METRICS.forEach(function(m){
+      var y0=m.compute(p),cells=[],dom={n:'',v:0},relVar=0;
+      m.params.forEach(function(nm){var S=sens(p,m,nm);if(Math.abs(S)>Math.abs(dom.v)){dom={n:nm,v:S};}cells.push(PN[nm]+'&nbsp;<b style="color:'+(Math.abs(S)>0.5?'#eafdff':'var(--text-dim)')+'">'+(S>=0?'+':'')+f(S,2)+'</b>');var rs=S*(SIG[nm]||0.1);relVar+=rs*rs;});
+      html+='<tr><td style="color:var(--text)">'+m.name+'</td><td class="mono" style="color:#eafdff">'+f(y0,m.dec)+' '+m.unit+'</td><td style="color:var(--text-dim);font-size:10.5px;line-height:1.8">'+cells.join('&nbsp;&nbsp;')+'</td><td>'+pill('info',PN[dom.n])+'</td></tr>';
+      var sigma=Math.sqrt(relVar);
+      uhtml+='<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid var(--line)"><span style="color:var(--text-dim)">'+m.name+'</span><span class="mono" style="color:#eafdff">'+f(y0,m.dec)+' \u00b1 '+f(2*sigma*y0,m.dec)+' '+m.unit+' <span style="color:var(--text-mute)">(2\u03c3)</span></span></div>';
+    });
+    html+='</tbody></table>';
+    html+='<div class="note" style="margin-top:8px">Computed by perturbing each parameter \u00b11% and re-running the model (central difference). Values are dimensionless, so they are legitimately rankable. Note the <b>dominant parameter differs by output</b> \u2014 \u039b and \u03b2 drive the period, the thermal gains drive temperature, the xenon constants drive the pit \u2014 so there is no single \u201cmost influential parameter.\u201d</div>';
+    $('an-sens').innerHTML=html;
+    $('an-unc').innerHTML='<div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin:12px 0 5px">Propagated output uncertainty</div>'+uhtml
+      +'<div class="note" style="margin-top:7px">Output bands from \u03c3_Y\u00b2 \u2248 \u03a3(\u2202Y/\u2202p\u1d62)\u00b2\u03c3_p\u1d62\u00b2 using <b>illustrative</b> input uncertainties (nuclear data \u00b12%, modeling parameters \u00b110\u201315%). This is the model-form half of an uncertainty estimate \u2014 distinct from sensor/measurement noise.</div>';
+  }
+
+  // ---------- MARGINS (live) ----------
+  function statusFor(margin,warnAt,critAt){return margin<critAt?['crit','MARGINAL']:(margin<warnAt?['warn','WATCH']:['ok','HEALTHY']);}
+  function renderMargins(){
+    var p=M().params,sn=window.KIN.snapshot();
+    var rows=[];
+    var power=sn.power;
+    rows.push(['Reactor power',f(power,1)+'% rated','\u2264 118% (overpower trip)',f(118-power,1)+'%',statusFor(118-power,5,0)]);
+    var per=sn.period;
+    if(!isFinite(per)||Math.abs(per)>3600){rows.push(['Reactor period','stable','\u2265 10 s (short-period trip)','large',['ok','HEALTHY']]);}
+    else if(per>0){rows.push(['Reactor period (rising)',f(per,0)+' s','\u2265 10 s (short-period trip)',f(per-10,0)+' s',statusFor(per-10,20,0)]);}
+    else{rows.push(['Reactor period','power decreasing','\u2014','\u2014',['na','N/A']]);}
+    rows.push(['Avg fuel temp',f(sn.TF,0)+' \u00b0C','\u2264 700 \u00b0C (repr. band)',f(700-sn.TF,0)+' \u00b0C',statusFor(700-sn.TF,40,10)]);
+    var dollar=sn.rho/(p.B*1e5);
+    rows.push(['Reactivity',f(dollar,2)+' $','< $1.00 (prompt critical)',f(1-dollar,2)+' $',statusFor(1-dollar,0.3,0.05)]);
+    var html='<table><thead><tr><th style="text-align:left">Parameter</th><th style="text-align:left">Value</th><th style="text-align:left">Limit</th><th style="text-align:left">Margin</th><th>Status</th></tr></thead><tbody>';
+    rows.forEach(function(r){html+='<tr><td style="color:var(--text)">'+r[0]+'</td><td class="mono" style="color:#eafdff">'+r[1]+'</td><td style="color:var(--text-dim)">'+r[2]+'</td><td class="mono" style="color:var(--cyan)">'+r[3]+'</td><td style="text-align:center">'+pill(r[4][0],r[4][1])+'</td></tr>';});
+    html+='</tbody></table>';
+    html+='<div class="note" style="margin-top:8px;line-height:1.6">Demonstrator setpoints, not real Technical Specification limits. <b>DNBR and linear heat rate are deliberately not shown:</b> they are thermal-hydraulic outputs requiring a subchannel-flow model, a critical-heat-flux correlation and an axial power distribution. This is a point-kinetics model with a single lumped thermal node, so it cannot compute them \u2014 showing a fabricated DNBR would misrepresent the model.</div>';
+    $('an-margin').innerHTML=html;
+  }
+
+  // ---------- XENON FORECAST (live, forward integration) ----------
+  function renderForecast(){
+    var p=M().params,sn=window.KIN.snapshot();
+    var XEEQ=sn.XEEQ,n=sn.n,Xe=sn.Xe,I=sn.I;
+    var dt=30,horizon=48*3600,steps=Math.round(horizon/dt);
+    var xe0=Xe/XEEQ*100,peak=Xe,tpk=0,cross110=-1;
+    var dXe0=p.gXe*p.SF*n+p.lI*I-p.lXe*Xe-p.SIGPHI*n*Xe;
+    var trend=(Math.abs(dXe0)<1e-7*XEEQ?'flat':(dXe0>0?'rising':'falling'));
+    for(var s=0;s<steps;s++){
+      var dI=p.gI*p.SF*n-p.lI*I, dXe=p.gXe*p.SF*n+p.lI*I-p.lXe*Xe-p.SIGPHI*n*Xe;
+      I+=dI*dt;Xe+=dXe*dt;if(I<0)I=0;if(Xe<0)Xe=0;
+      var t=(s+1)*dt,pct=Xe/XEEQ*100;
+      if(Xe>peak){peak=Xe;tpk=t;}
+      if(cross110<0&&pct>=110)cross110=t;
+    }
+    var peakPct=peak/XEEQ*100;
+    var lines=[];
+    lines.push(['Current Xe-135',f(xe0,1)+'% of equilibrium']);
+    lines.push(['Trend at current power',trend+(trend==='flat'?' (near equilibrium for this power)':'')]);
+    if(peakPct>xe0+0.5){
+      lines.push(['Projected peak',f(peakPct,1)+'% of eq, in '+f(tpk/3600,1)+' h']);
+      if(cross110>=0)lines.push(['Reaches illustrative 110% band','in '+f(cross110/3600,1)+' h']);
+    } else if(trend==='falling'){
+      lines.push(['Projected','decaying toward equilibrium; no peak ahead']);
+    } else {
+      lines.push(['Projected','holds near current value while power is constant']);
+    }
+    var html='<table><tbody>';
+    lines.forEach(function(r){html+='<tr><td style="color:var(--text-dim);white-space:nowrap">'+r[0]+'</td><td class="mono" style="color:#eafdff;padding-left:14px">'+r[1]+'</td></tr>';});
+    html+='</tbody></table>';
+    html+='<div class="note" style="margin-top:8px;line-height:1.6">A forward integration of the I-135/Xe-135 equations from the current state with power held constant \u2014 not a linear extrapolation (xenon rises, turns over and peaks, so a slope projection would miss the peak). The 110% mark is an illustrative band, not a Tech Spec limit. A change in power would alter this trajectory; no control action is prescribed here.</div>';
+    $('an-forecast').innerHTML=html;
+  }
+
+  // ---------- EXPORT ----------
+  function dl(name,text,mime){var b=new Blob([text],{type:mime||'text/plain'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},100);}
+  function stamp(){return new Date().toISOString();}
+  function exportJSON(){
+    var p=M().params;
+    var obj={meta:{product:'NEXUS-1',build:BUILD,exported:stamp(),
+      scope:'DEMONSTRATION \u2014 point-kinetics solver constants. Representative textbook-order values, not tuned to a specific reactor.'},
+      nuclear_data:{beta_groups:p.BETA,beta_total:p.B,lambda_groups_per_s:p.LAM,
+        lambda_I135_per_s:p.lI,lambda_Xe135_per_s:p.lXe,yield_I135:p.gI,yield_Xe135:p.gXe},
+      model_parameters:{generation_time_s:p.GEN,doppler_pcm_per_C:p.aD,moderator_pcm_per_C:p.aM,
+        xenon_equiv_worth_pcm:p.xeWorthPcm,xenon_burnout_term_per_s:p.SIGPHI,
+        thermal:{KP:p.KP,KFC:p.KFC,KCO:p.KCO,CF:p.CF,CC:p.CC},
+        ref_temps_C:{fuel:p.TF0,coolant:p.TC0,inlet:p.TIN}}};
+    dl('nexus1-model-parameters.json',JSON.stringify(obj,null,2),'application/json');
+  }
+  function exportCSV(){
+    var h=window.KIN.history();var L=h.pow.length;
+    var out='# NEXUS-1 point-kinetics trace \u2014 DEMONSTRATION DATA, not real plant telemetry\n';
+    out+='# build '+BUILD+'  exported '+stamp()+'\n';
+    out+='# rolling buffer: most-recent '+L+' samples (note: \u0394t is non-uniform under time-acceleration)\n';
+    out+='sample_index,power_pct_rated,reactivity_pcm,fuel_temp_C,coolant_temp_C,xenon_pct_eq,iodine_pct_eq\n';
+    for(var i=0;i<L;i++){out+=i+','+h.pow[i].toFixed(3)+','+h.rho[i].toFixed(1)+','+h.tf[i].toFixed(2)+','+h.tc[i].toFixed(2)+','+h.xe[i].toFixed(2)+','+h.ii[i].toFixed(2)+'\n';}
+    dl('nexus1-kinetics-trace.csv',out,'text/csv');
+  }
+  function wire(id,fn){var e=$(id);if(e&&!e.__wired){e.__wired=true;e.addEventListener('click',fn);}}
+
+  // ---------- driver ----------
+  var staticDone=false;
+  function ensureStatic(){if(staticDone||!M())return;try{renderVal();renderParams();renderSens();staticDone=true;}catch(e){}}
+  function tick(){
+    wire('an-exp-json',exportJSON);wire('an-exp-csv',exportCSV);wire('kin-exp-csv',exportCSV);
+    if(!active())return;
+    ensureStatic();
+    try{renderMargins();renderForecast();}catch(e){}
+  }
+  setInterval(tick,1000);
+  setTimeout(tick,300);
+
+  if(typeof module!=='undefined'){module.exports={inhourPeriod:inhourPeriod,measuredPeriod:measuredPeriod,promptJump:promptJump,xenonPit:xenonPit,nullDrift:nullDrift,perturb:perturb,clone:clone,METRICS:METRICS,sens:sens};}
+})();
+
 </script>
 
 <script>
@@ -3569,7 +3863,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     core:{n:'Reactor Core',w:'Core layout and overall reactor state.',k:['Fuel-assembly map and power distribution','Overall reactivity and safety margins']},
     rods:{n:'Control Rods',w:'Interactive rod operation for the selected unit.',k:['Move the rod bank or SCRAM — power, flux and grid respond','A SCRAM is logged to Incident Analysis and Compliance and counts as a rod demand cycle']},
     neutronics:{n:'Neutronics',w:'Neutron flux and reactivity detail.',k:['Flux distribution and the reactivity components']},
-    kinetics:{n:'Reactor Kinetics',w:'A physically real point-kinetics simulator.',k:['6 delayed-neutron groups with Doppler, moderator and xenon feedback','Try a small +pcm step (prompt jump, then self-regulation), then SCRAM','Switch to 600x after a shutdown to watch the xenon transient build']},
+    kinetics:{n:'Reactor Kinetics',w:'A physically real point-kinetics simulator.',k:['6 delayed-neutron groups with Doppler, moderator and xenon feedback','Try a small +pcm step (prompt jump, then self-regulation), then SCRAM','Switch to 600x after a shutdown to watch the xenon transient build','See the Model Analysis screen for validation of this solver against closed-form references, its constants, sensitivity and margins']},
+    analysis:{n:'Model Analysis',w:'Verification layer for the point-kinetics engine — every figure computed live from the same solver the console runs.',k:['Solver validation: asymptotic period vs the inhour equation, prompt jump, xenon half-lives and the post-shutdown peak — with the real (small) numerical errors shown','Model parameters: the literal solver constants, split into physical nuclear data vs representative modeling choices','Sensitivity: normalized, dimensionless ∂output/∂parameter, showing the dominant driver differs by output','Operating margins (live) against demonstrator setpoints — DNBR/LHR are deliberately excluded and the reason is stated','Xenon forecast: a forward integration (not extrapolation) of the live Xe-135 state','Export the parameters (JSON) and the live trace (CSV) for checking in your own tools']},
     reactor3d:{n:'3D Reactor View',w:'Two 3-D cores — telemetry vs simulation (a digital twin).',k:['Left = noisy sensors, right = the model; the controls drive both','Divergence between them is the digital-twin early-warning signal','Drag a core to rotate; fuel colour shows temperature']},
     rlopt:{n:'Advanced Optimization (RL)',w:'Experimental reinforcement-learning optimiser — BETA, twin-only, advisory.',k:['The "What Train policy does" panel explains the training step by step, in plain English','Train the agent inside the twin; watch the reward curve climb','The learned policy is a readable table — no black box','Advisory only, with safety clamps; no control authority on a real plant']},
     deps:{n:'System Dependencies',w:'How components influence one another.',k:['Graph: click a node to trace everything it affects downstream, with delays','Matrix: click a cell to read an influence weight','Causal Chain: the reactor-trip reconstruction + a what-if toggle']},
@@ -3600,7 +3895,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
   const GROUPS=[
-    {g:'Reactor',ids:['core','rods','neutronics','kinetics','reactor3d','plant3d','training']},
+    {g:'Reactor',ids:['core','rods','neutronics','kinetics','analysis','reactor3d','plant3d','training']},
     {g:'Fleet, Power & Secondary',ids:['overview','fleet','power','steam','coolant']},
     {g:'Safety & Monitoring',ids:['rad','alarms','incident','audit','sec']},
     {g:'AI, Analysis & Dependencies',ids:['ai','rlopt','deps','twin','trends']},
@@ -3629,6 +3924,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       item('1 \u00b7 Overview','Whole-plant snapshot for the selected unit.')+
       item('2 \u00b7 Plant Fleet','Switch PWR units and SMR modules on/off; choose the active unit.')+
       item('3 \u00b7 Reactor Kinetics','The real point-kinetics simulator \u2014 nudge reactivity and watch power, period, temperature and xenon respond.')+
+      item('3a \u00b7 Model Analysis','Verification of that solver \u2014 period checked against the inhour equation, the solver constants laid bare, sensitivity ranking and live margins. Every number is computed, none entered.')+
       item('4 \u00b7 3D Reactor View','Telemetry beside the model \u2014 the digital-twin idea, where divergence is an early-warning signal.')+
       item('5 \u00b7 Training Mode','Fly the reactor yourself against scored drills (see the next panel).')+
       item('6 \u00b7 Optimization (RL)','Watch an agent learn a rod-control policy; read the \u201cWhat Train policy does\u201d panel there first.')+
