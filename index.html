@@ -1721,16 +1721,96 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     var modeEls=$$('#modes .mode');
     var toast=document.createElement('div');toast.className='mode-toast';document.body.appendChild(toast);var tt;
     function showToast(msg,el){toast.textContent=msg;var r=el.getBoundingClientRect();
-      toast.style.left=Math.round(r.left)+'px';toast.style.top=Math.round(r.bottom+8)+'px';
-      toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},2600);}
+      toast.style.left=Math.round(Math.min(r.left,(window.innerWidth||1200)-320))+'px';toast.style.top=Math.round(r.bottom+8)+'px';
+      toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},3400);}
+
+    /* ---- operating-mode capability gating (concept demonstration) ----
+       Build NX1-094C79E0A366D34F. Mirrors the roadmap capability matrix: in
+       read-only modes the reactor command surfaces are hidden, because the
+       platform has no control authority over a real plant. Nothing here
+       connects to a real plant; the simulation stands in for the live feed. */
+    var MODE={
+      sim:{label:'Simulation',badge:'ACTIVE',roadmap:false,readonly:false,
+           src:'fully virtual plant, values generated locally',
+           ctrl:'Operators command the simulated reactor directly.'},
+      train:{label:'Training',badge:'ACTIVE',roadmap:false,readonly:false,
+           src:'virtual plant with guided, scored drills',
+           ctrl:'Operators fly the live point-kinetics model.'},
+      shadow:{label:'Shadow',badge:'ROADMAP',roadmap:true,readonly:true,
+           src:'a read-only mirror of a live plant',
+           ctrl:'Watch only \u2014 every command surface is hidden. No control authority.'},
+      advisory:{label:'Advisory',badge:'ROADMAP',roadmap:true,readonly:true,
+           src:'a live mirror plus advisory analytics (predictive \u00b7 RL \u00b7 DSLM)',
+           ctrl:'The platform recommends; humans decide. It never actuates.'},
+      superv:{label:'Supervisory',badge:'ROADMAP',roadmap:true,readonly:true,
+           src:'coordinated integration under full OT security',
+           ctrl:'Monitoring and coordination, human-supervised. No control authority.'},
+      hybrid:{label:'Hybrid Digital Twin',badge:'ROADMAP',roadmap:true,readonly:false,
+           src:'live data and simulation kept synchronised',
+           ctrl:'The simulation branch stays commandable; what-if runs off the live state.'}
+    };
+    var current='sim';
+
+    var st=document.createElement('style');st.id='opmode-style';
+    st.textContent=
+      "#opmode-banner{display:none;align-items:center;gap:13px;border:1px solid var(--amber);"
+      +"background:repeating-linear-gradient(45deg,rgba(255,176,0,.07),rgba(255,176,0,.07) 10px,rgba(255,176,0,.03) 10px,rgba(255,176,0,.03) 20px);"
+      +"border-radius:6px;padding:11px 14px;margin:0 0 14px 0}"
+      +"#opmode-banner .bdot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 9px var(--amber);flex:none;animation:ompulse 1.6s infinite}"
+      +"@keyframes ompulse{0%,100%{opacity:1}50%{opacity:.32}}"
+      +"#opmode-banner .om-l{flex:1;min-width:0}"
+      +"#opmode-banner .om-t{font-family:'Chakra Petch';letter-spacing:1px;color:var(--amber);font-size:12.5px;text-transform:uppercase}"
+      +"#opmode-banner .om-t .bg{font-size:9px;border:1px solid var(--amber);border-radius:3px;padding:1px 6px;margin-left:9px;vertical-align:middle;letter-spacing:.6px}"
+      +"#opmode-banner .om-d{font-size:11px;color:var(--text);line-height:1.62;margin-top:3px}"
+      +"#opmode-banner .om-d b{color:var(--amber)}"
+      +"#opmode-banner .om-x{font-family:'Chakra Petch';font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#031014;background:var(--cyan);border:none;border-radius:3px;padding:7px 12px;cursor:pointer;flex:none}"
+      +"#opmode-banner .om-x:hover{filter:brightness(1.08)}"
+      +".mode{cursor:pointer}.mode.soon{cursor:pointer}"
+      +".mode.demo-active{opacity:1;border-style:solid;color:#1a0f00;background:var(--amber);border-color:var(--amber);font-weight:600}"
+      +".ro-lock{display:none;font-family:'Chakra Petch';font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--amber);"
+      +"border:1px dashed var(--amber);border-radius:3px;padding:5px 9px;background:rgba(255,176,0,.06);align-items:center;gap:7px}"
+      +".ro-lock::before{content:'';width:7px;height:7px;border:1.5px solid var(--amber);border-radius:2px;display:inline-block}"
+      +"body[data-ro='1'] .ro-lock{display:inline-flex}"
+      +"body[data-ro='1'] #rod,body[data-ro='1'] #crit,body[data-ro='1'] #scram,"
+      +"body[data-ro='1'] .kin-ctl [data-step],"
+      +"body[data-ro='1'] #r3-rod,body[data-ro='1'] #r3-withdraw,body[data-ro='1'] #r3-scram,"
+      +"body[data-ro='1'] #trn-start,body[data-ro='1'] #trn-abort,body[data-ro='1'] #trn-resetrx,"
+      +"body[data-ro='1'] #trn-scrambtn,body[data-ro='1'] #trn-crit,body[data-ro='1'] #trn-rod-slider,"
+      +"body[data-ro='1'] [data-trnstep]{display:none!important}";
+    document.head.appendChild(st);
+
+    var main=document.querySelector('main');
+    var banner=document.createElement('div');banner.id='opmode-banner';
+    banner.innerHTML='<span class="bdot"></span><div class="om-l"><div class="om-t" id="om-title"></div><div class="om-d" id="om-desc"></div></div><button class="om-x" id="om-exit">Exit to Simulation</button>';
+    if(main)main.insertBefore(banner,main.firstChild);
+    banner.querySelector('#om-exit').onclick=function(){setMode('sim');};
+
+    function addLock(sel){var a=document.querySelector(sel);if(!a||!a.parentNode)return;
+      var c=document.createElement('span');c.className='ro-lock';c.textContent='Read-only mirror \u00b7 no control authority';
+      a.parentNode.appendChild(c);}
+    addLock('#scram');addLock('#r3-scram');addLock('#trn-scrambtn');
+
+    function setMode(k){
+      if(!MODE[k])return;current=k;var m=MODE[k];
+      document.body.setAttribute('data-opmode',k);
+      document.body.setAttribute('data-ro',m.readonly?'1':'0');
+      if(m.roadmap){
+        banner.style.display='flex';
+        banner.querySelector('#om-title').innerHTML=m.label+' Mode<span class="bg">'+m.badge+'</span>';
+        banner.querySelector('#om-desc').innerHTML='<b>Concept demonstration</b> \u2014 no live plant is connected; the simulation stands in for '+m.src+'. '+m.ctrl;
+      }else{banner.style.display='none';}
+      if(k==='train')go('training');else go('overview');
+      syncPills();
+    }
+
     function syncPills(){var a=document.querySelector('.page.active');var pg=a?a.dataset.page:'';
-      modeEls.forEach(function(m){var k=m.dataset.mode;
-        m.classList.toggle('active',(k==='train'&&pg==='training')||(k==='sim'&&pg!=='training'));});}
-    modeEls.forEach(function(m){m.onclick=function(){var k=m.dataset.mode;
-      if(k==='sim'){go('overview');}
-      else if(k==='train'){go('training');}
-      else{showToast(m.textContent.trim()+' Mode \u2014 roadmap, not active at Phase 0. NEXUS-1 runs in Simulation Mode.',m);}
-      syncPills();};});
+      var eff=current;
+      if(current==='sim'||current==='train'){eff=(pg==='training')?'train':'sim';current=eff;}
+      modeEls.forEach(function(m){var k=m.dataset.mode;m.classList.remove('active','demo-active');
+        if(k===eff)m.classList.add(MODE[k]&&MODE[k].roadmap?'demo-active':'active');});}
+
+    modeEls.forEach(function(m){m.onclick=function(){var k=m.dataset.mode;if(!MODE[k])return;setMode(k);
+      if(MODE[k].roadmap)showToast('Entered '+MODE[k].label+' Mode \u2014 concept demonstration. No live plant connected; reactor command surfaces are '+(MODE[k].readonly?'hidden':'limited')+'.',m);};});
     document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-p]'))setTimeout(syncPills,0);});
     syncPills();
   })();
