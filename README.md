@@ -103,16 +103,28 @@ In both layers the numerical **constants** are representative textbook-order val
 
 **Phase 0 (this repo):** a single self-contained HTML/CSS/JavaScript file — hand-written SVG for diagrams/charts, and a WebGL library for the 3D view. No framework, no build step.
 
-**Production target (future phases):**
+**Production target (future phases).** A shared platform foundation is built once; each roadmap mode then layers its own capability on top.
+
+*Foundation — shared by every live mode:*
 
 - **Backend:** .NET (C#) microservices — ASP.NET Core; REST + gRPC. *(No Orleans.)*
 - **Front end:** Angular SPA.
 - **Real-time:** SignalR for live updates to the client.
-- **Relational data:** Microsoft SQL Server (config, master data, audit/compliance).
-- **Messaging:** Azure Service Bus for events/commands; **Azure Event Hubs** (or Kafka) for the high-rate telemetry stream.
-- **Ops:** Docker + Kubernetes; OpenTelemetry for observability.
+- **Identity & access:** an identity provider with RBAC (e.g. Microsoft Entra ID / Keycloak / Duende) — so every action is attributable to a user and role.
+- **Relational data:** Microsoft SQL Server (config, master data, hash-chained audit/compliance).
+- **Time-series historian:** a dedicated store for high-rate plant signals, with retention and downsampling (fed from the stream).
+- **Messaging:** **Kafka for everything** — domain events, commands and the high-rate telemetry stream on a single log. *(No Azure Service Bus / Event Hubs.)*
+- **Ops & observability:** Docker + Kubernetes; OpenTelemetry → Prometheus → Grafana.
 
-The goal is a platform active in all of its modes — **Training, Shadow, Advisory, Supervisory and Hybrid Digital Twin** — built out from the Phase 0 Simulation baseline. Any future plant integration is **read-only** until — and unless — a formal assurance and certification path is completed. See the **Project Roadmap** for the phase-by-phase plan and indicative effort.
+*What each roadmap mode adds on top of the foundation:*
+
+- **Shadow** — read-only **OT protocol gateways** (OPC-UA / MQTT / Modbus; extensible to IEC 61850 / DNP3) that ingest a live plant and normalise it to a canonical model. The bus above carries data *inside* the platform; these gateways are what actually talk to the field.
+- **Advisory** — an **analytics / ML tier**: a feature pipeline off the historian, model serving + a model registry, and an **inference runtime for the DSLM assistant** (e.g. Ollama / llama.cpp / vLLM). Advisory only.
+- **Supervisory** — the **full OT-security posture**: secrets / KMS / HSM, mTLS or a service mesh, network segmentation / zero-trust, and SIEM integration.
+- **Hybrid Digital Twin** — **continuous state estimation / data assimilation** to keep the simulation in step with live data, plus a deliberate stateful-twin compute pattern (chosen explicitly, since Orleans is excluded).
+
+The goal is a platform active in all of its modes — **Training, Shadow, Advisory, Supervisory and Hybrid Digital Twin** — built out from the Phase 0 Simulation baseline. Any future plant integration is **read-only** until — and unless — a formal assurance and certification path is completed. See the **Project Roadmap** for the foundation-first, mode-by-mode plan and indicative effort.
+
 
 ## 📚 Documentation
 
