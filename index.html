@@ -824,6 +824,20 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           Demonstration / educational software &mdash; not a licensed analysis tool and not connected to any real reactor.
         </div>
       </div>
+
+      <div class="panel" style="max-width:920px;margin-top:13px"><div class="ph"><h2><span class="tick"></span>Regulatory landscape</h2><span class="tag">awareness &middot; not compliance</span></div>
+        <div class="note" style="font-size:11px;line-height:1.7;margin-bottom:11px">A production system of this kind would sit inside an instrumentation-and-control and human-interface regulatory framework. This Phase&nbsp;0 demonstrator is <b style="color:#eafdff">informed by the principles below</b> but is <b style="color:var(--amber)">not developed, verified, qualified, or certified against any of them</b>. They are listed to show awareness of the landscape a real deployment would have to enter &mdash; nothing here makes a compliance claim.</div>
+        <table>
+          <thead><tr><th style="text-align:left">Standard</th><th style="text-align:left">What it governs</th><th style="text-align:left">How this project relates</th></tr></thead>
+          <tbody>
+            <tr><td class="mono" style="color:#eafdff;white-space:nowrap;vertical-align:top">NUREG-0700</td><td style="color:var(--text);vertical-align:top">Human-system-interface design-review guidance &mdash; control-room displays, alarm presentation, information hierarchy.</td><td style="color:var(--text-dim);vertical-align:top">The console's layout, alarm handling and display hierarchy follow its general principles; it has not been evaluated against the guideline.</td></tr>
+            <tr><td class="mono" style="color:#eafdff;white-space:nowrap;vertical-align:top">IEC&nbsp;60880<br>IEEE&nbsp;7-4.3.2</td><td style="color:var(--text);vertical-align:top">Software and digital-device criteria for category-A safety functions &mdash; development rigour, verification &amp; validation, qualification.</td><td style="color:var(--text-dim);vertical-align:top">The bar a production safety function would have to meet. This is unverified demonstration software and makes no safety claim.</td></tr>
+            <tr><td class="mono" style="color:#eafdff;white-space:nowrap;vertical-align:top">IEC&nbsp;61226</td><td style="color:var(--text);vertical-align:top">Categorisation of I&amp;C functions important to safety (classes A / B / C).</td><td style="color:var(--text-dim);vertical-align:top">A monitoring and advisory console like this classifies low; its outputs are advisory and never actuate a safety function.</td></tr>
+            <tr><td class="mono" style="color:#eafdff;white-space:nowrap;vertical-align:top">IEC&nbsp;61513</td><td style="color:var(--text);vertical-align:top">General lifecycle requirements for I&amp;C systems important to safety &mdash; the umbrella standard.</td><td style="color:var(--text-dim);vertical-align:top">The framework a production build of this platform would be developed under.</td></tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top:11px;line-height:1.7">These are the software, HMI and I&amp;C standards that bear on the layer this project actually exercises. Reactor- and safety-system <i>design</i> codes are out of scope for a monitoring demonstrator and are intentionally not claimed. <b style="color:#eafdff">NEXUS-1 is not certified against any standard.</b></div>
+      </div>
     </section>
     <section class="page" data-page="reactor3d">
       <div class="tw3" style="margin-bottom:13px">
@@ -3890,7 +3904,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     robotcat:{n:'Robot Category',w:'Assets within a category.',k:['Per-asset status, battery and accumulated radiation dose']},
     'access-presence':{n:'Zone Access — Live Presence',w:'Who and what is in each zone.',k:['Unauthorised presence is flagged as a violation','Toggle simulated movement to see it change']},
     'access-matrix':{n:'Permissions Matrix',w:'Zone authorisation policy.',k:['Which class of person/vehicle/robot may enter which zone']},
-    about:{n:'About',w:'Author and scope of the project.',k:['Read this for what is real vs. simulated, and the author background']},
+    about:{n:'About',w:'Author and scope of the project.',k:['Read this for what is real vs. simulated, and the author background','A regulatory-landscape note lists the software/HMI/I&C standards a production version would live under \u2014 awareness, not compliance']},
     training:{n:'Training Mode',w:'Guided operator drills running on the live point-kinetics simulator.',k:['Pick a drill, press Start, and control the reactor against a scored objective','Power maneuver, deep power reduction, reactor-trip response and a xenon-transient drill','A load-follow drill tracks a stepping grid-demand schedule (100 → 85 → 95 → 80%)','The xenon drill runs at 600x so the multi-hour Xe-135 swing plays out in real time','Freeze, reset and time-acceleration act on the real kinetics model','A demonstration of the Training-Mode concept — not a certified training simulator, and no control authority','Completed drills are written to Incident Analysis and the Compliance log, tagged TRAINING']},
     help:{n:'Help & Guide',w:'This guide.',k:['Use the ? button in the top bar for help on the page you are viewing']}
   };
