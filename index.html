@@ -1306,12 +1306,67 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
     <!-- ===== AI ===== -->
     <section class="page" data-page="ai">
-      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Natural-Language Query</h2><span class="tag">Advisory · explainable</span></div>
+      <style id="dslm-style">
+        .dslm-flow{display:flex;align-items:stretch;flex-wrap:wrap;margin-top:8px}
+        .dslm-box{flex:1;min-width:120px;border:1px solid var(--line);border-radius:6px;padding:9px 10px;background:var(--panel);margin:4px;text-align:center}
+        .dslm-box .t{font-family:'Chakra Petch';font-size:10.5px;color:var(--text);letter-spacing:.3px}
+        .dslm-box .s{font-size:9px;color:var(--text-mute);margin-top:3px;line-height:1.45}
+        .dslm-box.core{border-color:var(--violet);box-shadow:0 0 0 1px rgba(167,139,250,.25) inset}
+        .dslm-box.core .t{color:var(--violet)}
+        .dslm-arrow{align-self:center;color:var(--text-mute);font-size:14px;padding:0 1px}
+        .dslm-chat details{border:1px solid var(--line);border-radius:6px;margin-bottom:8px;background:var(--panel);overflow:hidden}
+        .dslm-chat summary{cursor:pointer;padding:9px 12px;font-size:11.5px;color:var(--cyan);font-family:'Chakra Petch';letter-spacing:.3px;list-style:none}
+        .dslm-chat summary::-webkit-details-marker{display:none}
+        .dslm-chat summary:before{content:'\25b8\00a0';color:var(--text-mute)}
+        .dslm-chat details[open] summary:before{content:'\25be\00a0'}
+        .dslm-chat .ans{padding:0 13px 11px;font-size:11px;line-height:1.7;color:var(--text)}
+        .dslm-chat .cite{margin-top:8px;font-size:9px;letter-spacing:.4px;color:var(--text-mute);border-top:1px solid var(--line);padding-top:7px}
+        .dslm-chat .cite b{color:var(--violet)}
+      </style>
+
+      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>AI Diagnostics</h2><span class="tag">two layers</span></div>
+        <div class="note" style="font-size:11px;line-height:1.75;color:var(--text)">This screen has two layers. <b style="color:var(--cyan)">Predictive diagnostics</b> (further down) is the working Phase-0 demonstrator &mdash; failure-probability and anomaly forecasts fed by the live Component Registry. The <b style="color:var(--violet)">Domain-Specific Language Model (DSLM) assistant</b> is the planned production layer: a nuclear-domain model served <b>locally and air-gapped</b>, grounded on plant data, advisory only. It is documented here as the target architecture &mdash; it is <b>not running in this build</b>.</div>
+      </div>
+
+      <!-- ===== DSLM (roadmap) ===== -->
+      <div class="hsec"><span class="hx" style="color:var(--violet)">DSLM Assistant</span><span class="hd">planned production layer</span></div>
+      <div class="panel" style="margin-bottom:13px;border-color:var(--violet)"><div class="ph"><h2><span class="tick"></span>Domain-Specific Language Model</h2><span class="pill" style="color:var(--violet);border-color:var(--violet);background:rgba(167,139,250,.12)">ROADMAP &middot; PLANNED</span></div>
+        <div class="help-item"><div class="hn">Local &amp; air-gapped</div><div class="hw">Served on-site via <b>Ollama</b> in an <b>isolated environment</b> with no external network egress &mdash; plant data never leaves the site and there is no runtime dependency on any third-party service.</div></div>
+        <div class="help-item"><div class="hn">Grounded by retrieval (RAG)</div><div class="hw">Answers are grounded in a curated corpus &mdash; plant procedures and technical specifications, vendor manuals, regulatory guidance (IAEA / NRC / EPRI), historical event reports &mdash; plus the <b>live Component Registry and telemetry</b> from this console.</div></div>
+        <div class="help-item"><div class="hn">Advisory &amp; human-in-the-loop</div><div class="hw">It explains, summarises and proposes; it <b>never actuates</b>. Every exchange is written to the Compliance / audit record.</div></div>
+        <div class="help-item"><div class="hn">Interpretable</div><div class="hw">Each answer <b>cites</b> the registry items, incidents and documents it drew on, so a reviewer can trace the reasoning.</div></div>
+        <div class="help-item"><div class="hn">Specialised, not trained from scratch</div><div class="hw">An open base model specialised by <b>retrieval and light fine-tuning</b> &mdash; the realistic way domain models are built.</div></div>
+        <div class="dslm-flow">
+          <div class="dslm-box"><div class="t">Plant inputs</div><div class="s">telemetry + Component Registry + document corpus</div></div>
+          <div class="dslm-arrow">&#10148;</div>
+          <div class="dslm-box"><div class="t">Retrieval (RAG)</div><div class="s">pulls the relevant grounding context</div></div>
+          <div class="dslm-arrow">&#10148;</div>
+          <div class="dslm-box core"><div class="t">Local DSLM</div><div class="s">Ollama &middot; isolated / air-gapped</div></div>
+          <div class="dslm-arrow">&#10148;</div>
+          <div class="dslm-box"><div class="t">Cited advisory</div><div class="s">explanation with sources</div></div>
+          <div class="dslm-arrow">&#10148;</div>
+          <div class="dslm-box"><div class="t">Operator + audit</div><div class="s">human-in-the-loop, logged</div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Example Interaction</h2><span class="tag" style="color:var(--amber);border-color:var(--amber)">illustrative &middot; scripted &middot; not a live model</span></div>
+        <div class="dslm-chat">
+          <details><summary>Operator: FV-104 is throwing a cluster of alarms &mdash; what is going on?</summary><div class="ans">The FV-104 alarm cluster matches the feedwater-valve cascade pattern recorded as <b>EVT-2026-0418</b>: a sticking control valve drives a feedwater-flow oscillation that trips level and flow alarms together. The Component Registry shows FV-104 latency rising, and the alarms are <b>correlated, not independent</b>. Treat the valve as the primary suspect and confirm actuator response before resetting the downstream alarms. Advisory only &mdash; operator confirms.<div class="cite">Grounded in: <b>Component Registry</b> (FV-104) &middot; <b>Root-Cause EVT-2026-0418</b> &middot; <b>Alarms &amp; Events</b></div></div></details>
+          <details><summary>Operator: Is the SG-2 outlet thermal anomaly a real excursion or a sensor artefact?</summary><div class="ans">Most likely a <b>measurement artefact</b>, not a process excursion. As in <b>EVT-2026-0419</b>, a genuine thermal excursion would be corroborated by independent instruments on the same loop; here that corroboration is absent, which points to electrical noise on the channel rather than a real temperature change. Check the instrument channel and grounding before treating it as a process event. EMI is handled as a diagnostic fault class; EMC qualification is a hardware responsibility. Advisory only.<div class="cite">Grounded in: <b>Root-Cause EVT-2026-0419</b> &middot; <b>Anomaly Detection</b> (SG-2) &middot; <b>Component Registry</b></div></div></details>
+          <details><summary>Operator: What is Coolant Pump 2A's degradation risk over the next 30 days?</summary><div class="ans">About <b>18%</b> &mdash; low. Bearing-temperature trend is within band and vibration is nominal. This figure comes from the <b>predictive layer</b>; the DSLM's role is to explain and cross-check it against the registry and recent events, not to replace it. Recommend routine inspection at the next outage. Advisory only.<div class="cite">Grounded in: <b>Predictive Digest</b> &middot; <b>Component Registry</b> (Pump 2A)</div></div></details>
+          <details><summary>Operator: Give me a one-line plant risk summary.</summary><div class="ans">Highest current risk is <b>FV-104</b> (valve latency, correlated alarms); <b>turbine-seal vibration</b> is trending and warrants watching; other tracked components are within band; no active SCRAM. Advisory rollup &mdash; operator confirms.<div class="cite">Grounded in: <b>Component Registry</b> &middot; <b>Anomaly Detection</b></div></div></details>
+        </div>
+        <div class="note" style="margin-top:4px">These are <b>pre-written examples</b> showing how the grounded DSLM would respond &mdash; no model runs in this build. In production, inference would run locally via Ollama in an isolated environment, with answers grounded in the live registry and document corpus.</div>
+      </div>
+
+      <!-- ===== PREDICTIVE DIAGNOSTICS (Phase-0 demonstrator) ===== -->
+      <div class="hsec"><span class="hx" style="color:var(--cyan)">Predictive Diagnostics</span><span class="hd">Phase-0 demonstrator &middot; working</span></div>
+      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Natural-Language Query</h2><span class="tag">predictive layer &middot; scripted example</span></div>
         <div style="display:flex;gap:9px;margin-bottom:12px"><div style="flex:1;border:1px solid var(--line-hot);border-radius:4px;padding:10px 13px;color:#dff7fb;font-size:12.5px">Predict probability of coolant pump degradation over next 30 days.</div><button class="btn active">Run</button></div>
-        <div class="note">Response: Pump <b style="color:var(--text)">2A</b> shows an 18% degradation probability — bearing temperature trend within normal band; recommend routine inspection at next outage. Confidence 0.86. Model: gradient-boosted survival, trained on 4.2 yrs vibration + thermal history.</div>
+        <div class="note">Response: Pump <b style="color:var(--text)">2A</b> shows an 18% degradation probability &mdash; bearing temperature trend within normal band; recommend routine inspection at next outage. Confidence 0.86. Illustrative survival model (gradient-boosted); figures are demonstration values, not identified from plant data.</div>
       </div>
       <div class="grid c2">
-        <div class="panel"><div class="ph"><h2><span class="tick"></span>Component Risk · 30-day horizon</h2></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Component Risk &middot; 30-day horizon</h2></div>
           <table><thead><tr><th>Component</th><th>Signal</th><th style="width:110px">Risk</th></tr></thead><tbody>
             <tr><td>Coolant Pump 2A</td><td>Bearing</td><td><span class="led ok"></span> <span class="mono">18%</span></td></tr>
             <tr><td>Turbine Seal</td><td>Vibration</td><td><span class="led warn"></span> <span class="mono">41%</span></td></tr>
@@ -1632,7 +1687,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rods:['Control Rods','Interactive · Bank D regulating'],neutronics:['Neutronics','Flux · reactivity · detectors'],
     steam:['Steam & Secondary','Steam generators · turbine train'],coolant:['Coolant / Thermal-Hydraulics','Primary & secondary loops'],
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
-    alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive · advisory'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
+    alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
     incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   function go(p){
@@ -3522,7 +3577,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     plant3d:{n:'Plant 3D View',w:'Whole-plant 3-D schematic of the fleet.',k:['Reactors, steam header and turbine-generator in one animated scene','Active units glow and spin the turbine; standby units are dark','Use the chips at the top to switch reactors on/off, and toggle labels, rotation and steam']},
     twin:{n:'Digital Twin',w:'Model-vs-reality reconciliation.',k:['Compares model expectation against (simulated) telemetry']},
     trends:{n:'Trends',w:'Historical time-series of key parameters.',k:['Track parameters over time']},
-    ai:{n:'AI Diagnostics',w:'Supervised predictive diagnostics (advisory).',k:['Failure-probability and degradation forecasts','Distinct from the RL optimiser, which learns control policies']},
+    ai:{n:'AI Diagnostics',w:'Predictive diagnostics (working) plus a planned DSLM assistant.',k:['Predictive layer: failure-probability and anomaly forecasts fed by the Component Registry','Planned DSLM: a nuclear-domain model served locally via Ollama, air-gapped, advisory','DSLM answers are retrieval-grounded and cite the registry, incidents and documents','The DSLM is documented as the production target — it is not running in this build','Distinct from the RL optimiser, which learns control policies']},
     alarms:{n:'Alarms & Events',w:'Active alarm management.',k:['Acknowledge and track alarm state']},
     rad:{n:'Radiation',w:'Radiation and dose monitoring.',k:['Area readings against limits']},
     incident:{n:'Incident Analysis',w:'Event timeline.',k:['Live SCRAM events appear at the top automatically','A baseline event reconstruction sits below']},
