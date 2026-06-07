@@ -137,6 +137,8 @@ A full set of PDFs accompanies the application:
 - **Root Cause Graph** — the graph view of fault propagation and alarm correlation.
 - **Project Roadmap** — the phased plan, the intended stack, and an indicative effort estimate.
 - **Project Brief** — a one-look overview.
+-  **How PWR works** .
+-  **How SMR works** .
 
 ## 👤 Author & licence
 
