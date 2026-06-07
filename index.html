@@ -1236,11 +1236,12 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="stat green"><div class="k">Condenser Vacuum</div><div class="v"><span class="live" data-sig="condVac" data-dec="1"></span><small>kPa</small></div><div class="bar"><i style="width:90%"></i></div></div>
       </div>
       <div class="grid c-21" style="margin-bottom:13px">
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag">2 × U-tube</span></div>
-          <table><thead><tr><th>SG</th><th>Pressure</th><th>NR Level</th><th>Steam Flow</th><th>Status</th></tr></thead><tbody>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag" id="sg-tag">2 × U-tube</span></div>
+          <table><thead><tr><th>SG</th><th>Pressure</th><th>NR Level</th><th>Steam Flow</th><th>Status</th></tr></thead><tbody id="sg-tbody">
             <tr><td>SG-1</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
             <tr><td>SG-2</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0" data-jitter="1"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
           </tbody></table>
+          <div class="note" id="sg-note" style="margin-top:8px"></div>
           <div style="margin-top:10px">
             <div class="row"><div class="ln">Main Steam Header</div><div class="flowbar"><i class="flowfill" data-flow="steamPress" data-max="80"></i></div><div class="rv"><span class="live" data-sig="steamPress" data-dec="1"></span><span> bar</span></div></div>
             <div class="row"><div class="ln">MSIVs</div><span class="pill ok">Open</span></div>
@@ -1272,12 +1273,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <!-- ===== COOLANT ===== -->
     <section class="page" data-page="coolant">
       <div class="grid c-21" style="margin-bottom:13px">
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Primary Coolant Loops</h2><span class="tag">2-Loop</span></div>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Primary Coolant Loops</h2><span class="tag" id="cool-tag">2-Loop</span></div>
+          <div class="note" id="cool-note"></div>
+          <div id="cool-rows">
           <div class="row"><div class="ln">Loop A Flow<span>RCP-1A · running</span></div><div class="flowbar"><i class="flowfill" data-flow="loopAflow" data-max="22"></i></div><div class="rv"><span class="live" data-sig="loopAflow" data-dec="1"></span><span> km³/h</span></div></div>
           <div class="row"><div class="ln">Loop B Flow<span>RCP-1B · running</span></div><div class="flowbar"><i class="flowfill" data-flow="loopBflow" data-max="22"></i></div><div class="rv"><span class="live" data-sig="loopBflow" data-dec="1"></span><span> km³/h</span></div></div>
           <div class="row"><div class="ln">Hot Leg A<span>T-hot</span></div><div class="rv"><span class="live" data-sig="hotLegA" data-dec="0"></span><span> °C</span></div></div>
           <div class="row"><div class="ln">Cold Leg A<span>T-cold</span></div><div class="rv"><span class="live" data-sig="coldLegA" data-dec="0"></span><span> °C</span></div></div>
           <div class="row"><div class="ln">Feedwater Flow<span>secondary</span></div><div class="rv"><span class="live" data-sig="feedwater" data-dec="0"></span><span> kg/s</span></div></div>
+          </div>
         </div>
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Pressurizer</h2></div>
           <div class="gauges c2">
@@ -1290,8 +1294,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       </div>
       <div class="grid c2">
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Steam Generator Levels</h2></div>
+          <div id="sg-levels">
           <div class="row"><div class="ln">SG-1 Level</div><div class="flowbar"><i class="flowfill" data-flow="sgLevel" data-max="100"></i></div><div class="rv"><span class="live" data-sig="sgLevel" data-dec="0"></span><span> %</span></div></div>
           <div class="row"><div class="ln">SG-2 Level</div><div class="flowbar"><i class="flowfill" data-flow="sgLevel" data-max="100"></i></div><div class="rv"><span class="live" data-sig="sgLevel" data-dec="0"></span><span> %</span></div></div>
+          </div>
           <div class="row"><div class="ln">Condenser Vacuum</div><div class="rv"><span class="live" data-sig="condVac" data-dec="1"></span><span> kPa</span></div></div>
         </div>
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Loop A Flow Trend</h2><span class="tag">60 min</span></div><svg class="chart" data-chart="loopAflow" viewBox="0 0 460 150" preserveAspectRatio="none"></svg></div>
@@ -1914,10 +1920,42 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="uact"><div class="toggle ${u.online?'on':'off'}" data-toggle="${u.id}">${u.online?'On':'Off'}</div><div class="toggle" data-select="${u.id}">Select</div></div></div>`;}).join('');}
   }
 
+  var lastArchSig=null;
+  function applyArch(){
+    var u=selUnit; if(!u)return;
+    var pwr=!!(u.cls&&u.cls.indexOf("PWR")===0);
+    var loops=pwr?((u.cap||900)>=1100?4:3):2;
+    var nsg=pwr?loops:6;
+    var sig=u.id+"|"+pwr+"|"+loops; if(sig===lastArchSig)return; lastArchSig=sig;
+    var ge=function(id){return document.getElementById(id);};
+    var ct=ge("cool-tag"); if(ct)ct.textContent=pwr?(loops+"-Loop"):"Integral \u00b7 in-vessel";
+    var st=ge("sg-tag"); if(st)st.textContent=pwr?(loops+" \u00d7 U-tube"):"6 \u00d7 compact plate";
+    var cn=ge("cool-note"); if(cn)cn.textContent=pwr?"":"Integral layout \u2014 steam generators and coolant pumps sit inside the reactor vessel; no external loops.";
+    var sn=ge("sg-note"); if(sn)sn.textContent=pwr?"":"Compact plate steam generators inside the vessel (six for power, plus two safety units).";
+    var cr=ge("cool-rows");
+    if(cr){var h="",i;
+      for(i=0;i<loops;i++){var sk=(i%2===0)?"loopAflow":"loopBflow";var jit=i>=2?" data-jitter=\"0.4\"":"";
+        var pump=pwr?("RCP-1"+String.fromCharCode(65+i)+" \u00b7 running"):("In-vessel pump "+(i+1));
+        var ll=pwr?("Loop "+String.fromCharCode(65+i)+" Flow"):("Primary Flow "+(i+1));
+        h+="<div class=\"row\"><div class=\"ln\">"+ll+"<span>"+pump+"</span></div><div class=\"flowbar\"><i class=\"flowfill\" data-flow=\""+sk+"\" data-max=\"22\"></i></div><div class=\"rv\"><span class=\"live\" data-sig=\""+sk+"\" data-dec=\"1\""+jit+"></span><span> km\u00b3/h</span></div></div>";}
+      h+="<div class=\"row\"><div class=\"ln\">"+(pwr?"Hot Leg":"Core Outlet")+"<span>T-hot</span></div><div class=\"rv\"><span class=\"live\" data-sig=\"hotLegA\" data-dec=\"0\"></span><span> \u00b0C</span></div></div>";
+      h+="<div class=\"row\"><div class=\"ln\">"+(pwr?"Cold Leg":"Downcomer")+"<span>T-cold</span></div><div class=\"rv\"><span class=\"live\" data-sig=\"coldLegA\" data-dec=\"0\"></span><span> \u00b0C</span></div></div>";
+      h+="<div class=\"row\"><div class=\"ln\">Feedwater Flow<span>secondary</span></div><div class=\"rv\"><span class=\"live\" data-sig=\"feedwater\" data-dec=\"0\"></span><span> kg/s</span></div></div>";
+      cr.innerHTML=h;}
+    var sb=ge("sg-tbody");
+    if(sb){var s2="",j;for(j=0;j<nsg;j++){var jl=j>0?" data-jitter=\"1\"":"";
+      s2+="<tr><td>SG-"+(j+1)+"</td><td class=\"mono\"><span class=\"live\" data-sig=\"steamPress\" data-dec=\"1\" data-jitter=\"0.3\"></span> bar</td><td class=\"mono\"><span class=\"live\" data-sig=\"sgLevel\" data-dec=\"0\""+jl+"></span> %</td><td class=\"mono\"><span class=\"live\" data-sig=\"steamFlow\" data-dec=\"0\" data-div=\""+nsg+"\"></span> kg/s</td><td><span class=\"pill ok\">Normal</span></td></tr>";}
+      sb.innerHTML=s2;}
+    var slv=ge("sg-levels");
+    if(slv){var g="",m;for(m=0;m<nsg;m++){var jm=m>0?" data-jitter=\"1\"":"";
+      g+="<div class=\"row\"><div class=\"ln\">SG-"+(m+1)+" Level</div><div class=\"flowbar\"><i class=\"flowfill\" data-flow=\"sgLevel\" data-max=\"100\"></i></div><div class=\"rv\"><span class=\"live\" data-sig=\"sgLevel\" data-dec=\"0\""+jm+"></span><span> %</span></div></div>";}
+      slv.innerHTML=g;}
+  }
   function render(){
+    applyArch();
     drawCoreMap();
     $$('.live').forEach(el=>{const v=S[el.dataset.sig];if(v==null)return;
-      let x=v; if(el.dataset.half)x=v/2; if(el.dataset.jitter)x+=rnd(-el.dataset.jitter,+el.dataset.jitter);
+      let x=v; if(el.dataset.half)x=v/2; if(el.dataset.div)x=v/(+el.dataset.div); if(el.dataset.jitter)x+=rnd(-el.dataset.jitter,+el.dataset.jitter);
       el.textContent=x.toFixed(+(el.dataset.dec||0));});
     $$('.barfill').forEach(el=>el.style.width=clamp(S[el.dataset.bar]/el.dataset.max*100,0,100)+'%');
     $$('.flowfill').forEach(el=>el.style.setProperty('--w',clamp(S[el.dataset.flow]/el.dataset.max*100,0,100)+'%'));
