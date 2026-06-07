@@ -866,7 +866,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     </section>
     <section class="page" data-page="kinetics">
       <div class="panel hot" style="margin-bottom:13px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim)">Point-Kinetics Engine &middot; real reactor dynamics</div>
+        <div><div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim)">Point-Kinetics Engine &middot; real reactor dynamics</div><div style="margin-top:5px"><span class="tag" id="kin-unit">PWR-900</span> <span style="font-size:9px;color:var(--text-dim)">representative constants for this unit class</span></div></div>
         <div style="text-align:right"><div style="font-size:18px;font-weight:600;color:#eafdff" id="simt">0.0 s</div><div style="font-size:8.5px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase">simulated time</div></div>
       </div>
 <div class="kin-warn" id="warn">&#9888; Approaching <b>prompt critical</b> (reactivity &ge; &#36;1). In a real reactor this is a runaway condition; the model clamps for stability.</div>
@@ -937,7 +937,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <div class="note">This solves the <b>point-kinetics equations</b> with six delayed-neutron precursor groups (U-235 data), the standard model of reactor dynamics:
     dn/dt = (&rho;&minus;&beta;)/&Lambda; &middot; n + &Sigma; &lambda;<sub>i</sub>C<sub>i</sub>, with precursor equations dC<sub>i</sub>/dt = &beta;<sub>i</sub>/&Lambda; &middot; n &minus; &lambda;<sub>i</sub>C<sub>i</sub>.
     Reactivity &rho; is the sum of control-rod worth plus feedbacks: <b>Doppler</b> (fuel temperature), <b>moderator</b> (coolant temperature), and <b>xenon-135</b> (a fission-product poison governed by coupled I-135/Xe-135 balance equations). Fuel and coolant temperatures follow a lumped two-node thermal model driven by power. Integration uses operator splitting (exact precursor update, implicit neutron update) so it stays stable despite the stiffness of the equations.
-    <br><br><b>Honest scope:</b> the <i>structure</i> is the real physics and reproduces the real qualitative phenomena (prompt jump, reactor period, power self-regulation through negative feedback, post-shutdown xenon transient). The <i>constants</i> (generation time, feedback coefficients, thermal gains, xenon worth) are representative textbook-order values, not tuned to a specific reactor. It is an educational simulator, not a licensed analysis code.</div>
+    <br><br><b>Honest scope:</b> the <i>structure</i> is the real physics and reproduces the real qualitative phenomena (prompt jump, reactor period, power self-regulation through negative feedback, post-shutdown xenon transient). The <i>constants</i> (generation time, feedback coefficients, thermal gains, xenon worth) are representative textbook-order values for the selected unit class, not tuned to a specific reactor. It is an educational simulator, not a licensed analysis code.</div>
   </div>
 
     </section>
@@ -946,7 +946,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
             <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim)">Model Analysis &middot; verification of the point-kinetics engine</div>
-            <div class="note" style="margin-top:6px;max-width:820px;line-height:1.6">Every figure on this page is computed live from the <b>same</b> point-kinetics model the console runs &mdash; the parameters listed are the literal constants inside the solver, and each check integrates that solver against a closed-form reference. Nothing here is hand-entered. This verifies the solver's <b>numerical fidelity to the point-kinetics equations</b>; it does <b>not</b> claim agreement with any specific real reactor, because the constants are representative (see the note on the Reactor Kinetics screen).</div>
+            <div style="margin-top:6px"><span class="tag" id="an-unit">PWR-900</span> <span style="font-size:9px;color:var(--text-dim)">selected unit &mdash; representative constants for this class</span></div>
+            <div class="note" style="margin-top:6px;max-width:820px;line-height:1.6">Every figure on this page is computed live from the <b>same</b> point-kinetics model the console runs &mdash; the parameters listed are the literal constants inside the solver, and each check integrates that solver against a closed-form reference. Nothing here is hand-entered. This verifies the solver's <b>numerical fidelity to the point-kinetics equations</b>; it does <b>not</b> claim agreement with any specific real reactor, because the constants are representative values for the selected unit class (see the note on the Reactor Kinetics screen).</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn" id="an-exp-json">&#10515; Parameters (JSON)</button>
@@ -1892,7 +1893,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     SIGS.forEach(k=>{hist[k].push(S[k]);if(hist[k].length>60)hist[k].shift();});
     render();drawCharts();updatePlantState();renderFleet();
   }
-  function selectUnit(id){const u=units.find(x=>x.id===id);if(!u)return;selId=id;selUnit=u;S=u.st;
+  function selectUnit(id){const u=units.find(x=>x.id===id);if(!u)return;selId=id;selUnit=u;S=u.st;if(window.KIN&&window.KIN.applyUnit){window.KIN.applyUnit(u);}
     SIGS.forEach(k=>{hist[k]=Array(60).fill(S[k]);});
     const sl=document.getElementById('rodslider');if(sl)sl.value=S.rodInsert;
     const us=document.getElementById('unitsel');if(us)us.value=id;
@@ -2859,17 +2860,17 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   const BETA=[0.000215,0.001424,0.001274,0.002568,0.000748,0.000273];
   const LAM =[0.0124,0.0305,0.111,0.301,1.140,3.010];
   const B=BETA.reduce((a,b)=>a+b,0);      // total delayed fraction ~0.006502
-  const GEN=2e-5;                          // prompt neutron generation time Λ (s)
+  let GEN=2e-5;                          // prompt neutron generation time Λ (s)
   // ---- feedback coefficients (pcm) ----
-  const aD=-2.5, aM=-15.0;                 // Doppler (per °C fuel), moderator (per °C coolant)
-  const TF0=600, TC0=305, TIN=290;
+  let aD=-2.5, aM=-15.0;                 // Doppler (per °C fuel), moderator (per °C coolant)
+  let TF0=600, TC0=305, TIN=290;
   // ---- thermal model ----
-  const KP=59, KFC=0.2, KCO=3.93, CF=2, CC=4;
+  let KP=59; const KFC=0.2, KCO=3.93, CF=2, CC=4;
   // ---- xenon / iodine ----
   const gI=0.0639, gXe=0.00228, lI=2.87e-5, lXe=2.09e-5, SF=1, SIGPHI=0.7e-4;
   const IEQ=gI*SF/lI;                       // iodine equilibrium at 100%
   const XEEQ=(gXe*SF+gI*SF)/(lXe+SIGPHI*1); // xenon equilibrium at 100%
-  const KXE=2700/XEEQ;                      // pcm per unit xenon (eq worth ~2700 pcm)
+  let xeWorthPcm=2700, KXE=xeWorthPcm/XEEQ;                      // pcm per unit xenon (eq worth ~2700 pcm)
 
   // ---- state ----
   let S;
@@ -2879,6 +2880,33 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
             rho:0, dndt:0, prompt:false};
   }
   S=fresh();
+
+  // ---- per-unit representative parameter profiles (consistency-to-selection) ----
+  // Representative textbook-order constants per unit CLASS, not measured plant data.
+  var KPROF={
+    'PWR-900'   :{aD:-2.5,aM:-15.0,GEN:2.00e-5,TIN:290,KP:59,xeWorth:2700},
+    'PWR-1300'  :{aD:-2.7,aM:-17.0,GEN:1.85e-5,TIN:292,KP:63,xeWorth:2850},
+    'NUWARD-170':{aD:-2.9,aM:-24.0,GEN:2.20e-5,TIN:280,KP:52,xeWorth:2500}
+  };
+  var curUnit={id:'u1',name:'PWR-900',cls:'PWR-900'};
+  function profFor(u){
+    var cls=(u&&u.cls)?u.cls:'PWR-900';
+    if(KPROF[cls])return KPROF[cls];
+    if(cls.indexOf('PWR')!==0)return KPROF['NUWARD-170'];
+    return KPROF['PWR-900'];
+  }
+  function applyUnit(u){
+    var pr=profFor(u);
+    aD=pr.aD;aM=pr.aM;GEN=pr.GEN;TIN=pr.TIN;KP=pr.KP;
+    TC0=TIN+KP/KCO;TF0=TC0+KP/KFC;
+    xeWorthPcm=pr.xeWorth;KXE=xeWorthPcm/XEEQ;
+    curUnit={id:(u&&u.id)||'u1',name:(u&&u.name)||(u&&u.cls)||'PWR-900',cls:(u&&u.cls)||'PWR-900'};
+    if(window.KIN&&window.KIN.model){var mp=window.KIN.model.params;
+      mp.aD=aD;mp.aM=aM;mp.GEN=GEN;mp.TF0=TF0;mp.TC0=TC0;mp.TIN=TIN;mp.KP=KP;mp.KXE=KXE;mp.xeWorthPcm=xeWorthPcm;
+      window.KIN.modelVersion=(window.KIN.modelVersion||0)+1;}
+    S=fresh();fillH();
+    var uh=document.getElementById('kin-unit');if(uh)uh.textContent=curUnit.cls;
+  }
 
   let timeScale=1, paused=false;
 
@@ -2999,14 +3027,14 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('pause').onclick=function(){paused=!paused;this.textContent=paused?'Run':'Pause';this.classList.toggle('active',paused);};
   $('reset').onclick=()=>{S=fresh();setRod(0);fillH();render();};
 
-  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},
+  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},applyUnit:function(u){applyUnit(u);},unit:function(){return curUnit;},modelVersion:0,
     pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
     reset:function(){S=fresh();setRod(0);fillH();render();},
     setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
   window.KIN.model={
     params:{BETA:BETA.slice(),LAM:LAM.slice(),B:B,GEN:GEN,aD:aD,aM:aM,TF0:TF0,TC0:TC0,TIN:TIN,
       KP:KP,KFC:KFC,KCO:KCO,CF:CF,CC:CC,gI:gI,gXe:gXe,lI:lI,lXe:lXe,SF:SF,SIGPHI:SIGPHI,
-      IEQ:IEQ,XEEQ:XEEQ,KXE:KXE,xeWorthPcm:2700},
+      IEQ:IEQ,XEEQ:XEEQ,KXE:KXE,xeWorthPcm:xeWorthPcm},
     fresh:fresh,
     stepState:stepState
   };
@@ -3016,6 +3044,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rho:S.rho,t:S.t};};
   window.KIN.history=function(){return {N:N,pow:H.pow.slice(),rho:H.rho.slice(),tf:H.tf.slice(),
     tc:H.tc.slice(),xe:H.xe.slice(),ii:H.ii.slice()};};
+  try{applyUnit((window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null);}catch(e){}
   setRod(0);render();
 })();
 </script>
@@ -3093,7 +3122,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     var xp=xenonPit(p);
     rows.push(['Post-shutdown xenon peak','classic \u2248 7\u201311 h (flux-dep.)','model: '+f(xp.tpeakH,1)+' h, '+f(xp.peakPct,0)+'% of eq',['ok','OK']]);
     var TFeq=p.TIN+p.KP/p.KCO+p.KP/p.KFC,TCeq=p.TIN+p.KP/p.KCO;
-    rows.push(['Thermal equilibrium (100%)','ref point 600 / 305 \u00b0C','model: '+f(TFeq,1)+' / '+f(TCeq,1)+' \u00b0C',(Math.abs(TFeq-600)<1&&Math.abs(TCeq-305)<1)?['ok','SELF-CONSISTENT']:['warn','CHECK']]);
+    rows.push(['Thermal equilibrium (100%)','ref point '+f(p.TF0,0)+' / '+f(p.TC0,0)+' \u00b0C','model: '+f(TFeq,1)+' / '+f(TCeq,1)+' \u00b0C',(Math.abs(TFeq-p.TF0)<1&&Math.abs(TCeq-p.TC0)<1)?['ok','SELF-CONSISTENT']:['warn','CHECK']]);
     var html='<table><thead><tr><th style="text-align:left">Check</th><th style="text-align:left">Reference</th><th style="text-align:left">Computed</th><th>Result</th></tr></thead><tbody>';
     rows.forEach(function(r){html+='<tr><td style="color:var(--text)">'+r[0]+'</td><td style="color:var(--text-dim)">'+r[1]+'</td><td class="mono" style="color:#eafdff">'+r[2]+'</td><td style="text-align:center">'+pill(r[3][0],r[3][1])+'</td></tr>';});
     html+='</tbody></table>';
@@ -3222,7 +3251,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function exportJSON(){
     var p=M().params;
     var obj={meta:{product:'NEXUS-1',build:BUILD,exported:stamp(),
-      scope:'DEMONSTRATION \u2014 point-kinetics solver constants. Representative textbook-order values, not tuned to a specific reactor.'},
+      unit:((window.KIN&&window.KIN.unit)?window.KIN.unit().cls:'PWR-900'),scope:'DEMONSTRATION \u2014 point-kinetics solver constants. Representative textbook-order values for the selected unit class, not tuned to a specific reactor.'},
       nuclear_data:{beta_groups:p.BETA,beta_total:p.B,lambda_groups_per_s:p.LAM,
         lambda_I135_per_s:p.lI,lambda_Xe135_per_s:p.lXe,yield_I135:p.gI,yield_Xe135:p.gXe},
       model_parameters:{generation_time_s:p.GEN,doppler_pcm_per_C:p.aD,moderator_pcm_per_C:p.aM,
@@ -3243,11 +3272,14 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function wire(id,fn){var e=$(id);if(e&&!e.__wired){e.__wired=true;e.addEventListener('click',fn);}}
 
   // ---------- driver ----------
-  var staticDone=false;
+  var staticDone=false, lastUnitId="";
   function ensureStatic(){if(staticDone||!M())return;try{renderVal();renderParams();renderSens();staticDone=true;}catch(e){}}
   function tick(){
     wire('an-exp-json',exportJSON);wire('an-exp-csv',exportCSV);wire('kin-exp-csv',exportCSV);
+    var cu=(window.KIN&&window.KIN.unit)?window.KIN.unit():null;var uid=cu?cu.id:"";
+    if(uid!==lastUnitId){lastUnitId=uid;staticDone=false;}
     if(!active())return;
+    var uh=$('an-unit');if(uh)uh.textContent=cu?cu.cls:'';
     ensureStatic();
     try{renderMargins();renderForecast();}catch(e){}
   }
