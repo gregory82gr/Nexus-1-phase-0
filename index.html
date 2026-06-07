@@ -2874,8 +2874,12 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
   // ---- state ----
   let S;
-  function fresh(){
+  function fresh(off){
     const C=BETA.map((bi,i)=>bi/(GEN*LAM[i])*1.0); // precursors at equilibrium for n=1
+    if(off){ // offline / shut down: deeply subcritical, cool, negligible power
+      return {n:1e-5, C:C.map(function(c){return c*1e-5;}), TF:TIN+6, TC:TIN+2, I:IEQ*0.02, Xe:XEEQ*0.05,
+              rodPcm:-400, scram:true, t:0, rho:0, dndt:0, prompt:false};
+    }
     return {n:1, C:C, TF:TF0, TC:TC0, I:IEQ, Xe:XEEQ, rodPcm:0, scram:false, t:0,
             rho:0, dndt:0, prompt:false};
   }
@@ -2889,6 +2893,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     'NUWARD-170':{aD:-2.9,aM:-24.0,GEN:2.20e-5,TIN:280,KP:52,xeWorth:2500}
   };
   var curUnit={id:'u1',name:'PWR-900',cls:'PWR-900'};
+  var curOffline=false;
+  function syncRodUI(){var rd=document.getElementById('rod');if(rd)rd.value=S.rodPcm;var rv=document.getElementById('rod-val');if(rv)rv.textContent=Math.round(S.rodPcm);}
   function profFor(u){
     var cls=(u&&u.cls)?u.cls:'PWR-900';
     if(KPROF[cls])return KPROF[cls];
@@ -2904,8 +2910,9 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     if(window.KIN&&window.KIN.model){var mp=window.KIN.model.params;
       mp.aD=aD;mp.aM=aM;mp.GEN=GEN;mp.TF0=TF0;mp.TC0=TC0;mp.TIN=TIN;mp.KP=KP;mp.KXE=KXE;mp.xeWorthPcm=xeWorthPcm;
       window.KIN.modelVersion=(window.KIN.modelVersion||0)+1;}
-    S=fresh();fillH();
-    var uh=document.getElementById('kin-unit');if(uh)uh.textContent=curUnit.cls;
+    var off=!(u&&u.online); curOffline=off;
+    S=fresh(off);fillH();syncRodUI();
+    var uh=document.getElementById('kin-unit');if(uh)uh.textContent=curUnit.cls+(off?' \u00b7 offline':'');
   }
 
   let timeScale=1, paused=false;
@@ -2960,13 +2967,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function poly(d,w,h,pad,mn,mx){const r=(mx-mn)||1;
     return d.map((v,i)=>{const x=pad+i/(d.length-1)*(w-2*pad);const y=h-pad-((v-mn)/r)*(h-2*pad);return x.toFixed(1)+','+y.toFixed(1);}).join(' ');}
   function grid(w,h){let g='';for(let i=1;i<4;i++){const y=(h*i/4).toFixed(0);g+=`<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="var(--line)"/>`;}return g;}
-  function lineChart(svg,series){const m=svg.viewBox.baseVal,w=m.width,h=m.height,pad=8;
+  function lineChart(svg,series,opts){opts=opts||{};const m=svg.viewBox.baseVal,w=m.width,h=m.height,pad=8;
     let all=[];series.forEach(s=>all=all.concat(s.d));let mn=Math.min.apply(null,all),mx=Math.max.apply(null,all);
-    if(mx-mn<1e-6){mx+=1;mn-=1;}const padv=(mx-mn)*0.08;mn-=padv;mx+=padv;
+    if(opts.floor!=null)mn=Math.min(mn,opts.floor);
+    if(opts.minTop!=null)mx=Math.max(mx,opts.minTop);
+    if(mx-mn<1e-6){mx+=1;mn-=1;}const padv=(mx-mn)*0.08;mx+=padv;if(opts.floor==null)mn-=padv;
     let g=grid(w,h);series.forEach(s=>{g+=`<polyline points="${poly(s.d,w,h,pad,mn,mx)}" fill="none" stroke="${s.c}" stroke-width="2"/>`;});
     svg.innerHTML=g;}
   function draw(){
-    lineChart($('ch-pow'),[{d:H.pow,c:'var(--green)'}]);
+    lineChart($('ch-pow'),[{d:H.pow,c:'var(--green)'}],{floor:0,minTop:5});
     lineChart($('ch-rho'),[{d:H.rho,c:'var(--cyan)'}]);
     lineChart($('ch-temp'),[{d:H.tf,c:'var(--violet)'},{d:H.tc,c:'var(--cyan)'}]);
     lineChart($('ch-xe'),[{d:H.xe,c:'var(--amber)'},{d:H.ii,c:'var(--magenta)'}]);
@@ -3025,11 +3034,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('scram').onclick=()=>{S.scram=true;};
   document.querySelectorAll('[data-ts]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-ts]').forEach(x=>x.classList.remove('active'));b.classList.add('active');timeScale=+b.dataset.ts;$('ts-tag').textContent=timeScale+'× speed';});
   $('pause').onclick=function(){paused=!paused;this.textContent=paused?'Run':'Pause';this.classList.toggle('active',paused);};
-  $('reset').onclick=()=>{S=fresh();setRod(0);fillH();render();};
+  $('reset').onclick=()=>{S=fresh(curOffline);if(curOffline){syncRodUI();}else{setRod(0);}fillH();render();};
 
   window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},applyUnit:function(u){applyUnit(u);},unit:function(){return curUnit;},modelVersion:0,
     pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
-    reset:function(){S=fresh();setRod(0);fillH();render();},
+    reset:function(){S=fresh(curOffline);if(curOffline){syncRodUI();}else{setRod(0);}fillH();render();},
     setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
   window.KIN.model={
     params:{BETA:BETA.slice(),LAM:LAM.slice(),B:B,GEN:GEN,aD:aD,aM:aM,TF0:TF0,TC0:TC0,TIN:TIN,
