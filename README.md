@@ -139,6 +139,7 @@ A full set of PDFs accompanies the application:
 - **Project Brief** — a one-look overview.
 -  **How PWR works** .
 -  **How SMR works** .
+-  **Model Analysis** .
 
 ## 👤 Author & licence
 
