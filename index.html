@@ -16,7 +16,12 @@
 <meta name="application-name" content="NEXUS-1">
 <meta name="x-build-signature" content="NX1-094C79E0A366D34F">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS-1 &middot; Operator Console + Rod Inspection</title>
+<title>NEXUS-1 &middot; Nuclear Plant Operator Console &amp; Digital Twin</title>
+<meta name="description" content="NEXUS-1 — a single-file nuclear power plant operator console and digital-twin demonstrator: live six-group point-kinetics simulation, scored training drills, root-cause analysis and whole-plant 3D visualization. Phase-0 portfolio build — no live plant connected.">
+<meta property="og:title" content="NEXUS-1 · Nuclear Plant Operator Console &amp; Digital Twin">
+<meta property="og:description" content="Single-file operator console demonstrator: live point-kinetics simulation, training drills, root-cause analysis, fleet 3D view. Phase-0 — no live plant connected.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23070b0c'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%2322d3ee' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='5.5' fill='none' stroke='%2322d3ee' stroke-width='1.4' opacity='.55'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%2322d3ee'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -488,6 +493,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 </script>
 </head>
 <body data-author="Agathangelidis Grigorios" data-copyright="(c) 2026 Agathangelidis Grigorios" data-sig="NX1-094C79E0A366D34F">
+<noscript><div style="font-family:monospace;color:#cfe3e6;background:#070b0c;padding:30px;height:100vh">NEXUS-1 is an interactive simulation console and requires JavaScript. Nothing is loaded from a server &mdash; the whole console runs locally in this single file.</div></noscript>
   <div aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">NEXUS-1 (c) 2026 Agathangelidis Grigorios — NX1-094C79E0A366D34F</div>
 <div class="app">
   <aside class="side">
@@ -872,16 +878,16 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 <div class="kin-warn" id="warn">&#9888; Approaching <b>prompt critical</b> (reactivity &ge; &#36;1). In a real reactor this is a runaway condition; the model clamps for stability.</div>
 
   <div class="grid c4" style="margin-bottom:13px">
-    <div class="stat green"><div class="k">Reactor Power</div><div class="v"><span id="v-pow">100</span><small>% rated</small></div></div>
+    <div class="stat green"><div class="k">Reactor Power</div><div class="v"><span id="v-pow">100</span><small>% rated</small></div><div class="note" style="margin-top:3px"><span id="v-dh">decay heat 6.60% &middot; thermal 100%</span></div></div>
     <div class="stat cyan"><div class="k">Net Reactivity</div><div class="v"><span id="v-rho">0</span><small>pcm</small></div><div class="note" style="margin-top:3px"><span id="v-dollar">$0.00</span></div></div>
-    <div class="stat amber"><div class="k">Reactor Period</div><div class="v" id="v-period">&#8734;<small>s</small></div></div>
+    <div class="stat amber"><div class="k">Reactor Period</div><div class="v" id="v-period">&#8734;<small>s</small></div><div class="note" style="margin-top:3px"><span id="v-sur">SUR 0.00 dpm</span></div></div>
     <div class="stat violet"><div class="k">Fuel Temp</div><div class="v"><span id="v-tf">600</span><small>&deg;C</small></div></div>
   </div>
 
   <div class="grid c-21" style="margin-bottom:13px">
     <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Reactor Power</h2><span class="tag" id="pow-tag">100% &middot; stable</span></div>
       <svg class="chart" id="ch-pow" viewBox="0 0 700 160" preserveAspectRatio="none"></svg>
-      <div class="kin-legend"><span><i style="background:var(--green)"></i>Power (% rated, auto-scaled)</span></div>
+      <div class="kin-legend"><span><i style="background:var(--green)"></i>Neutronic power (% rated)</span><span><i style="background:var(--amber)"></i>Total thermal incl. decay heat</span></div>
     </div>
     <div class="panel"><div class="ph"><h2><span class="tick"></span>Reactivity Balance</h2><span class="tag">pcm</span></div>
       <div class="reactlist" id="reactlist"></div>
@@ -958,7 +964,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
       <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Solver validation</h2><span class="tag">computed vs reference</span></div>
         <div id="an-val"></div>
-        <div class="note" style="margin-top:9px;line-height:1.6">The inhour and prompt-jump checks run the neutron kinetics with temperature/xenon feedback <b>disabled</b> &mdash; that is the regime those closed forms describe. The small non-zero errors are the genuine numerical-integration error of the live scheme, not cosmetic figures. Half-life and yield rows compare the model's representative constants against textbook values; differences reflect the representative constants, not a solver fault.</div>
+        <div class="note" style="margin-top:9px;line-height:1.6">The inhour and prompt-jump checks run the neutron kinetics with temperature/xenon feedback <b>disabled</b> &mdash; that is the regime those closed forms describe. The small non-zero errors are the genuine numerical-integration error of the live scheme, not cosmetic figures. Half-life and yield rows compare the model's representative constants against textbook values; differences reflect the representative constants, not a solver fault. Decay-heat rows evaluate the 12-group afterheat model analytically (shutdown from infinite operation) against the Way&ndash;Wigner correlation <i>P/P&#8320; = 0.0622&nbsp;t<sup>&minus;0.2</sup></i>; the &Delta; shown is the genuine residual of the group fit.</div>
       </div>
 
       <div class="grid c-21" style="margin-bottom:13px">
@@ -1830,17 +1836,50 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
     incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
+  // ---- live, unit-aware header subtitles (consistency-to-selection) ----
+  // Published design fuel-assembly counts per unit class — single source for the
+  // header subtitle and the core-map cell count (drawCoreMap).
+  const FA_CLS={'PWR-900':157,'PWR-1300':193,'NUWARD-170':76};
+  function liveSub(p){
+    var u=null;try{u=(window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;}catch(e){}
+    if(!u)return null;
+    if(p==='overview'){
+      var pw=u.st?Math.max(0,u.st.flux):0;
+      var state=!u.online?'Shut down':(pw>=90?'Full power operation':(pw>=5?Math.round(pw)+'% power':((u.st&&u.st.rodInsert>90)?'Shut down / subcritical':'Startup / low power')));
+      return u.name+' · '+u.cls+' · '+state;
+    }
+    if(p==='core'){var fa=FA_CLS[u.cls];return (u.cap<400?'SMR':'PWR')+' · '+u.cls+(fa?' · '+fa+' fuel assemblies':'');}
+    if(p==='rods')return u.name+' · Interactive · '+(u.cap<400?'regulating bank':'Bank D regulating');
+    if(p==='power')return u.name+' · Turbine-generator · 400 kV';
+    return null;
+  }
+  function refreshSub(){var a=document.querySelector('.page.active');if(!a)return;
+    var s=liveSub(a.dataset.page);
+    if(s){var el=document.getElementById('pgsub');if(el&&el.textContent!==s)el.textContent=s;}}
+  setInterval(refreshSub,1000);
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page===p));
-    if(titles[p]){$('#pgtitle').firstChild.textContent=titles[p][0];$('#pgsub').textContent=titles[p][1];}
+    if(titles[p]){$('#pgtitle').firstChild.textContent=titles[p][0];$('#pgsub').textContent=liveSub(p)||titles[p][1];}
     drawCharts();
   }
   $$('.navitem[data-p]').forEach(it=>it.onclick=()=>go(it.dataset.p));
   $$('.subitem[data-p]').forEach(it=>it.onclick=()=>go(it.dataset.p));
   $('#insp-group .grouphead').onclick=()=>$('#insp-group').classList.toggle('open');
   $('#reactor-group .grouphead').onclick=()=>$('#reactor-group').classList.toggle('open');
+
+  // ---- decay heat: shared constants (single source for fleet sim + KIN solver) ----
+  // 12 exponential groups fitted to the Way–Wigner correlation P/P0 = 0.0622 t^-0.2
+  // (fission-product afterheat after shutdown; correlation valid ~10 s – 10^6 s,
+  // infinite prior operation), with the t→0 equilibrium fraction constrained to the
+  // canonical 6.6% of rated. Max deviation from the correlation over its validity
+  // range: ±1.4% — shown live as a Model Analysis validation row. Each group
+  // integrates the actual power history (convolution), not a curve lookup.
+  window.NEXUS_DH={
+    TAU:[1.99526,6.68344,22.3872,74.9894,251.189,841.395,2818.38,9440.61,31622.8,105925,354813,3.98107e6],
+    F:[0.013848,0.0112104,0.00875829,0.0069646,0.00534154,0.00437263,0.00318548,0.00284911,0.00173676,0.00211518,0.000696364,0.00492164],
+    FRAC:0.066};
 
   // ---- multi-unit simulation state ----
   const W=(v,s,a,b)=>clamp(v+rnd(-s,s),a,b);
@@ -1850,7 +1889,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       mwt:mwt,mwe:mwe,eff:33.8,rpm:online?3000:0,hz:online?50.0:0,mvar:180*f,voltage:21.0,pf:0.98,
       loopAflow:17.8*f,loopBflow:17.6*f,hotLegA:online?323:120,coldLegA:289,pzrLevel:58,pzrPress:155,
       sgLevel:62,feedwater:online?1620*f:0,condVac:5.1,steamPress:online?68:5,steamFlow:online?1480*f:0,govValve:online?90:0,
-      dose:0.12,contPress:1.01,telRate:41.2,twinLag:0.8};}
+      dose:0.12,contPress:1.01,telRate:41.2,twinLag:0.8,
+      // decay-heat groups: equilibrium at current power if online; offline units
+      // are seeded at the 7-days-after-shutdown level (representative assumption
+      // for units that start the session already shut down).
+      dh:window.NEXUS_DH.F.map((fi,i)=>online?fi*(flux/100):fi*Math.exp(-604800/window.NEXUS_DH.TAU[i]))};}
   function mkUnit(id,name,cls,cap,online){return {id:id,name:name,cls:cls,cap:cap,online:online,scramTimer:0,easeK:0.12,st:makeState(cap,online)};}
   const units=[mkUnit('u1','Unit 1','PWR-900',900,true),mkUnit('u2','Unit 2','PWR-1300',1300,true),
     mkUnit('sa','SMR Module A','NUWARD-170',170,true),mkUnit('sb','SMR Module B','NUWARD-170',170,false),
@@ -1868,7 +1911,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     const fluxTarget=u.online?clamp(100-(st.rodInsert-34)*2.2,0,108):0;
     st.flux+=(fluxTarget-st.flux)*0.18+rnd(-.25,.25);st.flux=clamp(st.flux,0,110);
     st.reactivity=clamp((fluxTarget-st.flux)*9+rnd(-2,2),-2600,260);
-    st.mwt=st.flux/100*(cap/0.338);st.mwe=st.mwt*0.338;st.eff=st.mwt>1?st.mwe/st.mwt*100:0;
+    // decay-heat groups (exact exponential update; masterTick runs every 1.5 s)
+    const DHC=window.NEXUS_DH;let dhs=0;
+    for(let di=0;di<DHC.TAU.length;di++){const de=Math.exp(-1.5/DHC.TAU[di]);
+      st.dh[di]=st.dh[di]*de+DHC.F[di]*(st.flux/100)*(1-de);dhs+=st.dh[di];}
+    st.dhFrac=dhs;
+    // thermal power = fission + fission-product decay heat; electrical follows the
+    // steam/turbine side only (a tripped core makes heat, not megawatts-electric)
+    st.mwt=((1-DHC.FRAC)*st.flux/100+dhs)*(cap/0.338);
+    st.mwe=Math.max(0,st.flux)/100*cap;st.eff=st.mwt>1?st.mwe/st.mwt*100:0;
     st.govValve=clamp(st.flux,0,100);
     const tT=(u.online?289:90)+st.flux/100*38;st.coreTemp+=(tT-st.coreTemp)*0.10+rnd(-.3,.3);
     st.hotLegA+=(((u.online?289:120)+st.flux/100*38)-st.hotLegA)*0.10+rnd(-.3,.3);
@@ -1897,7 +1948,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     SIGS.forEach(k=>{hist[k]=Array(60).fill(S[k]);});
     const sl=document.getElementById('rodslider');if(sl)sl.value=S.rodInsert;
     const us=document.getElementById('unitsel');if(us)us.value=id;
-    render();drawCharts();updatePlantState();renderFleet();}
+    render();drawCharts();updatePlantState();renderFleet();refreshSub();}
   function toggleUnit(id){const u=units.find(x=>x.id===id);if(!u)return;u.online=!u.online;
     if(u.online){u.st.rodTarget=34;}else{u.st.rodTarget=100;u.scramTimer=2;}
     renderFleet();}
@@ -2064,18 +2115,31 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $$('[data-range]').forEach(b=>b.onclick=()=>{$$('[data-range]').forEach(x=>x.classList.remove('active'));b.classList.add('active');});
 
   // ---- core map (redrawn per selected unit + live power) ----
+  // Stylized lattice whose cell count equals the published design fuel-assembly
+  // count for the selected unit class (FA_CLS: 157 / 193 / 76). Row widths are a
+  // representative octant-symmetric layout, not the licensed loading pattern.
+  const CORE_LATTICE={
+    'PWR-900'   :{cols:15,rows:[5,7,9,11,13,13,13,15,13,13,13,11,9,7,5]},
+    'PWR-1300'  :{cols:15,rows:[9,11,13,13,13,15,15,15,15,15,13,13,13,11,9]},
+    'NUWARD-170':{cols:10,rows:[4,6,8,10,10,10,10,8,6,4]}
+  };
   function drawCoreMap(){const cm=document.getElementById('coremap');if(!cm)return;
     const cols='#1e3a40,#2a5560,#3ddc84,#7fd97a,#ffd98a,#ffb000,#ff7a45,#ff3b46'.split(',');
-    const small=(selUnit.cap||900)<400; const maxD=small?4.3:7.05;
+    const small=(selUnit.cap||900)<400;
+    const lat=CORE_LATTICE[selUnit.cls]||CORE_LATTICE[small?'NUWARD-170':'PWR-900'];
+    const G=lat.cols, ctr=(G-1)/2, maxD=ctr+0.5;
+    cm.style.gridTemplateColumns='repeat('+G+',1fr)';
     const pw=(S.flux!=null?S.flux:(selUnit.online?98:0));
     const pf=selUnit.online?Math.max(0.15,Math.min(1.15,pw/100+0.05)):0.06;
     const uo=(selUnit.id||'').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
     let html='',n=0;
-    for(let i=0;i<225;i++){const r=Math.floor(i/15),c=i%15;const d=Math.hypot(r-7,c-7);
-      if(d>maxD){html+='<div style="visibility:hidden"></div>';continue;}
-      n++;const ns=((Math.sin(i*12.9898+uo*0.137)*43758.5453)%1+1)%1-0.5;
-      const idx=Math.min(7,Math.max(0,Math.round((1-d/maxD)*6*pf+ns*1.1)));
-      html+='<div class="cell" style="background:'+cols[idx]+'"></div>';}
+    for(let r=0;r<lat.rows.length;r++){const w=lat.rows[r],off=(G-w)/2;
+      for(let c=0;c<G;c++){
+        if(c<off||c>=off+w){html+='<div style="visibility:hidden"></div>';continue;}
+        const i=r*G+c,d=Math.hypot(r-ctr,c-ctr);
+        n++;const ns=((Math.sin(i*12.9898+uo*0.137)*43758.5453)%1+1)%1-0.5;
+        const idx=Math.min(7,Math.max(0,Math.round((1-d/maxD)*6*pf+ns*1.1)));
+        html+='<div class="cell" style="background:'+cols[idx]+'"></div>';}}
     cm.innerHTML=html;
     const tg=document.getElementById('core-asm');if(tg)tg.textContent=(small?'SMR · ':'PWR · ')+n+' assemblies';}
   drawCoreMap();
@@ -2871,17 +2935,23 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   const IEQ=gI*SF/lI;                       // iodine equilibrium at 100%
   const XEEQ=(gXe*SF+gI*SF)/(lXe+SIGPHI*1); // xenon equilibrium at 100%
   let xeWorthPcm=2700, KXE=xeWorthPcm/XEEQ;                      // pcm per unit xenon (eq worth ~2700 pcm)
+  // decay heat: constants shared with the fleet sim (window.NEXUS_DH) — see the
+  // definition there for derivation, reference and validity range.
+  const DH_TAU=window.NEXUS_DH.TAU, DH_F=window.NEXUS_DH.F, DH_FRAC=window.NEXUS_DH.FRAC;
 
   // ---- state ----
   let S;
   function fresh(off){
     const C=BETA.map((bi,i)=>bi/(GEN*LAM[i])*1.0); // precursors at equilibrium for n=1
     if(off){ // offline / shut down: deeply subcritical, cool, negligible power
+      const DHo=DH_F.map(function(fi,i){return fi*Math.exp(-604800/DH_TAU[i]);});
+      const dho=DHo.reduce(function(a,b){return a+b;},0);
       return {n:1e-5, C:C.map(function(c){return c*1e-5;}), TF:TIN+6, TC:TIN+2, I:IEQ*0.02, Xe:XEEQ*0.05,
-              rodPcm:-400, scram:true, t:0, rho:0, dndt:0, prompt:false};
+              rodPcm:-400, scram:true, t:0, rho:0, dndt:0, prompt:false,
+              DH:DHo, dh:dho, pth:(1-DH_FRAC)*1e-5+dho};
     }
     return {n:1, C:C, TF:TF0, TC:TC0, I:IEQ, Xe:XEEQ, rodPcm:0, scram:false, t:0,
-            rho:0, dndt:0, prompt:false};
+            rho:0, dndt:0, prompt:false, DH:DH_F.slice(), dh:DH_FRAC, pth:1};
   }
   S=fresh();
 
@@ -2951,14 +3021,22 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     const dXe=gXe*SF*P + lI*st.I - lXe*st.Xe - SIGPHI*P*st.Xe;
     st.I+=dI*dt; st.Xe+=dXe*dt;
     if(st.I<0)st.I=0; if(st.Xe<0)st.Xe=0;
+    // decay-heat groups: exact update for constant power over dt (same scheme as
+    // the delayed-neutron precursors above)
+    if(st.DH){let dhs=0;
+      for(let i=0;i<DH_TAU.length;i++){const e=Math.exp(-dt/DH_TAU[i]);
+        st.DH[i]=st.DH[i]*e+DH_F[i]*P*(1-e);dhs+=st.DH[i];}
+      st.dh=dhs;                       // decay-heat fraction of rated
+      st.pth=(1-DH_FRAC)*P+dhs;        // total thermal = fission + afterheat
+    }
     st.t+=dt;
   }
   function step(dt){ stepState(S,dt); }
 
   // ---- history ----
-  const N=260; const H={pow:[],rho:[],tf:[],tc:[],xe:[],ii:[]};
+  const N=260; const H={pow:[],rho:[],tf:[],tc:[],xe:[],ii:[],dh:[]};
   function pushH(){const P=S.n*100;
-    H.pow.push(P);H.rho.push(S.rho);H.tf.push(S.TF);H.tc.push(S.TC);H.xe.push(S.Xe/XEEQ*100);H.ii.push(S.I/IEQ*100);
+    H.pow.push(P);H.rho.push(S.rho);H.tf.push(S.TF);H.tc.push(S.TC);H.xe.push(S.Xe/XEEQ*100);H.ii.push(S.I/IEQ*100);H.dh.push((S.dh||0)*100);
     for(const k in H)if(H[k].length>N)H[k].shift();}
   function fillH(){for(const k in H){H[k]=[];}for(let i=0;i<N;i++)pushH();}
   fillH();
@@ -2975,7 +3053,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     let g=grid(w,h);series.forEach(s=>{g+=`<polyline points="${poly(s.d,w,h,pad,mn,mx)}" fill="none" stroke="${s.c}" stroke-width="2"/>`;});
     svg.innerHTML=g;}
   function draw(){
-    lineChart($('ch-pow'),[{d:H.pow,c:'var(--green)'}],{floor:0,minTop:5});
+    lineChart($('ch-pow'),[{d:H.pow.map((pp,i)=>pp*(1-DH_FRAC)+(H.dh[i]||0)),c:'var(--amber)'},{d:H.pow,c:'var(--green)'}],{floor:0,minTop:5});
     lineChart($('ch-rho'),[{d:H.rho,c:'var(--cyan)'}]);
     lineChart($('ch-temp'),[{d:H.tf,c:'var(--violet)'},{d:H.tc,c:'var(--cyan)'}]);
     lineChart($('ch-xe'),[{d:H.xe,c:'var(--amber)'},{d:H.ii,c:'var(--magenta)'}]);
@@ -2989,6 +3067,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   function render(){
     const P=S.n*100;
     $('v-pow').textContent=P>=10?P.toFixed(0):P.toFixed(2);
+    const dhP=(S.dh||0)*100, pthP=(S.pth!=null?S.pth:S.n)*100;
+    const vdh=$('v-dh');if(vdh)vdh.textContent='decay heat '+(dhP>=10?dhP.toFixed(1):dhP.toFixed(2))+'% \u00b7 thermal '+(pthP>=10?pthP.toFixed(0):pthP.toFixed(2))+'%';
     $('v-rho').textContent=(S.rho>=0?'+':'')+Math.round(S.rho);
     $('v-dollar').textContent=(S.rho>=0?'+$':'-$')+Math.abs(S.rho/(B*1e5)).toFixed(2);
     $('v-tf').textContent=S.TF.toFixed(0);
@@ -3001,13 +3081,16 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     if(Math.abs(dn)<1e-7*Math.max(S.n,1e-6))per='&#8734;';
     else{const tau=S.n/dn;per=(Math.abs(tau)>9999?'&#8734;':(tau>=0?'+':'')+tau.toFixed(tau<100&&tau>-100?1:0));}
     $('v-period').innerHTML=per+'<small>s</small>';
+    const vsur=$('v-sur');if(vsur){const tau=(Math.abs(dn)<1e-7*Math.max(S.n,1e-6))?Infinity:S.n/dn;
+      vsur.textContent='SUR '+(isFinite(tau)&&Math.abs(tau)<9999?((26.0557/tau>=0?'+':'')+(26.0557/tau).toFixed(2)):'0.00')+' dpm';}
     $('simt').textContent=S.t<120?S.t.toFixed(1)+' s':(S.t/3600).toFixed(2)+' h';
     $('pow-tag').textContent=P.toFixed(P>=10?0:1)+'% · '+(S.dndt>1e-6?'rising':S.dndt<-1e-6?'falling':'stable');
     // reactivity balance
     const rhoXe=-KXE*(S.Xe-XEEQ),rhoD=aD*(S.TF-TF0),rhoM=aM*(S.TC-TC0),effRod=S.rodPcm+(S.scram?-8000:0);
     $('reactlist').innerHTML=
       rbar('Control rods',effRod,400)+rbar('Doppler (fuel)',rhoD,400)+rbar('Moderator (cool.)',rhoM,400)+
-      rbar('Xenon-135',rhoXe,400)+`<div style="border-top:1px solid var(--line-hot);margin-top:6px;padding-top:4px">`+rbar('NET',S.rho,400)+`</div>`;
+      rbar('Xenon-135',rhoXe,400)+`<div style="border-top:1px solid var(--line-hot);margin-top:6px;padding-top:4px">`+rbar('NET',S.rho,400)+`</div>`+
+      (S.rho<-1?`<div class="note" style="margin-top:5px">shutdown margin: <b style="color:#eafdff">`+Math.round(-S.rho)+` pcm</b> below critical (`+(`$`+(-S.rho/(B*1e5)).toFixed(2))+`)</div>`:``);
     $('warn').classList.toggle('show',S.prompt);
     draw();
   }
@@ -3036,14 +3119,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('pause').onclick=function(){paused=!paused;this.textContent=paused?'Run':'Pause';this.classList.toggle('active',paused);};
   $('reset').onclick=()=>{S=fresh(curOffline);if(curOffline){syncRodUI();}else{setRod(0);}fillH();render();};
 
-  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},applyUnit:function(u){applyUnit(u);},unit:function(){return curUnit;},modelVersion:0,
+  window.KIN={state:function(){return {power:S.n*100,TF:S.TF,TC:S.TC,rodPcm:S.rodPcm,scram:S.scram,period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),paused:paused,scale:timeScale,xe:S.Xe/XEEQ*100,decayHeat:(S.dh||0)*100,thermal:(S.pth!=null?S.pth:S.n)*100};},setRod:setRod,scram:function(){S.scram=true;},hold:function(){setRod(0);},applyUnit:function(u){applyUnit(u);},unit:function(){return curUnit;},modelVersion:0,
     pause:function(){paused=true;},resume:function(){paused=false;},isPaused:function(){return paused;},
     reset:function(){S=fresh(curOffline);if(curOffline){syncRodUI();}else{setRod(0);}fillH();render();},
     setScale:function(s){timeScale=Math.max(1,Math.min(600,(+s)||1));var b=document.querySelector('[data-ts="'+timeScale+'"]');if(b){document.querySelectorAll('[data-ts]').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var tg=$('ts-tag');if(tg)tg.textContent=timeScale+'\u00d7 speed';}}};
   window.KIN.model={
     params:{BETA:BETA.slice(),LAM:LAM.slice(),B:B,GEN:GEN,aD:aD,aM:aM,TF0:TF0,TC0:TC0,TIN:TIN,
       KP:KP,KFC:KFC,KCO:KCO,CF:CF,CC:CC,gI:gI,gXe:gXe,lI:lI,lXe:lXe,SF:SF,SIGPHI:SIGPHI,
-      IEQ:IEQ,XEEQ:XEEQ,KXE:KXE,xeWorthPcm:xeWorthPcm},
+      IEQ:IEQ,XEEQ:XEEQ,KXE:KXE,xeWorthPcm:xeWorthPcm,
+      DH_TAU:DH_TAU.slice(),DH_F:DH_F.slice(),DH_FRAC:DH_FRAC},
     fresh:fresh,
     stepState:stepState
   };
@@ -3052,7 +3136,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     period:(Math.abs(S.dndt)<1e-7*Math.max(S.n,1e-6)?Infinity:S.n/S.dndt),
     rho:S.rho,t:S.t};};
   window.KIN.history=function(){return {N:N,pow:H.pow.slice(),rho:H.rho.slice(),tf:H.tf.slice(),
-    tc:H.tc.slice(),xe:H.xe.slice(),ii:H.ii.slice()};};
+    tc:H.tc.slice(),xe:H.xe.slice(),ii:H.ii.slice(),dh:H.dh.slice()};};
   try{applyUnit((window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null);}catch(e){}
   setRod(0);render();
 })();
@@ -3130,6 +3214,15 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rows.push(['Xe-135 half-life','textbook \u2248 9.14 h','model: '+f(tXe,2)+' h',['info','REPR.']]);
     var xp=xenonPit(p);
     rows.push(['Post-shutdown xenon peak','classic \u2248 7\u201311 h (flux-dep.)','model: '+f(xp.tpeakH,1)+' h, '+f(xp.peakPct,0)+'% of eq',['ok','OK']]);
+    if(p.DH_TAU){
+      rows.push(['Equilibrium decay-heat fraction','canonical \u2248 6.5\u20137% of rated','model: '+f(p.DH_FRAC*100,2)+'% (\u03a3 groups)',['info','REPR.']]);
+      [[60,'60 s'],[3600,'1 h'],[86400,'24 h']].forEach(function(dt){
+        var ww=0.0622*Math.pow(dt[0],-0.2),md=0;
+        for(var di=0;di<p.DH_TAU.length;di++)md+=p.DH_F[di]*Math.exp(-dt[0]/p.DH_TAU[di]);
+        var de=Math.abs(md-ww)/ww*100;
+        rows.push(['Decay heat, t+'+dt[1]+' (post-trip, \u221e op.)','Way\u2013Wigner: '+f(ww*100,3)+'%','groups: '+f(md*100,3)+'%',de<2?['ok','\u0394 '+f(de,2)+'%']:['warn','\u0394 '+f(de,2)+'%']]);
+      });
+    }
     var TFeq=p.TIN+p.KP/p.KCO+p.KP/p.KFC,TCeq=p.TIN+p.KP/p.KCO;
     rows.push(['Thermal equilibrium (100%)','ref point '+f(p.TF0,0)+' / '+f(p.TC0,0)+' \u00b0C','model: '+f(TFeq,1)+' / '+f(TCeq,1)+' \u00b0C',(Math.abs(TFeq-p.TF0)<1&&Math.abs(TCeq-p.TC0)<1)?['ok','SELF-CONSISTENT']:['warn','CHECK']]);
     var html='<table><thead><tr><th style="text-align:left">Check</th><th style="text-align:left">Reference</th><th style="text-align:left">Computed</th><th>Result</th></tr></thead><tbody>';
@@ -3266,7 +3359,9 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       model_parameters:{generation_time_s:p.GEN,doppler_pcm_per_C:p.aD,moderator_pcm_per_C:p.aM,
         xenon_equiv_worth_pcm:p.xeWorthPcm,xenon_burnout_term_per_s:p.SIGPHI,
         thermal:{KP:p.KP,KFC:p.KFC,KCO:p.KCO,CF:p.CF,CC:p.CC},
-        ref_temps_C:{fuel:p.TF0,coolant:p.TC0,inlet:p.TIN}}};
+        ref_temps_C:{fuel:p.TF0,coolant:p.TC0,inlet:p.TIN}},
+      decay_heat:{groups_tau_s:p.DH_TAU,groups_fraction:p.DH_F,equilibrium_fraction:p.DH_FRAC,
+        reference:'Way-Wigner correlation 0.0622*t^-0.2, fit range 10 s - 1e6 s, t->0 constrained to 6.6%'}};
     dl('nexus1-model-parameters.json',JSON.stringify(obj,null,2),'application/json');
   }
   function exportCSV(){
@@ -3274,8 +3369,9 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     var out='# NEXUS-1 point-kinetics trace \u2014 DEMONSTRATION DATA, not real plant telemetry\n';
     out+='# build '+BUILD+'  exported '+stamp()+'\n';
     out+='# rolling buffer: most-recent '+L+' samples (note: \u0394t is non-uniform under time-acceleration)\n';
-    out+='sample_index,power_pct_rated,reactivity_pcm,fuel_temp_C,coolant_temp_C,xenon_pct_eq,iodine_pct_eq\n';
-    for(var i=0;i<L;i++){out+=i+','+h.pow[i].toFixed(3)+','+h.rho[i].toFixed(1)+','+h.tf[i].toFixed(2)+','+h.tc[i].toFixed(2)+','+h.xe[i].toFixed(2)+','+h.ii[i].toFixed(2)+'\n';}
+    out+='sample_index,power_pct_rated,decay_heat_pct_rated,thermal_total_pct_rated,reactivity_pcm,fuel_temp_C,coolant_temp_C,xenon_pct_eq,iodine_pct_eq\n';
+    var FDH=(M()&&M().params.DH_FRAC)||0;
+    for(var i=0;i<L;i++){var dhv=(h.dh&&h.dh[i])||0;out+=i+','+h.pow[i].toFixed(3)+','+dhv.toFixed(3)+','+(h.pow[i]*(1-FDH)+dhv).toFixed(3)+','+h.rho[i].toFixed(1)+','+h.tf[i].toFixed(2)+','+h.tc[i].toFixed(2)+','+h.xe[i].toFixed(2)+','+h.ii[i].toFixed(2)+'\n';}
     dl('nexus1-kinetics-trace.csv',out,'text/csv');
   }
   function wire(id,fn){var e=$(id);if(e&&!e.__wired){e.__wired=true;e.addEventListener('click',fn);}}
@@ -3523,13 +3619,26 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
    turbine:{k:'Steam Turbine',c:'Energy conversion',fn:'Expands steam across HP/LP stages to drive the generator shaft',s:[['Speed','3000 rpm (50 Hz)'],['Stages','HP + 2\u00d7 LP'],['Inlet','\u2248 6.9 MPa'],['Exhaust','to condenser']]},
    grid:{k:'Grid Interface',c:'Electrical export',fn:'Synchronises the generator output to the transmission network',s:[['Generator','3-ph synchronous'],['Voltage','400 kV via GSU'],['Frequency','50 Hz'],['Output','live MW reading']]}
   };
+  // SMR (integral PWR) overrides for the spec cards. Qualitative where the
+  // public NUWARD design differs structurally from a loop-type PWR; numeric
+  // figures are deliberately avoided where no published value is on hand.
+  const DEPDEV_SMR={
+   coolantA:{k:'Primary Circulation A',c:'Integral PWR · RCS',fn:'Primary coolant path inside the reactor vessel — integral layout, no external hot/cold-leg piping',s:[['Layout','Integral (in-vessel)'],['Circulation','Forced — primary pumps'],['External loops','None'],['Class','PWR conditions']]},
+   coolantB:{k:'Primary Circulation B',c:'Integral PWR · RCS',fn:'Parallel in-vessel primary flow path — integral layout, no external loop piping',s:[['Layout','Integral (in-vessel)'],['Circulation','Forced — primary pumps'],['External loops','None'],['Class','PWR conditions']]},
+   steam:{k:'Compact Steam Generator',c:'In-vessel heat exchanger',fn:'Compact steam generators housed inside the reactor pressure vessel transfer heat to the secondary side',s:[['Type','Compact · integral'],['Location','Inside the RPV'],['Arrangement','Multiple units'],['Secondary','Steam to turbine']]},
+   grid:{k:'Grid Interface',c:'Electrical export',fn:'Synchronises the module generator output to the transmission network',s:[['Generator','3-ph synchronous'],['Connection','Shared switchyard · 400 kV'],['Frequency','50 Hz'],['Output','live MW reading']]}
+  };
+  function depDevFor(id,u){if(u&&(u.cap||900)<400&&DEPDEV_SMR[id])return DEPDEV_SMR[id];return DEPDEV[id];}
   function depEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   let depHoverId=null;
   function depShowTip(id,el){
     const tip=$('dep-tip');if(tip===STUB)return;
     const n=N[id];if(!n)return;
-    const sv=status();const col=COL[sv[id]]||'var(--green)';const d=DEPDEV[id];
+    const sv=status();const col=COL[sv[id]]||'var(--green)';
+    const uu=(window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;
+    const d=depDevFor(id,uu);
     let h='<div class="hd"><span class="dot" style="background:'+col+'"></span><span class="ttl">'+depEsc(n.l)+'</span></div>';
+    if(uu)h+='<div class="kind">'+depEsc(uu.name+' · '+uu.cls)+'</div>';
     if(d){
       h+='<div class="kind">'+depEsc(d.k)+(d.c?' \u00b7 <b>'+depEsc(d.c)+'</b>':'')+'</div>';
       h+='<div class="fn">'+depEsc(d.fn)+'</div>';
@@ -4037,7 +4146,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rods:{n:'Control Rods',w:'Interactive rod operation for the selected unit.',k:['Move the rod bank or SCRAM — power, flux and grid respond','A SCRAM is logged to Incident Analysis and Compliance and counts as a rod demand cycle']},
     neutronics:{n:'Neutronics',w:'Neutron flux and reactivity detail.',k:['Flux distribution and the reactivity components']},
     kinetics:{n:'Reactor Kinetics',w:'A physically real point-kinetics simulator.',k:['6 delayed-neutron groups with Doppler, moderator and xenon feedback','Try a small +pcm step (prompt jump, then self-regulation), then SCRAM','Switch to 600x after a shutdown to watch the xenon transient build','See the Model Analysis screen for validation of this solver against closed-form references, its constants, sensitivity and margins']},
-    analysis:{n:'Model Analysis',w:'Verification layer for the point-kinetics engine — every figure computed live from the same solver the console runs.',k:['Solver validation: asymptotic period vs the inhour equation, prompt jump, xenon half-lives and the post-shutdown peak — with the real (small) numerical errors shown','Model parameters: the literal solver constants, split into physical nuclear data vs representative modeling choices','Sensitivity: normalized, dimensionless ∂output/∂parameter, showing the dominant driver differs by output','Operating margins (live) against demonstrator setpoints — DNBR/LHR are deliberately excluded and the reason is stated','Xenon forecast: a forward integration (not extrapolation) of the live Xe-135 state','Export the parameters (JSON) and the live trace (CSV) for checking in your own tools']},
+    analysis:{n:'Model Analysis',w:'Verification layer for the point-kinetics engine — every figure computed live from the same solver the console runs.',k:['Solver validation: asymptotic period vs the inhour equation, prompt jump, xenon half-lives, the post-shutdown peak, and the decay-heat group model vs the Way–Wigner correlation — with the real (small) numerical errors shown','Model parameters: the literal solver constants, split into physical nuclear data vs representative modeling choices','Sensitivity: normalized, dimensionless ∂output/∂parameter, showing the dominant driver differs by output','Operating margins (live) against demonstrator setpoints — DNBR/LHR are deliberately excluded and the reason is stated','Xenon forecast: a forward integration (not extrapolation) of the live Xe-135 state','Export the parameters (JSON) and the live trace (CSV) for checking in your own tools']},
     reactor3d:{n:'3D Reactor View',w:'Two 3-D cores — telemetry vs simulation (a digital twin).',k:['Left = noisy sensors, right = the model; the controls drive both','Divergence between them is the digital-twin early-warning signal','Drag a core to rotate; fuel colour shows temperature']},
     rlopt:{n:'Advanced Optimization (RL)',w:'Experimental reinforcement-learning optimiser — BETA, twin-only, advisory.',k:['The "What Train policy does" panel explains the training step by step, in plain English','Train the agent inside the twin; watch the reward curve climb','The learned policy is a readable table — no black box','Advisory only, with safety clamps; no control authority on a real plant']},
     deps:{n:'System Dependencies',w:'How components influence one another.',k:['Graph: click a node to trace everything it affects downstream, with delays','Matrix: click a cell to read an influence weight','Causal Chain: the reactor-trip reconstruction + a what-if toggle']},
