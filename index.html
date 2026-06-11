@@ -1040,7 +1040,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         </div>
       </div>
       <div class="panel" style="padding:0;overflow:hidden"><div class="p3-stage" id="p3-stage"><div class="p3-hud" id="p3-hud"></div></div></div>
-      <div class="note" style="margin-top:9px">A stylised 3-D schematic of the modular plant: large PWR containments and small SMR modules feed a shared steam header to the turbine-generator. Active units glow and drive the spinning turbine and steam flow; standby units are dark. Representative geometry &mdash; not a survey model.</div>
+      <div class="note" style="margin-top:9px">A stylised 3-D schematic of the fleet: each unit &mdash; large PWR containments and small SMR modules &mdash; drives its <b>own dedicated turbine-generator</b>, and all units feed a single shared <b>switchyard</b>, the grid connection &mdash; the one element a real fleet actually shares. Containments are drawn <b>cutaway</b> (semi-transparent) so the steam generators are visible where they really are: per-loop vessels inside containment on the PWRs (3 on PWR-900, 4 on PWR-1300, glowing teal when the unit raises steam) and inside the reactor vessel itself on the integral SMR modules. Active units glow and spin their own turbines; standby units are dark. Representative geometry &mdash; not a survey model.</div>
     </section>
     <section class="page" data-page="components">
       <div id="comp-head"></div>
@@ -1835,7 +1835,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · reactors, steam & turbine'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · per-unit turbines & shared switchyard'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   // ---- live, unit-aware header subtitles (consistency-to-selection) ----
   // Published design fuel-assembly counts per unit class — single source for the
   // header subtitle and the core-map cell count (drawCoreMap).
@@ -4151,7 +4151,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rlopt:{n:'Advanced Optimization (RL)',w:'Experimental reinforcement-learning optimiser — BETA, twin-only, advisory.',k:['The "What Train policy does" panel explains the training step by step, in plain English','Train the agent inside the twin; watch the reward curve climb','The learned policy is a readable table — no black box','Advisory only, with safety clamps; no control authority on a real plant']},
     deps:{n:'System Dependencies',w:'How components influence one another.',k:['Graph: click a node to trace everything it affects downstream, with delays','Matrix: click a cell to read an influence weight','Causal Chain: the reactor-trip reconstruction + a what-if toggle']},
     components:{n:'Component Registry',w:'Per-unit equipment inventory with live health.',k:['Each tracked component has a live health that responds to operation and SCRAM cycles','PWR units list loop-type plant; SMR modules list the integral configuration','Faults raise alarms; rollups feed AI Diagnostics, and each item maps to a dependency node']},
-    plant3d:{n:'Plant 3D View',w:'Whole-plant 3-D schematic of the fleet.',k:['Reactors, steam header and turbine-generator in one animated scene','Active units glow and spin the turbine; standby units are dark','Use the chips at the top to switch reactors on/off, and toggle labels, rotation and steam']},
+    plant3d:{n:'Plant 3D View',w:'Whole-plant 3-D schematic of the fleet.',k:['Each unit drives its own turbine-generator; all feed one shared switchyard (the grid connection)','Cutaway containments reveal the per-loop steam generators (3 or 4 by PWR class); SMR steam generators are inside the vessel','Active units glow and spin their own turbines; standby units are dark','Use the chips at the top to switch reactors on/off, and toggle labels, rotation and steam']},
     twin:{n:'Digital Twin',w:'Model-vs-reality reconciliation.',k:['Compares model expectation against (simulated) telemetry']},
     trends:{n:'Trends',w:'Historical time-series of key parameters.',k:['Track parameters over time']},
     ai:{n:'AI Diagnostics',w:'Predictive diagnostics (working) plus a planned DSLM assistant.',k:['Predictive layer: failure-probability and anomaly forecasts fed by the Component Registry','Planned DSLM: a nuclear-domain model served locally via Ollama, air-gapped, advisory','DSLM answers are retrieval-grounded and cite the registry, incidents and documents','The DSLM is documented as the production target — it is not running in this build','Distinct from the RL optimiser, which learns control policies']},
@@ -4405,7 +4405,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 </script>
 <!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
 <script>
-/* ===== Plant 3D View · whole-plant fleet scene · NX1-094C79E0A366D34F ===== */
+/* ===== Plant 3D View · whole-plant fleet scene · NX1-094C79E0A366D34F =====
+   Topology: each unit drives its OWN turbine-generator; all generators feed
+   one shared SWITCHYARD (the grid connection — the element a real fleet
+   actually shares). Steam generators are not modelled here: they sit inside
+   containment (PWR) / inside the reactor vessel (SMR modules). */
 (function(){
   var STAGE=document.getElementById('p3-stage');
   if(!STAGE)return;
@@ -4434,86 +4438,117 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   var T=window.THREE;
 
   var opt={rotate:true,labels:true,steam:true};
-  var scene,camera,renderer,grp,turbineRotor,parts=[],uM={},labels=[],inited=false,ry=0.55,rx=0.42;
-  var reactorZ=-18,headerZ=-10,sgZ=0,turbineZ=13;
+  var scene,camera,renderer,grp,parts=[],uM={},labels=[],inited=false,ry=0.55,rx=0.42;
+  var reactorZ=-16,turbineZ=7,switchZ=26;
 
   function mkLabel(html){var el=document.createElement('div');el.className='p3-label';el.innerHTML=html;STAGE.appendChild(el);return el;}
+  // cylinder oriented from point a to point b
+  function mkLine(a,b,r,mat){
+    var dv=new T.Vector3(b.x-a.x,b.y-a.y,b.z-a.z),len=dv.length();
+    var m=new T.Mesh(new T.CylinderGeometry(r,r,len,8),mat);
+    m.position.set((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);
+    m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dv.normalize());
+    return m;
+  }
+  // one turbine rotor, scaled by unit class (rotates about X)
+  function mkTurbine(pwr){
+    var g=new T.Group();
+    var L=pwr?12:6.5,Rr=pwr?2.2:1.3,nd=pwr?3:2,nb=pwr?10:8,sr=pwr?0.85:0.5;
+    var shaft=new T.Mesh(new T.CylinderGeometry(sr,sr,L,20),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b,shininess:90}));
+    shaft.rotation.z=Math.PI/2;g.add(shaft);
+    var dx=L/(nd+1);
+    for(var sI=0;sI<nd;sI++){
+      var x=-L/2+dx*(sI+1);
+      var disc=new T.Mesh(new T.CylinderGeometry(Rr,Rr,0.5,22),new T.MeshPhongMaterial({color:0x6f8a92,emissive:0x0c1417,shininess:70}));
+      disc.rotation.z=Math.PI/2;disc.position.x=x;g.add(disc);
+      for(var b=0;b<nb;b++){var ang=b/nb*Math.PI*2;
+        var bl=new T.Mesh(new T.BoxGeometry(0.42,Rr*0.62,0.28),new T.MeshPhongMaterial({color:0xbfd2d8,emissive:0x12181b}));
+        bl.position.set(x,Math.cos(ang)*Rr*0.85,Math.sin(ang)*Rr*0.85);bl.rotation.x=ang;g.add(bl);}
+    }
+    return {g:g,L:L};
+  }
 
   function build(){
     var w=STAGE.clientWidth||820,h=STAGE.clientHeight||520;
     scene=new T.Scene();
-    camera=new T.PerspectiveCamera(46,w/h,0.1,3000);camera.position.set(0,42,92);camera.lookAt(0,4,0);
+    camera=new T.PerspectiveCamera(46,w/h,0.1,3000);camera.position.set(0,44,98);camera.lookAt(0,4,4);
     renderer=new T.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
     STAGE.appendChild(renderer.domElement);
     scene.add(new T.AmbientLight(0x445a66,0.95));
     var dl=new T.DirectionalLight(0xffffff,0.85);dl.position.set(22,42,26);scene.add(dl);
     var dl2=new T.DirectionalLight(0x22d3ee,0.40);dl2.position.set(-24,14,-22);scene.add(dl2);
     grp=new T.Group();scene.add(grp);
-    var grid=new T.GridHelper(150,30,0x1a2a2e,0x10201f);grid.position.y=-0.02;grp.add(grid);
+    var grid=new T.GridHelper(160,32,0x1a2a2e,0x10201f);grid.position.y=-0.02;grp.add(grid);
 
     var us=units(),n=us.length,sx=20,x0=-(n-1)*sx/2;
+    var switchPt={x:0,y:6.5,z:switchZ-2};
 
     us.forEach(function(u,i){
       var pwr=isPWR(u),R=pwr?5.4:3.0,Hh=pwr?9:5.5,ux=x0+i*sx;
+      // ---- containment ----
       var ug=new T.Group();ug.position.set(ux,0,reactorZ);grp.add(ug);
       var pad=new T.Mesh(new T.CylinderGeometry(R+1.6,R+1.8,0.8,40),new T.MeshPhongMaterial({color:0x0e1c20}));pad.position.y=0.4;ug.add(pad);
-      var body=new T.Mesh(new T.CylinderGeometry(R,R,Hh,44),new T.MeshPhongMaterial({color:0x16282d,emissive:0x000000,shininess:30}));body.position.y=Hh/2+0.8;ug.add(body);
-      var dome=new T.Mesh(new T.SphereGeometry(R,44,22,0,Math.PI*2,0,Math.PI/2),new T.MeshPhongMaterial({color:0x18313a,emissive:0x000000,shininess:42}));dome.position.y=Hh+0.8;ug.add(dome);
-      var core=new T.Mesh(new T.SphereGeometry(R*0.52,24,16),new T.MeshPhongMaterial({color:0xffb000,emissive:0xffb000,emissiveIntensity:0,transparent:true,opacity:0.92}));core.position.y=Hh*0.5+0.8;ug.add(core);
-      var pipeLen=Math.abs(reactorZ-headerZ);
-      var pipe=new T.Mesh(new T.CylinderGeometry(0.55,0.55,pipeLen,12),new T.MeshPhongMaterial({color:0x2a4750,emissive:0x061a1f}));
-      pipe.rotation.x=Math.PI/2;pipe.position.set(0,1.5,pipeLen/2);ug.add(pipe);
-      uM[u.id]={g:ug,body:body,dome:dome,core:core,R:R,Hh:Hh,ux:ux};
+      // cutaway shells: semi-transparent so the internals (core, SGs) are visible
+      var body=new T.Mesh(new T.CylinderGeometry(R,R,Hh,44),new T.MeshPhongMaterial({color:0x16282d,emissive:0x000000,shininess:30,transparent:true,opacity:0.42,depthWrite:false}));body.position.y=Hh/2+0.8;ug.add(body);
+      var dome=new T.Mesh(new T.SphereGeometry(R,44,22,0,Math.PI*2,0,Math.PI/2),new T.MeshPhongMaterial({color:0x18313a,emissive:0x000000,shininess:42,transparent:true,opacity:0.42,depthWrite:false}));dome.position.y=Hh+0.8;ug.add(dome);
+      var sgs=[];var core;
+      if(pwr){
+        // reactor core at centre, per-loop steam generators around it (3 or 4 by class)
+        core=new T.Mesh(new T.SphereGeometry(R*0.40,24,16),new T.MeshPhongMaterial({color:0xffb000,emissive:0xffb000,emissiveIntensity:0}));
+        core.position.y=Hh*0.42+0.8;ug.add(core);
+        var loops=(u.cap||900)>=1100?4:3;
+        for(var li=0;li<loops;li++){
+          var ang=li/loops*Math.PI*2+Math.PI/loops;
+          var sg=new T.Mesh(new T.CylinderGeometry(R*0.17,R*0.20,Hh*0.66,16),new T.MeshPhongMaterial({color:0x2a5560,emissive:0x06181c,shininess:34}));
+          sg.position.set(Math.cos(ang)*R*0.62,Hh*0.40+0.8,Math.sin(ang)*R*0.62);ug.add(sg);
+          var sgc=new T.Mesh(new T.SphereGeometry(R*0.17,14,8,0,Math.PI*2,0,Math.PI/2),sg.material);
+          sgc.position.set(sg.position.x,Hh*0.73+0.8,sg.position.z);ug.add(sgc);
+          sgs.push(sg);
+        }
+      }else{
+        // integral SMR: one reactor vessel — steam generators are IN-vessel
+        core=new T.Mesh(new T.CylinderGeometry(R*0.42,R*0.42,Hh*0.78,20),new T.MeshPhongMaterial({color:0xffb000,emissive:0xffb000,emissiveIntensity:0}));
+        core.position.y=Hh*0.42+0.8;ug.add(core);
+      }
+      // ---- this unit's steam line: containment -> its own turbine ----
+      var steamMat=new T.MeshPhongMaterial({color:0x2f5a64,emissive:0x0a3a44,shininess:40});
+      var sLen=Math.abs(turbineZ-reactorZ)-R-2;
+      var steam=new T.Mesh(new T.CylinderGeometry(pwr?0.8:0.5,pwr?0.8:0.5,sLen,14),steamMat);
+      steam.rotation.x=Math.PI/2;steam.position.set(ux,2.2,(reactorZ+R+turbineZ-2)/2+1);grp.add(steam);
+      // ---- this unit's turbine-generator ----
+      var tb=mkTurbine(pwr);tb.g.position.set(ux,3.0,turbineZ);grp.add(tb.g);
+      var genX=ux+tb.L/2+2.6,genS=pwr?1:0.62;
+      var coup=new T.Mesh(new T.CylinderGeometry(0.5*genS,0.5*genS,2.6,12),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b}));
+      coup.rotation.z=Math.PI/2;coup.position.set(ux+tb.L/2+1.3,3.0,turbineZ);grp.add(coup);
+      var gen=new T.Mesh(new T.BoxGeometry(5.4*genS,3.6*genS,3.6*genS),new T.MeshPhongMaterial({color:0x16282d,emissive:0x06141a}));
+      gen.position.set(genX,1.8*genS+0.8,turbineZ);grp.add(gen);
+      // ---- electrical line: this generator -> shared switchyard ----
+      var gridMat=new T.MeshPhongMaterial({color:0x1c3a40,emissive:0x22d3ee,emissiveIntensity:0.05});
+      var gline=mkLine({x:genX,y:3.6*genS+0.8,z:turbineZ},switchPt,0.16,gridMat);grp.add(gline);
+      uM[u.id]={body:body,dome:dome,core:core,sgs:sgs,turb:tb.g,steam:steam,gline:gline,R:R,Hh:Hh,ux:ux};
       labels.push({el:mkLabel(''),kind:'unit',uid:u.id,local:new T.Vector3(ux,Hh+R+2.5,reactorZ)});
-    });
-
-    // ---- steam path: reactors -> header -> steam generator -> turbine -> generator ----
-    function pipeMat(){return new T.MeshPhongMaterial({color:0x2a4750,emissive:0x07242a});}
-    function steamMat(){return new T.MeshPhongMaterial({color:0x2f5a64,emissive:0x0a3a44,shininess:40});}
-    // collection header across X (gathers every reactor feeder)
-    var header=new T.Mesh(new T.CylinderGeometry(0.8,0.8,(n-1)*sx+12,18),pipeMat());
-    header.rotation.z=Math.PI/2;header.position.set(0,1.6,headerZ);grp.add(header);
-    // inlet run from the header centre into the base of the steam generator
-    var inLen=Math.abs(sgZ-headerZ);
-    var inlet=new T.Mesh(new T.CylinderGeometry(0.95,0.95,inLen,18),pipeMat());
-    inlet.rotation.x=Math.PI/2;inlet.position.set(0,1.6,(headerZ+sgZ)/2);grp.add(inlet);
-    // steam generator (vertical vessel ON the centre line, in the flow path)
-    var sgH=10;
-    var sg=new T.Mesh(new T.CylinderGeometry(3.3,3.6,sgH,32),new T.MeshPhongMaterial({color:0x16323a,emissive:0x06181c,shininess:34}));sg.position.set(0,sgH/2+0.5,sgZ);grp.add(sg);
-    var sgCap=new T.Mesh(new T.SphereGeometry(3.3,28,16,0,Math.PI*2,0,Math.PI/2),new T.MeshPhongMaterial({color:0x18313a,emissive:0x06181c}));sgCap.position.set(0,sgH+0.5,sgZ);grp.add(sgCap);
-    labels.push({el:mkLabel('<b>Steam Generator</b>'),kind:'static',local:new T.Vector3(0,sgH+4,sgZ)});
-    // steam outlet line from the SG forward to the turbine (emissive = live steam)
-    var outLen=Math.abs(turbineZ-sgZ)-2;
-    var outlet=new T.Mesh(new T.CylinderGeometry(0.95,0.95,outLen,18),steamMat());
-    outlet.rotation.x=Math.PI/2;outlet.position.set(0,3.6,sgZ+1+outLen/2);grp.add(outlet);
-    grp.__steamLine=outlet;
-    var riser=new T.Mesh(new T.CylinderGeometry(0.9,0.9,sgH-4,16),steamMat());riser.position.set(0,sgH-2,sgZ+2.6);grp.add(riser);
-    // turbine (spinning finned shaft along X, on the centre line)
-    turbineRotor=new T.Group();turbineRotor.position.set(0,3.4,turbineZ);grp.add(turbineRotor);
-    var shaft=new T.Mesh(new T.CylinderGeometry(1.0,1.0,18,24),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b,shininess:90}));shaft.rotation.z=Math.PI/2;turbineRotor.add(shaft);
-    for(var sI=0;sI<3;sI++){
-      var disc=new T.Mesh(new T.CylinderGeometry(2.7,2.7,0.55,24),new T.MeshPhongMaterial({color:0x6f8a92,emissive:0x0c1417,shininess:70}));disc.rotation.z=Math.PI/2;disc.position.x=-5+sI*5;turbineRotor.add(disc);
-      for(var b=0;b<12;b++){var ang=b/12*Math.PI*2;var bl=new T.Mesh(new T.BoxGeometry(0.5,1.7,0.32),new T.MeshPhongMaterial({color:0xbfd2d8,emissive:0x12181b}));bl.position.set(-5+sI*5,Math.cos(ang)*2.3,Math.sin(ang)*2.3);bl.rotation.x=ang;turbineRotor.add(bl);}
-    }
-    labels.push({el:mkLabel('<b>Turbine</b>'),kind:'static',local:new T.Vector3(0,8,turbineZ)});
-    // shaft coupling -> generator -> grid pylon
-    var genX=13;
-    var coup=new T.Mesh(new T.CylinderGeometry(0.7,0.7,genX-9,14),new T.MeshPhongMaterial({color:0x9fb6bd,emissive:0x10181b}));coup.rotation.z=Math.PI/2;coup.position.set((9+genX)/2,3.4,turbineZ);grp.add(coup);
-    var gen=new T.Mesh(new T.BoxGeometry(7.5,4.4,4.4),new T.MeshPhongMaterial({color:0x16282d,emissive:0x06141a}));gen.position.set(genX,3.2,turbineZ);grp.add(gen);
-    labels.push({el:mkLabel('<b>Generator</b>'),kind:'static',local:new T.Vector3(genX,7.5,turbineZ)});
-    var pyl=new T.Mesh(new T.CylinderGeometry(0.35,0.7,14,8),new T.MeshPhongMaterial({color:0x2a4750}));pyl.position.set(genX+11,7,turbineZ);grp.add(pyl);
-
-    // steam particle pool (per unit a few spheres travelling reactor -> header -> main run -> turbine)
-    us.forEach(function(u){
-      var ux=uM[u.id].ux;
-      var path=[{x:ux,y:1.6,z:reactorZ+2},{x:ux,y:1.6,z:headerZ},{x:0,y:1.6,z:headerZ},{x:0,y:1.6,z:sgZ-1},{x:0,y:8.5,z:sgZ},{x:0,y:3.6,z:sgZ+2},{x:0,y:3.4,z:turbineZ}];
+      // ---- steam particles: per unit, reactor -> own turbine ----
+      var path=[{x:ux,y:2.2,z:reactorZ+R},{x:ux,y:2.2,z:turbineZ-3},{x:ux,y:3.0,z:turbineZ}];
       var meta=pathMeta(path);
       for(var k=0;k<3;k++){
-        var sp=new T.Mesh(new T.SphereGeometry(0.45,10,8),new T.MeshPhongMaterial({color:0xbdf3ff,emissive:0x22d3ee,emissiveIntensity:0.9,transparent:true,opacity:0.85}));
+        var sp=new T.Mesh(new T.SphereGeometry(0.42,10,8),new T.MeshPhongMaterial({color:0xbdf3ff,emissive:0x22d3ee,emissiveIntensity:0.9,transparent:true,opacity:0.85}));
         sp.visible=false;grp.add(sp);
         parts.push({mesh:sp,uid:u.id,path:path,meta:meta,s:k/3});
       }
     });
+
+    // ---- shared switchyard (the one element a real fleet shares) ----
+    var sw=new T.Group();sw.position.set(0,0,switchZ);grp.add(sw);
+    var swPad=new T.Mesh(new T.BoxGeometry(14,0.6,7),new T.MeshPhongMaterial({color:0x0e1c20}));swPad.position.y=0.3;sw.add(swPad);
+    var bus=new T.Mesh(new T.BoxGeometry(9,2.6,3.4),new T.MeshPhongMaterial({color:0x16282d,emissive:0x06141a}));bus.position.y=1.9;sw.add(bus);
+    for(var pI=-1;pI<=1;pI+=2){
+      var pyl=new T.Mesh(new T.CylinderGeometry(0.3,0.6,13,8),new T.MeshPhongMaterial({color:0x2a4750}));
+      pyl.position.set(pI*5.5,6.5,0);sw.add(pyl);
+      var arm=new T.Mesh(new T.BoxGeometry(4.6,0.35,0.35),new T.MeshPhongMaterial({color:0x2a4750}));
+      arm.position.set(pI*5.5,11.5,0);sw.add(arm);
+    }
+    labels.push({el:mkLabel('<b>Switchyard</b> · shared grid connection'),kind:'static',local:new T.Vector3(0,15.5,switchZ)});
+    labels.push({el:mkLabel('<b>Turbine-generators</b> · one per unit'),kind:'static',local:new T.Vector3(0,10,turbineZ)});
 
     var el=renderer.domElement,drag=false,px=0,py=0;el.style.cursor='grab';
     el.addEventListener('pointerdown',function(e){drag=true;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
@@ -4543,12 +4578,12 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     requestAnimationFrame(frame);
     if(!active())return;
     if(!inited){build();buildBar();}
-    var us=units(),onlineMW=0,onlineCount=0,maxFlux=0;
+    var us=units(),onlineMW=0,onlineCount=0;
     var tnow=Date.now()*0.001;
     us.forEach(function(u){
       var m=uM[u.id];if(!m)return;
       var on=u.online,flux=on&&u.st?clamp(u.st.flux,0,110)/100:0;
-      if(on){onlineCount++;onlineMW+=Math.max(0,u.st?u.st.mwe:0);maxFlux=Math.max(maxFlux,flux);}
+      if(on){onlineCount++;onlineMW+=Math.max(0,u.st?u.st.mwe:0);}
       var pulse=0.55+0.45*Math.sin(tnow*2.2+m.ux);
       var ei=on?(0.25+0.75*flux)*pulse:0;
       m.core.material.emissiveIntensity=on?ei*1.1:0;
@@ -4557,17 +4592,19 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       m.body.material.color.setHex(on?0x1d3a42:0x141f22);
       m.dome.material.emissive.setHex(on?0x0e2a31:0x000000);m.dome.material.emissiveIntensity=on?0.45*pulse:0;
       m.dome.material.color.setHex(on?0x1d3f49:0x16282d);
+      m.sgs.forEach(function(sg){sg.material.emissive.setHex(on?0x0e7490:0x06181c);sg.material.emissiveIntensity=on?0.35+0.45*flux:0;});
+      // each unit spins ITS OWN turbine with its own flux
+      m.turb.rotation.x+=on?(0.02+flux*0.5):0;
+      m.steam.material.emissiveIntensity=(on&&opt.steam)?(0.12+0.9*flux):0.05;
+      m.gline.material.emissiveIntensity=on?(0.35+0.5*flux):0.05;
     });
-    // turbine spin proportional to online power
-    if(turbineRotor)turbineRotor.rotation.x+=0.02+maxFlux*0.55;
-    if(grp&&grp.__steamLine)grp.__steamLine.material.emissiveIntensity=opt.steam?(0.12+0.9*maxFlux):0.05;
     // steam particles
     parts.forEach(function(p){
       var u=null;for(var i=0;i<us.length;i++){if(us[i].id===p.uid){u=us[i];break;}}
       var on=u&&u.online,flux=on&&u.st?clamp(u.st.flux,0,110)/100:0;
       if(!on||!opt.steam){p.mesh.visible=false;return;}
       p.mesh.visible=true;
-      p.s+=0.0025+flux*0.010;if(p.s>1)p.s-=1;
+      p.s+=0.004+flux*0.012;if(p.s>1)p.s-=1;
       var pos=posAlong(p.path,p.meta,p.s);p.mesh.position.set(pos.x,pos.y,pos.z);
       p.mesh.material.opacity=0.35+0.5*Math.sin(p.s*Math.PI);
     });
