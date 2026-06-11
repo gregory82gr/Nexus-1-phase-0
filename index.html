@@ -1000,7 +1000,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <line x1="300" y1="270" x2="113" y2="270" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5 4"/>
       <text id="fb-xe" x="365" y="306" fill="#8b5cf6" font-size="10" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#961;_Xe = 0 pcm</text>
     </svg>
-    <div class="note" style="margin-top:9px;line-height:1.6">The solver drawn as a <b>closed-loop control diagram</b>: rod worth is the external input, and three <b>negative feedback</b> paths (dashed violet &mdash; the same convention as the System Dependencies screen) return through the fuel node, the coolant node and the xenon chain into the summing junction. Every block is a literal function inside <span class="mono">window.KIN.model</span>, the gains are the constants listed on the Model Analysis screen, and every value on the edges is computed live with the <b>same formulas as the Reactivity Balance</b> panel above &mdash; this diagram is a schematic of the implementation, not an illustration. It is <i>why</i> a +pcm step self-regulates instead of running away. Linearized transfer functions and formal stability analysis are roadmap, not Phase-0.</div>
+    <div class="note" style="margin-top:9px;line-height:1.6">The solver drawn as a <b>closed-loop control diagram</b>: rod worth is the external input, and three <b>negative feedback</b> paths (dashed violet &mdash; the same convention as the System Dependencies screen) return through the fuel node, the coolant node and the xenon chain into the summing junction. Every block is a literal function inside <span class="mono">window.KIN.model</span>, the gains are the constants listed on the Model Analysis screen, and every value on the edges is computed live with the <b>same formulas as the Reactivity Balance</b> panel above &mdash; this diagram is a schematic of the implementation, not an illustration. It is <i>why</i> a +pcm step self-regulates instead of running away. The linearized closed-loop transfer function of exactly this loop is derived &mdash; and verified against the running solver &mdash; in <b>Model Analysis &rarr; Frequency response</b>; formal stability claims about any real reactor remain out of scope.</div>
   </div>
 
   <div class="panel">
@@ -1048,6 +1048,33 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
       <div class="panel"><div class="ph"><h2><span class="tick"></span>Xenon forecast</h2><span class="tag">forward integration from live state</span></div>
         <div id="an-forecast"></div>
+      </div>
+
+      <div class="panel" style="margin-top:13px"><div class="ph"><h2><span class="tick"></span>Frequency response &middot; closed-loop transfer function</h2><span class="tag">linearized &middot; verified vs solver</span></div>
+        <div id="tf-plots"></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn" id="tf-run">&#9655; Run solver measurement (&plusmn;5 pcm sinusoid)</button>
+          <span class="note" id="tf-status"></span>
+        </div>
+        <div id="tf-table" style="margin-top:8px"></div>
+        <div class="note" style="margin-top:9px;line-height:1.7">
+          The point-kinetics solver linearized about full power, in closed loop &mdash; the transfer function of exactly the
+          structure drawn on the Reactor Kinetics feedback diagram. Zero-power kinetics
+          <span class="mono">G&#8320;(s) = 1/(s&middot;(&Lambda; + &Sigma;&beta;&#7522;/(s+&lambda;&#7522;)))</span>;
+          feedback <span class="mono">F(s) = &alpha;_D&middot;G_TF + &alpha;_M&middot;G_TC &minus; K_Xe&middot;G_Xe</span>
+          from the linearized two-node thermal model and the I-135/Xe-135 chain (including the burnout cross-term
+          <span class="mono">&sigma;&phi;&middot;Xe_eq&middot;&delta;n</span>); closed loop
+          <span class="mono">H(s) = 10&#8315;&#8309;G&#8320;/(1 &minus; 10&#8315;&#8309;G&#8320;F)</span>, in % rated power per pcm of rod worth.
+          Every constant is read live from the running solver. <b>Verification:</b> the measurement button drives the
+          <b>same</b> <span class="mono">stepState</span> integrator the console runs with a &plusmn;5 pcm rod sinusoid and extracts
+          amplitude and phase by projection over whole periods &mdash; the &Delta; shown is genuine and includes the integrator's
+          real numerical error. The <b>inhour validation above is the &omega;&rarr;0 limit of G&#8320;</b>; this check generalizes it
+          across frequency. Zero-power rod-oscillator and noise measurements of |G&#8320;| are real commissioning techniques.
+          <b>Honest scope:</b> the xenon branch only shapes the ultra-low-frequency end (|s| &#8810; 10&#8315;&#8308; s&#8315;&sup1;
+          &mdash; hours), so it is analytic-only here while the measured points span the kinetics/thermal band; constants are
+          representative, so no stability claim is made about any real reactor; and a point model has no spatial xenon modes
+          (excluded for the same reason DNBR is).
+        </div>
       </div>
     </section>
     <section class="page" data-page="access-presence">
@@ -4211,7 +4238,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     rods:{n:'Control Rods',w:'Interactive rod operation for the selected unit.',k:['Move the rod bank or SCRAM — power, flux and grid respond','A SCRAM is logged to Incident Analysis and Compliance and counts as a rod demand cycle']},
     neutronics:{n:'Neutronics',w:'Neutron flux and reactivity detail.',k:['Flux distribution and the reactivity components']},
     kinetics:{n:'Reactor Kinetics',w:'A physically real point-kinetics simulator.',k:['6 delayed-neutron groups with Doppler, moderator and xenon feedback','Try a small +pcm step (prompt jump, then self-regulation), then SCRAM','Switch to 600x after a shutdown to watch the xenon transient build','See the Model Analysis screen for validation of this solver against closed-form references, its constants, sensitivity and margins']},
-    analysis:{n:'Model Analysis',w:'Verification layer for the point-kinetics engine — every figure computed live from the same solver the console runs.',k:['Solver validation: asymptotic period vs the inhour equation, prompt jump, xenon half-lives, the post-shutdown peak, and the decay-heat group model vs the Way–Wigner correlation — with the real (small) numerical errors shown','Model parameters: the literal solver constants, split into physical nuclear data vs representative modeling choices','Sensitivity: normalized, dimensionless ∂output/∂parameter, showing the dominant driver differs by output','Operating margins (live) against demonstrator setpoints — DNBR/LHR are deliberately excluded and the reason is stated','Xenon forecast: a forward integration (not extrapolation) of the live Xe-135 state','Export the parameters (JSON) and the live trace (CSV) for checking in your own tools']},
+    analysis:{n:'Model Analysis',w:'Verification layer for the point-kinetics engine — every figure computed live from the same solver the console runs.',k:['Solver validation: asymptotic period vs the inhour equation, prompt jump, xenon half-lives, the post-shutdown peak, and the decay-heat group model vs the Way–Wigner correlation — with the real (small) numerical errors shown','Model parameters: the literal solver constants, split into physical nuclear data vs representative modeling choices','Sensitivity: normalized, dimensionless ∂output/∂parameter, showing the dominant driver differs by output','Operating margins (live) against demonstrator setpoints — DNBR/LHR are deliberately excluded and the reason is stated','Xenon forecast: a forward integration (not extrapolation) of the live Xe-135 state','Frequency response: the linearized closed-loop transfer function (Bode), with a sinusoidal solver measurement overlaid \u2014 the inhour check is its \u03c9\u21920 limit','Export the parameters (JSON) and the live trace (CSV) for checking in your own tools']},
     reactor3d:{n:'3D Reactor View',w:'Two 3-D cores — telemetry vs simulation (a digital twin).',k:['Left = noisy sensors, right = the model; the controls drive both','Divergence between them is the digital-twin early-warning signal','Drag a core to rotate; fuel colour shows temperature']},
     rlopt:{n:'Advanced Optimization (RL)',w:'Experimental reinforcement-learning optimiser — BETA, twin-only, advisory.',k:['The "What Train policy does" panel explains the training step by step, in plain English','Train the agent inside the twin; watch the reward curve climb','The learned policy is a readable table — no black box','Advisory only, with safety clamps; no control authority on a real plant']},
     deps:{n:'System Dependencies',w:'How components influence one another.',k:['Graph: click a node to trace everything it affects downstream, with delays','Matrix: click a cell to read an influence weight','Causal Chain: the reactor-trip reconstruction + a what-if toggle']},
@@ -4498,6 +4525,149 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     set('fb-xe','\u03c1_Xe = '+f(rx,0)+' pcm');
   }
   setInterval(upd,500);
+})();
+</script>
+
+<script>
+/* ===== Model Analysis · frequency response (closed-loop transfer function) · NX1-094C79E0A366D34F =====
+   Analytic linearization of the EXACT stepState equations, plotted as a Bode
+   diagram, with an on-demand sinusoidal measurement of the live solver overlaid.
+   Pure math is exported for headless testing (same pattern as the 3D path math). */
+(function(){
+  // ---- complex helpers ----
+  function C(re,im){return {re:re,im:im};}
+  function cadd(a,b){return C(a.re+b.re,a.im+b.im);}
+  function csub(a,b){return C(a.re-b.re,a.im-b.im);}
+  function cmul(a,b){return C(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re);}
+  function cdiv(a,b){var d=b.re*b.re+b.im*b.im;return C((a.re*b.re+a.im*b.im)/d,(a.im*b.re-a.re*b.im)/d);}
+  function cabs(a){return Math.hypot(a.re,a.im);}
+  function carg(a){return Math.atan2(a.im,a.re);}
+  // ---- analytic transfer functions (pure: params p, angular freq w) ----
+  function G0(p,w){var s=C(0,w),D=C(p.GEN,0);
+    for(var i=0;i<6;i++)D=cadd(D,cdiv(C(p.BETA[i],0),cadd(s,C(p.LAM[i],0))));
+    return cdiv(C(1,0),cmul(s,D));}
+  function GTF(p,w){var a=p.KFC/p.CF,b=p.KP/p.CF,c=p.KFC/p.CC,d=(p.KFC+p.KCO)/p.CC,s=C(0,w);
+    var den=csub(cmul(cadd(s,C(a,0)),cadd(s,C(d,0))),C(a*c,0));
+    return cdiv(cmul(C(b,0),cadd(s,C(d,0))),den);}
+  function GTC(p,w){var a=p.KFC/p.CF,b=p.KP/p.CF,c=p.KFC/p.CC,d=(p.KFC+p.KCO)/p.CC,s=C(0,w);
+    var den=csub(cmul(cadd(s,C(a,0)),cadd(s,C(d,0))),C(a*c,0));
+    return cdiv(C(b*c,0),den);}
+  function GXe(p,w){var s=C(0,w);
+    var num=cadd(C(p.gXe*p.SF-p.SIGPHI*p.XEEQ,0),cdiv(C(p.lI*p.gI*p.SF,0),cadd(s,C(p.lI,0))));
+    return cdiv(num,cadd(s,C(p.lXe+p.SIGPHI,0)));}
+  function Ffb(p,w){return cadd(cadd(cmul(C(p.aD,0),GTF(p,w)),cmul(C(p.aM,0),GTC(p,w))),cmul(C(-p.KXE,0),GXe(p,w)));}
+  function Hcl(p,w){var g=cmul(C(1e-5,0),G0(p,w));return cdiv(g,csub(C(1,0),cmul(g,Ffb(p,w))));}
+  function H0(p,w){return cmul(C(1e-5,0),G0(p,w));}
+  if(typeof module!=='undefined'&&module.exports){module.exports={G0:G0,GTF:GTF,GTC:GTC,GXe:GXe,Ffb:Ffb,Hcl:Hcl,H0:H0,cabs:cabs,carg:carg};return;}
+
+  function $(id){return document.getElementById(id);}
+  function M(){return (window.KIN&&window.KIN.model)?window.KIN.model:null;}
+  function act(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='analysis';}
+  var FREQS=[0.002,0.01,0.05,0.2,1];     // Hz — kinetics/thermal band
+  var AMP=5;                              // pcm sinusoid amplitude (small-signal)
+  var MEAS=null,measVer=-1,lastVer=-1;
+
+  // ---- Bode plot (mag + phase as one SVG string set) ----
+  function plot(){
+    var m=M();if(!m)return;var p=m.params;
+    var W=700,Hm=215,Hp=150,pad=34,padR=10,padT=12,padB=20;
+    function lx(f){return pad+(Math.log10(f)+5)/6*(W-pad-padR);}
+    function lym(v){return Hm-padB-((Math.log10(v)+3)/6)*(Hm-padT-padB);}   // 1e-3..1e3 %/pcm
+    function lyp(d){return Hp-padB-((d+180)/270)*(Hp-padT-padB);}           // -180..+90 deg
+    var g1='',g2='';
+    // grid: frequency decades
+    for(var e=-5;e<=1;e++){var x=lx(Math.pow(10,e)).toFixed(1);
+      g1+='<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(Hm-padB)+'" stroke="var(--line)"/>';
+      g1+='<text x="'+x+'" y="'+(Hm-6)+'" fill="var(--text-mute)" font-size="8" text-anchor="middle">1e'+e+'</text>';
+      g2+='<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(Hp-padB)+'" stroke="var(--line)"/>';
+      g2+='<text x="'+x+'" y="'+(Hp-6)+'" fill="var(--text-mute)" font-size="8" text-anchor="middle">1e'+e+'</text>';}
+    for(var ym=-3;ym<=3;ym++){var y=lym(Math.pow(10,ym)).toFixed(1);
+      g1+='<line x1="'+pad+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--line)"/>';
+      g1+='<text x="'+(pad-4)+'" y="'+(+y+3)+'" fill="var(--text-mute)" font-size="8" text-anchor="end">1e'+ym+'</text>';}
+    [-180,-135,-90,-45,0,45,90].forEach(function(d){var y=lyp(d).toFixed(1);
+      g2+='<line x1="'+pad+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--line)"/>';
+      g2+='<text x="'+(pad-4)+'" y="'+(+y+3)+'" fill="var(--text-mute)" font-size="8" text-anchor="end">'+d+'&#176;</text>';});
+    // curves
+    function curve(fn){var P0='',P1='';
+      for(var i=0;i<=140;i++){var f=Math.pow(10,-5+6*i/140),w=2*Math.PI*f,h=fn(p,w);
+        var mag=100*cabs(h),ph=carg(h)*180/Math.PI;
+        mag=Math.min(Math.max(mag,1.05e-3),0.95e3);ph=Math.min(Math.max(ph,-179),89);
+        P0+=lx(f).toFixed(1)+','+lym(mag).toFixed(1)+' ';
+        P1+=lx(f).toFixed(1)+','+lyp(ph).toFixed(1)+' ';}
+      return [P0,P1];}
+    var c0=curve(H0),c1=curve(Hcl);
+    g1+='<polyline points="'+c0[0]+'" fill="none" stroke="#5b6b74" stroke-width="1.4" stroke-dasharray="5 4"/>';
+    g1+='<polyline points="'+c1[0]+'" fill="none" stroke="#22d3ee" stroke-width="2"/>';
+    g2+='<polyline points="'+c0[1]+'" fill="none" stroke="#5b6b74" stroke-width="1.4" stroke-dasharray="5 4"/>';
+    g2+='<polyline points="'+c1[1]+'" fill="none" stroke="#22d3ee" stroke-width="2"/>';
+    // measured overlay (closed loop)
+    if(MEAS&&measVer===window.KIN.modelVersion){MEAS.forEach(function(r){
+      g1+='<circle cx="'+lx(r.f).toFixed(1)+'" cy="'+lym(Math.max(100*r.mag,1.05e-3)).toFixed(1)+'" r="3.4" fill="none" stroke="var(--amber)" stroke-width="1.8"/>';
+      g2+='<circle cx="'+lx(r.f).toFixed(1)+'" cy="'+lyp(r.phase*180/Math.PI).toFixed(1)+'" r="3.4" fill="none" stroke="var(--amber)" stroke-width="1.8"/>';});}
+    $('tf-plots').innerHTML=
+      '<div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin:2px 0 4px">Magnitude &middot; % rated power per pcm &middot; vs frequency (Hz)</div>'
+      +'<svg viewBox="0 0 '+W+' '+Hm+'" style="width:100%;display:block">'+g1+'</svg>'
+      +'<div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin:8px 0 4px">Phase &middot; degrees</div>'
+      +'<svg viewBox="0 0 '+W+' '+Hp+'" style="width:100%;display:block">'+g2+'</svg>'
+      +'<div class="kin-legend" style="margin-top:6px"><span><i style="background:#22d3ee"></i>Closed loop (with feedback)</span>'
+      +'<span><i style="background:#5b6b74"></i>Zero-power G&#8320; (no feedback)</span>'
+      +'<span><i style="background:var(--amber)"></i>Measured from the live solver</span></div>';
+  }
+
+  // ---- table: analytic vs measured ----
+  function pill(cls,txt){return '<span class="pill '+cls+'">'+txt+'</span>';}
+  function table(){
+    if(!MEAS||measVer!==window.KIN.modelVersion){$('tf-table').innerHTML='';return;}
+    var p=M().params;
+    var h='<table><thead><tr><th style="text-align:left">f (Hz)</th><th style="text-align:left">|H| analytic</th><th style="text-align:left">|H| measured</th><th style="text-align:left">&#966; analytic</th><th style="text-align:left">&#966; measured</th><th>Result</th></tr></thead><tbody>';
+    MEAS.forEach(function(r){
+      var ha=Hcl(p,2*Math.PI*r.f),ma=100*cabs(ha),pa=carg(ha)*180/Math.PI;
+      var mm=100*r.mag,pm=r.phase*180/Math.PI;
+      var dM=Math.abs(mm-ma)/ma*100,dP=Math.abs(pm-pa);
+      var ok=dM<5&&dP<5;
+      h+='<tr><td class="mono" style="color:var(--text)">'+r.f+'</td>'
+        +'<td class="mono" style="color:var(--text-dim)">'+ma.toPrecision(3)+' %/pcm</td>'
+        +'<td class="mono" style="color:#eafdff">'+mm.toPrecision(3)+' %/pcm</td>'
+        +'<td class="mono" style="color:var(--text-dim)">'+pa.toFixed(1)+'&#176;</td>'
+        +'<td class="mono" style="color:#eafdff">'+pm.toFixed(1)+'&#176;</td>'
+        +'<td style="text-align:center">'+pill(ok?'ok':'warn','\u0394 '+dM.toFixed(1)+'% / '+dP.toFixed(1)+'\u00b0')+'</td></tr>';});
+    h+='</tbody></table>';
+    $('tf-table').innerHTML=h;
+  }
+
+  // ---- measurement: sinusoidal rod perturbation through the live stepState ----
+  function measureOne(fHz){
+    var m=M(),w=2*Math.PI*fHz,T=1/fHz;
+    var dt=Math.min(0.02,T/400),settle=3,nper=4;
+    var st=m.fresh(),t=0,steps=Math.round((settle+nper)*T/dt),Is=0,Ic=0;
+    for(var k=0;k<steps;k++){
+      st.rodPcm=AMP*Math.sin(w*t);
+      m.stepState(st,dt);t+=dt;
+      if(t>settle*T){Is+=st.n*Math.sin(w*t)*dt;Ic+=st.n*Math.cos(w*t)*dt;}
+    }
+    var ampResp=2/(nper*T)*Math.hypot(Is,Ic);
+    return {f:fHz,mag:ampResp/AMP,phase:Math.atan2(Ic,Is)};
+  }
+  function run(){
+    var btn=$('tf-run'),stt=$('tf-status');
+    if(!M()){stt.textContent='solver not ready';return;}
+    btn.disabled=true;MEAS=[];measVer=window.KIN.modelVersion;
+    var i=0;
+    function next(){
+      if(i>=FREQS.length){stt.textContent='done \u2014 \u00b1'+AMP+' pcm sinusoid, '+FREQS.length+' frequencies, same stepState as the console';btn.disabled=false;plot();table();return;}
+      stt.textContent='measuring f = '+FREQS[i]+' Hz \u2026';
+      setTimeout(function(){MEAS.push(measureOne(FREQS[i]));i++;plot();table();next();},30);
+    }
+    next();
+  }
+
+  function wire(){var b=$('tf-run');if(b&&!b.__w){b.__w=true;b.addEventListener('click',run);}}
+  setInterval(function(){
+    if(!act())return;wire();
+    var v=window.KIN?window.KIN.modelVersion:0;
+    if(v!==lastVer){lastVer=v;if(measVer!==v){MEAS=null;}plot();table();
+      if($('tf-status')&&measVer!==v)$('tf-status').textContent='unit changed \u2014 analytic curves updated; re-run the measurement for this unit';}
+  },800);
 })();
 </script>
 
