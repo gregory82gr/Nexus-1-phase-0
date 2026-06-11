@@ -1652,10 +1652,11 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <section class="page" data-page="rcgraph">
       <div class="rc-incsel">
         <span class="lbl">Incident</span>
-        <button class="btn active" data-inc="EVT-2026-0418">EVT-2026-0418 &middot; Feedwater &rarr; trip</button>
-        <button class="btn" data-inc="EVT-2026-0419">EVT-2026-0419 &middot; EMI / sensor artefact</button>
-        <button class="btn" data-inc="EVT-2026-0420">EVT-2026-0420 &middot; Non-conforming rod / QA escape</button>
+        <button class="btn active" data-inc="EVT-2026-0418">EVT-2026-0418 &middot; Unit 1 &middot; Feedwater &rarr; trip</button>
+        <button class="btn" data-inc="EVT-2026-0419">EVT-2026-0419 &middot; SMR Module A &middot; EMI / sensor artefact</button>
+        <button class="btn" data-inc="EVT-2026-0420">EVT-2026-0420 &middot; Unit 2 &middot; Non-conforming rod / QA escape</button>
       </div>
+      <div class="note" id="rc-unitnote" style="display:none;margin:0 0 11px;color:var(--amber)"></div>
       <div class="tabbar">
         <button class="btn active" data-rtab="graph">Causal Graph</button>
         <button class="btn" data-rtab="flood">Alarm Flood</button>
@@ -1766,7 +1767,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   
 
     <section class="page" data-page="insp-overview">
-      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>What this module does</h2><span class="tag">QA</span></div>
+      <div class="panel hot" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>What this module does</h2><span class="tag" id="insp-unit-tag">QA</span></div>
         <div class="note" style="font-size:11px;color:var(--text-dim)">Every rod that goes into the core is inspected without being damaged, using <b style="color:var(--text)">Non-Destructive Testing (NDT)</b>. This module lets you pick a rod type, choose an individual rod, and review its simulated radiograph (X-ray / gamma film) together with the results of each NDT method and a final acceptance verdict. Select a rod type from the sidebar to begin.</div>
       </div>
       <div class="grid c3" id="overview-cards"></div>
@@ -1927,7 +1928,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
-    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Causal fault propagation · alarm correlation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Fleet quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · per-unit turbines & shared switchyard'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
+    incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Per-unit incident archive · causal fault propagation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Per-unit quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · per-unit turbines & shared switchyard'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
   // ---- live, unit-aware header subtitles (consistency-to-selection) ----
   // Published design fuel-assembly counts per unit class — single source for the
   // header subtitle and the core-map cell count (drawCoreMap).
@@ -2342,11 +2343,14 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     porosity:'Porosity cluster',inclusion:'Metallic inclusion',weld:'Weld defect (lack of fusion)',
     thinning:'Cladding wall thinning',corrosion:'Surface corrosion',deform:'Deformation / bow',delam:'Delamination'};
 
-  // build inventory for a type (deterministic)
-  function inventory(t){
-    const r=rng(hash(t.id+'_inv'));const n=6+Math.floor(r()*3);const rods=[];
+  // build inventory for a type (deterministic, per unit: seed = unit + type)
+  function inventory(t,uid,cap){
+    const r=rng(hash(uid+'_'+t.id+'_inv'));
+    const base=cap>=1200?8:(cap>=600?6:4);          // PWR-1300 > PWR-900 > SMR (illustrative scaling)
+    const n=base+Math.floor(r()*(cap>=600?3:2));const rods=[];
+    const uc=uid.toUpperCase();
     for(let i=0;i<n;i++){
-      const sn=t.prefix+'-'+String(1000+Math.floor(r()*9000));
+      const sn=uc+'-'+t.prefix+'-'+String(1000+Math.floor(r()*9000));
       const rr=rng(hash(sn));
       const ndefs=rr()<0.30?0:(rr()<0.72?1:(rr()<0.92?2:3));
       const pool=['crack_int','void','porosity','inclusion','weld','crack_surf','thinning','corrosion','deform'];
@@ -2365,46 +2369,64 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     }
     return rods;
   }
-  const INV={};TYPES.forEach(t=>INV[t.id]=inventory(t));
+  // per-unit inventory cache (deterministic: same unit always yields same rods)
+  const INVCACHE={};
+  function nxApi(){return window.NEXUS||null;}
+  function curU(){const n=nxApi();return (n&&n.unit)?n.unit():null;}
+  function curSel(){const n=nxApi();return (n&&n.getSel)?n.getSel():'u1';}
+  function invFor(uid){
+    if(!INVCACHE[uid]){
+      const n=nxApi();const u=n?((n.units||[]).find(x=>x.id===uid)):null;const cap=u?(u.cap||900):900;
+      const o={};TYPES.forEach(t=>o[t.id]=inventory(t,uid,cap));INVCACHE[uid]=o;
+    }
+    return INVCACHE[uid];
+  }
 
-  // ---- sidebar ----
+  // ---- sidebar (rebuilt on unit change) ----
   const sub=$('#rodsub');
-  TYPES.forEach(t=>{
-    const rods=INV[t.id];const bad=rods.filter(r=>r.verdict!=='accepted').length;
-    const col=bad===0?'var(--green)':rods.some(r=>r.verdict==='rejected')?'var(--red)':'var(--amber)';
-    const d=document.createElement('div');d.className='subitem';d.dataset.type=t.id;
-    d.innerHTML=`<span class="dot" style="background:${col};box-shadow:0 0 7px ${col}"></span>${t.name}`;
-    d.onclick=()=>openType(t.id);sub.appendChild(d);
-  });
+  function buildSidebar(){
+    const inv=invFor(curSel());sub.innerHTML='';
+    TYPES.forEach(t=>{
+      const rods=inv[t.id];const bad=rods.filter(r=>r.verdict!=='accepted').length;
+      const col=bad===0?'var(--green)':rods.some(r=>r.verdict==='rejected')?'var(--red)':'var(--amber)';
+      const d=document.createElement('div');d.className='subitem';d.dataset.type=t.id;
+      d.innerHTML=`<span class="dot" style="background:${col};box-shadow:0 0 7px ${col}"></span>${t.name}`;
+      d.onclick=()=>openType(t.id);sub.appendChild(d);
+    });
+  }
 
-  // ---- overview cards ----
+  // ---- overview cards (rebuilt on unit change) ----
   const oc=$('#overview-cards');
-  TYPES.forEach(t=>{const rods=INV[t.id];const acc=rods.filter(r=>r.verdict==='accepted').length;
-    const rej=rods.filter(r=>r.verdict==='rejected').length;
-    const c=document.createElement('div');c.className='typecard';c.onclick=()=>openType(t.id);
-    c.innerHTML=`<div class="ico">${t.icon}</div><div class="cn">${t.name}</div><div class="cf">${t.fn}</div>
-      <div class="cstats"><div>Inspected <b>${rods.length}</b></div><div>Accepted <b style="color:var(--green)">${acc}</b></div><div>Flagged <b style="color:${rej?'var(--red)':'var(--amber)'}">${rods.length-acc}</b></div></div>`;
-    oc.appendChild(c);});
+  function buildOverview(){
+    const inv=invFor(curSel());const u=curU();oc.innerHTML='';
+    const tag=$('#insp-unit-tag');if(tag)tag.textContent='QA · '+(u?u.name:'—');
+    TYPES.forEach(t=>{const rods=inv[t.id];const acc=rods.filter(r=>r.verdict==='accepted').length;
+      const rej=rods.filter(r=>r.verdict==='rejected').length;
+      const c=document.createElement('div');c.className='typecard';c.onclick=()=>openType(t.id);
+      c.innerHTML=`<div class="ico">${t.icon}</div><div class="cn">${t.name}</div><div class="cf">${t.fn}</div>
+        <div class="cstats"><div>Inspected <b>${rods.length}</b></div><div>Accepted <b style="color:var(--green)">${acc}</b></div><div>Flagged <b style="color:${rej?'var(--red)':'var(--amber)'}">${rods.length-acc}</b></div></div>`;
+      oc.appendChild(c);});
+  }
 
   // ---- open a type ----
   let curRod=null, annot=true, modality='xray', zoom=1;
   function openType(id){
-    const t=TYPES.find(x=>x.id===id);const rods=INV[id];
+    const t=TYPES.find(x=>x.id===id);const u=curU();const rods=invFor(curSel())[id];
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     document.querySelector('.subitem[data-type="'+id+'"]').classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page==='rodtype'));
-    $('#pgtitle').firstChild.textContent=t.name;$('#pgsub').textContent=t.fn;
+    $('#pgtitle').firstChild.textContent=t.name;$('#pgsub').textContent=t.fn+(u?' \u00b7 '+u.name+' ('+u.cls+')':'');
     $('#type-header').innerHTML=`<div class="typehead"><div class="big">${t.icon}</div><div style="flex:1">
       <div class="tn">${t.name}</div><div class="tf">Function: ${t.fn}</div><div class="td">${t.desc}</div>
-      <div class="meta"><div>Cladding<b>${t.clad}</b></div><div>Contents<b>${t.fill}</b></div><div>Nominal wall<b>${t.wall.toFixed(2)} mm</b></div><div>Ferromagnetic<b>${t.ferro?'Yes':'No (MT N/A)'}</b></div></div>
+      <div class="meta"><div>Unit<b>${u?u.name+' \u00b7 '+u.cls:'\u2014'}</b></div><div>Cladding<b>${t.clad}</b></div><div>Contents<b>${t.fill}</b></div><div>Nominal wall<b>${t.wall.toFixed(2)} mm</b></div><div>Ferromagnetic<b>${t.ferro?'Yes':'No (MT N/A)'}</b></div></div>
     </div></div>`;
-    if(window.NEXUS&&window.NEXUS.bus&&!window.__inspScramHook){window.__inspScramHook=true;window.NEXUS.bus.on('scram',function(){const a=document.querySelector('.page.active');if(a&&a.dataset.page==='rodtype'){const at=document.querySelector('.subitem[data-type].active');if(at)openType(at.dataset.type);}});}
-    if((t.id==='safety'||t.id==='control')&&window.NEXUS&&window.NEXUS.plant){
-      const _sc=window.NEXUS.plant.scramCount||0,_mt=$('#type-header').querySelector('.meta');
+    if(window.NEXUS&&window.NEXUS.bus&&!window.__inspScramHook){window.__inspScramHook=true;window.NEXUS.bus.on('scram',function(ev){if(ev&&ev.unitId&&ev.unitId!==curSel())return;const a=document.querySelector('.page.active');if(a&&a.dataset.page==='rodtype'){const at=document.querySelector('.subitem[data-type].active');if(at)openType(at.dataset.type);}});}
+    if((t.id==='safety'||t.id==='control')&&u){
+      const _sc=u.scramCycles||0,_mt=$('#type-header').querySelector('.meta');
       if(_mt)_mt.insertAdjacentHTML('beforeend','<div>SCRAM demand cycles<b style="color:'+(_sc?'var(--amber)':'#eafdff')+'">'+_sc+' this session</b></div>');
-      if(_sc>0){const _hb=$('#type-header').querySelector('.typehead');if(_hb)_hb.insertAdjacentHTML('beforeend','<div class="note" style="margin-top:8px;color:var(--amber)">\u26a0 '+_sc+' reactor SCRAM(s) this session demanded these rods \u2014 post-trip inspection required (recorded in Compliance).</div>');}
+      if(_sc>0){const _hb=$('#type-header').querySelector('.typehead');if(_hb)_hb.insertAdjacentHTML('beforeend','<div class="note" style="margin-top:8px;color:var(--amber)">\u26a0 '+_sc+' SCRAM(s) on '+u.name+' this session demanded these rods \u2014 post-trip inspection required (recorded in Compliance).</div>');}
     }
-    $('#inv-count').textContent=rods.length+' rods';
+    $('#inv-count').textContent=rods.length+' rods \u00b7 '+(u?u.name:'\u2014');
     const inv=$('#inventory');inv.innerHTML='';
     rods.forEach((r,i)=>{const col=r.verdict==='accepted'?'var(--green)':r.verdict==='rejected'?'var(--red)':'var(--amber)';
       const chip=document.createElement('div');chip.className='rodchip'+(i===0?' active':'');
@@ -2524,8 +2546,16 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   $('#z-in').onclick=()=>{zoom=Math.min(2,zoom+0.25);drawFilm();};
   $('#z-out').onclick=()=>{zoom=Math.max(1,zoom-0.25);drawFilm();};
 
-  // init
-  TYPES.forEach((t,i)=>{}); // overview already built
+  // init + per-unit refresh on fleet selection change
+  let lastInspSel=curSel();
+  buildSidebar();buildOverview();
+  setInterval(function(){
+    const s=curSel();if(s===lastInspSel)return;lastInspSel=s;
+    const at=document.querySelector('#rodsub .subitem[data-type].active');
+    buildSidebar();buildOverview();
+    const a=document.querySelector('.page.active');
+    if(a&&a.dataset.page==='rodtype'&&at)openType(at.dataset.type);
+  },700);
 })();
 
 </script>
@@ -3816,9 +3846,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
 <script>
 /* ===== Root Cause Graph =====
-   Investigation view for incident EVT-2026-0418.
-   Engineered fault-tree backbone (solid) + data-informed edges (dashed violet)
-   + one rejected candidate edge (struck grey). Static historical reconstruction. */
+   Per-unit investigation archive: three unit-attributed incidents (0418/u1,
+   0419/sa, 0420/u2). Engineered fault-tree backbone (solid) + data-informed
+   edges (dashed violet) + rejected candidate edges (struck grey).
+   Static historical reconstructions, synced to the fleet selector. */
 (function(){
   const STUB={textContent:'',innerHTML:'',style:{},classList:{toggle(){return false;},add(){},remove(){},contains(){return false;}},addEventListener(){},querySelectorAll(){return [];},appendChild(){}};
   const $=id=>document.getElementById(id)||STUB;
@@ -3828,7 +3859,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   // edges: [from, to, layer(fta|ml|art|rej), delay-seconds, optional-label]
   const INCIDENTS={
     'EVT-2026-0418':{
-      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0418',
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0418 \u00b7 Unit 1 (PWR-900)',
+      unit:'u1',
       gnote:"The backbone is built from the plant's fault and event trees (PRA/PSA) and component topology \u2014 every edge is auditable. Active alarms light the nodes live; the data-informed layer only re-weights or proposes edges for engineer confirmation, it never defines the causal structure. Toggle the layers above; click a node to highlight everything it explains downstream with propagation delays.",
       always:['sens'],
       N:{
@@ -3888,7 +3920,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       }
     },
     'EVT-2026-0419':{
-      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0419 (EMI / sensor artefact)',
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0419 \u00b7 SMR Module A (EMI / sensor artefact)',
+      unit:'sa',
       gnote:'A switchgear operation coupled electrical noise into several instrument channels at once. Artefact edges (dashed orange) mark links where an electrical event can corrupt a reading without any physical change. The graph separates a measurement artefact from a real process excursion \u2014 note the struck-grey links to the independent instruments: the corroboration a genuine excursion would have produced, but which is absent here. EMI appears only as a diagnostic fault class; EMC compliance itself is a hardware-qualification responsibility outside this analytics layer.',
       always:['rtd','flux','proc'],
       N:{
@@ -3898,7 +3931,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         pt7:  {x:300,y:312, l:'Pressure Tx PT-7',  s:'spike (artefact)',        sev:'amber'},
         proc: {x:300,y:404, l:'Loss-of-flow (proc)',s:'rejected hypothesis',    sev:'green'},
         excur:{x:560,y:176, l:'Apparent Excursion', s:'phantom \u2014 unconfirmed', sev:'red'},
-        rtd:  {x:792,y:80,  l:'Loop RTD T-avg',    s:'steady / no change',      sev:'green'},
+        rtd:  {x:792,y:80,  l:'Primary RTD T-avg', s:'steady / no change',      sev:'green'},
         flux: {x:792,y:272, l:'Neutron Flux',      s:'steady / no change',      sev:'green'}
       },
       E:[['brk','ft9','art',0,'EMI'],['brk','lt3','art',0,'EMI'],['brk','pt7','art',0,'EMI'],
@@ -3907,10 +3940,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
          ['excur','rtd','rej',0,'no \u0394T'],['excur','flux','rej',0,'no \u0394flux']],
       RAW:[
         {t:'17:42:10',n:'brk', sev:'info',tx:'BKR-2A close \u2014 4kV bus transient',origin:true},
-        {t:'17:42:10',n:'ft9', sev:'crit',tx:'Loop A flow step +18%'},
+        {t:'17:42:10',n:'ft9', sev:'crit',tx:'Primary flow step +18%'},
         {t:'17:42:10',n:'lt3', sev:'warn',tx:'Pressuriser level spike'},
         {t:'17:42:10',n:'pt7', sev:'warn',tx:'RCS pressure spike'},
-        {t:'17:42:11',n:'excur',sev:'crit',tx:'Loop A flow deviation > 3\u03c3'},
+        {t:'17:42:11',n:'excur',sev:'crit',tx:'Primary flow deviation > 3\u03c3'},
         {t:'17:42:11',n:'ft9', sev:'warn',tx:'FT-9 rate-of-change limit'},
         {t:'17:42:12',n:'excur',sev:'crit',tx:'Low-flow pre-trip approach'},
         {t:'17:42:13',n:'lt3', sev:'info',tx:'LT-3 signal-noise flag'},
@@ -3932,7 +3965,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           {h:'Apparent excursion (downstream of the corrupted flow signal)',ids:['excur']}
         ],
         rawNote:'Ten alarms inside eight seconds, clustered at a single instant (17:42:10). Three unrelated instrument channels glitch on the same timestamp and one self-clears \u2014 the signature of an external disturbance, not a process fault.',
-        corrNote:'The graph attributes the simultaneous multi-channel glitch to the switchgear transient and flags that independent instruments (loop RTD, neutron flux) stayed flat \u2014 a real flow loss would have moved them. The "real excursion" hypothesis is shown but ruled out.'
+        corrNote:'The graph attributes the simultaneous multi-channel glitch to the switchgear transient and flags that independent instruments (primary RTD, neutron flux) stayed flat \u2014 a real flow loss would have moved them. The "real excursion" hypothesis is shown but ruled out.'
       },
       rankNote:{
         causal:'Causal-origin ranking attributes the simultaneous, same-timestamp glitch across three channels to the switchgear transient, and weighs the flat independent instruments as evidence against a real excursion. The EMI artefact is promoted above the loudest channel. Confidences are illustrative, not identified from plant data.',
@@ -3940,7 +3973,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       }
     },
     'EVT-2026-0420':{
-      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0420 (non-conforming part / QA escape)',
+      title:'Causal Fault-Propagation Graph \u2014 EVT-2026-0420 \u00b7 Unit 2 (non-conforming part / QA escape)',
+      unit:'u2',
       gnote:'A control rod that never met specification was admitted to service through an improperly dispositioned QA waiver, and surfaced months later as abnormal rod worth during a verification test. The provenance / traceability links (solid) are part of the engineered, auditable record \u2014 the root cause here is a process escape, not an in-service failure. The tell-tale signature is that the anomaly was present from installation rather than developed over time, it is isolated to one identified component, and the usual in-service explanations (drive-mechanism wear, prediction error) are ruled out. This represents counterfeit / suspect-item (CFSI) and configuration-control faults as a diagnostic class; the QA and procurement controls themselves live outside this analytics layer.',
       always:['mech','cal'],
       N:{
@@ -4086,12 +4120,12 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
    },
    'EVT-2026-0419':{
      brk:{k:'Switchgear Breaker',c:'Electrical \u00b7 4 kV',fn:'Bus-2A feeder breaker \u2014 close transient coupled EMI into instruments',s:[['Tag','BKR-2A'],['Voltage','4.16 kV'],['Current','1250 A'],['Interrupt','40 kA'],['Type','Vacuum']]},
-     ft9:{k:'Flow Transmitter',c:'Instrumentation',fn:'Loop-A flow measurement (channel corrupted by the EMI artefact)',s:[['Tag','FT-9'],['Range','0\u2013120 % flow'],['Accuracy','\u00b10.5 % span'],['Signal','4\u201320 mA HART']]},
+     ft9:{k:'Flow Transmitter',c:'Instrumentation',fn:'Primary flow measurement (channel corrupted by the EMI artefact)',s:[['Tag','FT-9'],['Range','0\u2013120 % flow'],['Accuracy','\u00b10.5 % span'],['Signal','4\u201320 mA HART']]},
      lt3:{k:'Level Transmitter',c:'Instrumentation',fn:'Pressuriser level measurement (transient artefact spike)',s:[['Tag','LT-3'],['Range','0\u2013100 %'],['Accuracy','\u00b10.4 % span'],['Type','\u0394P capacitance']]},
      pt7:{k:'Pressure Transmitter',c:'Instrumentation',fn:'RCS pressure measurement (transient artefact spike)',s:[['Tag','PT-7'],['Range','0\u201320 MPa'],['Accuracy','\u00b10.3 % span'],['Type','Piezoresistive']]},
      proc:{k:'Diagnostic Hypothesis',c:'Rejected',fn:'Candidate real loss-of-flow event \u2014 tested against the evidence and ruled out',s:[['Class','Process excursion'],['For','apparent flow drop'],['Against','RTD & flux flat'],['Verdict','rejected']]},
      excur:{k:'Phantom Event',c:'Unconfirmed',fn:'Apparent excursion inferred from a corrupted flow signal',s:[['Origin','FT-9 artefact'],['Corrob.','none'],['Self-cleared','yes, 8 s'],['Status','not physical']]},
-     rtd:{k:'Resistance Thermometer',c:'Instrumentation',fn:'Loop average-temperature sensor \u2014 independent corroborating channel',s:[['Type','4-wire Pt RTD'],['Range','0\u2013350 \u00b0C'],['Accuracy','\u00b10.3 \u00b0C'],['Response','flat (no \u0394)']]},
+     rtd:{k:'Resistance Thermometer',c:'Instrumentation',fn:'Primary average-temperature sensor \u2014 independent corroborating channel',s:[['Type','4-wire Pt RTD'],['Range','0\u2013350 \u00b0C'],['Accuracy','\u00b10.3 \u00b0C'],['Response','flat (no \u0394)']]},
      flux:{k:'Neutron Flux Detector',c:'Excore instrumentation',fn:'Power-range neutron flux \u2014 independent corroborating channel',s:[['Type','Fission chamber'],['Range','0\u2013125 % pwr'],['Channels','4 excore'],['Response','flat (no \u0394)']]}
    },
    'EVT-2026-0420':{
@@ -4206,7 +4240,18 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     if(b.dataset.rtab==='graph')render();if(b.dataset.rtab==='flood')buildFlood();if(b.dataset.rtab==='rank')buildRank();
   };});
 
-  // ---- incident selector ----
+  // ---- incident selector (unit-synced) ----
+  function nxSel(){const n=window.NEXUS;return (n&&n.getSel)?n.getSel():null;}
+  function nxUnitName(id){const n=window.NEXUS;const u=n?((n.units||[]).find(x=>x.id===id)):null;return u?(u.name+' ('+u.cls+')'):id;}
+  function incidentForUnit(uid){return Object.keys(INCIDENTS).find(k=>INCIDENTS[k].unit===uid)||null;}
+  function updateUnitNote(){
+    const el=$('rc-unitnote');if(el===STUB)return;
+    const s=nxSel();
+    if(!s||INCIDENTS[cur].unit===s){el.style.display='none';el.textContent='';return;}
+    el.style.display='';
+    if(incidentForUnit(s)){el.textContent='\u26a0 Viewing the '+nxUnitName(INCIDENTS[cur].unit)+' archive record \u2014 fleet selection is '+nxUnitName(s)+'.';}
+    else{el.textContent='No investigated events on record for '+nxUnitName(s)+' \u2014 showing the fleet archive ('+cur+' \u00b7 '+nxUnitName(INCIDENTS[cur].unit)+').';}
+  }
   function refreshAll(){
     const D=INCIDENTS[cur];
     $('rc-gtitle').innerHTML=D.title;
@@ -4214,13 +4259,25 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     $('rc-sel').textContent='click a node to test it as root cause';
     rankMode='causal';
     $('rc-mode-causal').classList.add('active');$('rc-mode-count').classList.remove('active');
-    buildFlood();buildRank();render();
+    buildFlood();buildRank();render();updateUnitNote();
+  }
+  function switchIncident(id){
+    document.querySelectorAll('[data-inc]').forEach(x=>x.classList.toggle('active',x.dataset.inc===id));
+    load(id);refreshAll();
   }
   document.querySelectorAll('[data-inc]').forEach(function(b){b.onclick=function(){
     if(replaying)return;
-    document.querySelectorAll('[data-inc]').forEach(x=>x.classList.remove('active'));b.classList.add('active');
-    load(b.dataset.inc);refreshAll();
+    switchIncident(b.dataset.inc);
   };});
+
+  // fleet-selection sync: auto-open the selected unit's incident; honest note otherwise
+  let lastRcSel=nxSel();
+  setInterval(function(){
+    if(replaying)return;
+    const s=nxSel();if(s===lastRcSel)return;lastRcSel=s;
+    const inc=incidentForUnit(s);
+    if(inc&&inc!==cur)switchIncident(inc);else updateUnitNote();
+  },700);
 
   // ---- init ----
   load(cur);refreshAll();
@@ -4250,10 +4307,10 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     alarms:{n:'Alarms & Events',w:'Active alarm management.',k:['Acknowledge and track alarm state']},
     rad:{n:'Radiation',w:'Radiation and dose monitoring.',k:['Area readings against limits']},
     incident:{n:'Incident Analysis',w:'Event timeline.',k:['Live SCRAM events appear at the top automatically','A baseline event reconstruction sits below']},
-    rcgraph:{n:'Root Cause Graph',w:'Turns an alarm flood into a single causal story.',k:['Graph: an engineered fault-propagation backbone (from the plant fault trees) lit live by active alarms','Click any node to test it as the root cause and see which alarms it explains','Alarm Flood: watch ~14 cascading alarms collapse to one origin + downstream cascade','Ranking: causal-origin ranking points upstream to the valve, where naive alarm-count points at the most-alarmed symptom','Advisory only — informs operators and investigators, never feeds control or safety actuation']},
+    rcgraph:{n:'Root Cause Graph',w:'Turns an alarm flood into a single causal story.',k:['Graph: an engineered fault-propagation backbone (from the plant fault trees) lit live by active alarms','Each incident is attributed to a fleet unit; changing the fleet selection opens that unit\u2019s case','Click any node to test it as the root cause and see which alarms it explains','Alarm Flood: watch ~14 cascading alarms collapse to one origin + downstream cascade','Ranking: causal-origin ranking points upstream to the valve, where naive alarm-count points at the most-alarmed symptom','Advisory only — informs operators and investigators, never feeds control or safety actuation']},
     audit:{n:'Compliance / Audit',w:'Tamper-evident action log.',k:['Hash-sealed record of operator and system actions','SCRAMs write Safety-type entries here automatically']},
     sec:{n:'OT Security',w:'Operational-technology security posture.',k:['Zero-trust, segmentation, HSM, MFA, intrusion detection status']},
-    rodtype:{n:'Rod Inspection (NDT)',w:'Non-destructive testing for a rod type.',k:['A simulated radiograph and the six standard NDT methods','Safety and control rods show SCRAM demand cycles from this session']},
+    rodtype:{n:'Rod Inspection (NDT)',w:'Non-destructive testing for a rod type.',k:['A simulated radiograph and the six standard NDT methods','Safety and control rods show SCRAM demand cycles for the selected unit this session']},
     aging:{n:'Aging & Degradation',w:'Component ageing for the selected unit.',k:['Life consumed per component, with trend sparklines','Grows with simulated operating time and with SCRAM thermal cycles']},
     waste:{n:'Waste & Spent Fuel',w:'Fleet-wide waste inventory driven by operating history and decommissioning.',k:['Spent-fuel and waste volumes grow with each unit\u2019s burnup and operating time','Per-unit spent-fuel pool occupancy, dry-cask count and time-to-full','A decay-heat/activity curve shows why fuel cools in the pool before dry storage','Decommissioning a unit feeds its dismantling debris into the totals','Representative decay models for demonstration — not a real inventory']},
     decommissioning:{n:'Decommissioning',w:'Dismantling lifecycle.',k:['Begin decommissioning a unit — stages, radiological decay, waste volumes']},
