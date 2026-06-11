@@ -1427,34 +1427,77 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     <section class="page" data-page="rad">
       <div class="safety-banner"><div class="ico">⚠</div><div class="tx">Reactor protection systems are hardware-isolated, deterministic and human-supervised. This platform is a monitoring &amp; advisory layer only — no authority over safety actuation.</div></div>
       <div class="grid c-21" style="margin-bottom:13px">
-        <div class="panel"><div class="ph"><h2><span class="tick"></span>Area Radiation Monitors</h2></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Area Radiation Monitors</h2><span class="tag" id="rad-unit-arm">&mdash;</span></div>
           <table><thead><tr><th>Location</th><th>Dose</th><th>Status</th></tr></thead><tbody>
-            <tr><td>Containment Interior</td><td class="mono"><span class="live" data-sig="dose" data-dec="2"></span> µSv/h</td><td><span class="pill ok">Normal</span></td></tr>
-            <tr><td>Aux Building</td><td class="mono">0.04 µSv/h</td><td><span class="pill ok">Normal</span></td></tr>
-            <tr><td>Fuel Handling</td><td class="mono">0.09 µSv/h</td><td><span class="pill ok">Normal</span></td></tr>
-            <tr><td>Turbine Hall</td><td class="mono">0.02 µSv/h</td><td><span class="pill ok">Normal</span></td></tr>
-            <tr><td>Stack Effluent</td><td class="mono">0.0 %lim</td><td><span class="pill ok">Below limit</span></td></tr>
+            <tr><td>Containment Interior</td><td class="mono"><span class="live" data-sig="dose" data-dec="2"></span> µSv/h</td><td><span class="pill ok" id="rad-cont-st">Normal</span></td></tr>
+            <tr><td>Aux Building</td><td class="mono"><span id="rad-aux">0.040</span> µSv/h</td><td><span class="pill ok" id="rad-aux-st">Normal</span></td></tr>
+            <tr><td>Fuel Handling</td><td class="mono"><span id="rad-fuel">0.090</span> µSv/h</td><td><span class="pill ok" id="rad-fuel-st">Normal</span></td></tr>
+            <tr><td>Turbine Hall</td><td class="mono"><span id="rad-turb">0.022</span> µSv/h</td><td><span class="pill ok" id="rad-turb-st">Normal</span></td></tr>
+            <tr><td>Stack Effluent</td><td class="mono"><span id="rad-stack">0.04</span> %lim</td><td><span class="pill ok" id="rad-stack-st">Below limit</span></td></tr>
           </tbody></table>
+          <div class="note" style="margin-top:9px">Aux / fuel / turbine / stack values are illustrative scalings of the simulated containment dose and reactor power for the selected unit &mdash; not independently modelled channels. Turbine-hall dose tracks live steam (N-16) and collapses when the unit is offline.</div>
         </div>
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Safety System Status</h2><span class="tag">Read-only</span></div>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Safety System Status</h2><span class="tag" id="rad-unit-sys">Read-only</span></div>
           <div class="row"><div class="ln">Reactor Protection (RPS)<span>4 channels</span></div><span class="pill ok">Armed</span></div>
-          <div class="row"><div class="ln">SCRAM Availability</div><span class="pill ok">Ready</span></div>
+          <div class="row"><div class="ln">SCRAM Availability<span id="rad-scram-sub">rods withdrawn</span></div><span class="pill ok" id="rad-scram">Ready</span></div>
           <div class="row"><div class="ln">ECCS<span>emergency core cooling</span></div><span class="pill ok">Standby</span></div>
           <div class="row"><div class="ln">Containment Isolation</div><span class="pill ok">Armed</span></div>
           <div class="row"><div class="ln">Emergency Diesel Gen</div><span class="pill ok">Auto · 2/2</span></div>
         </div>
       </div>
       <div class="grid c2">
-        <div class="panel"><div class="ph"><h2><span class="tick"></span>Containment</h2></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Containment</h2><span class="tag" id="rad-unit-cont">&mdash;</span></div>
           <div class="row"><div class="ln">Containment Pressure</div><div class="rv"><span class="live" data-sig="contPress" data-dec="2"></span><span> bar</span></div></div>
-          <div class="row"><div class="ln">Containment Temp</div><div class="rv">38<span> °C</span></div></div>
+          <div class="row"><div class="ln">Containment Temp<span>derived from power level</span></div><div class="rv"><span id="rad-ctemp">38</span><span> °C</span></div></div>
           <div class="row"><div class="ln">Sump Level</div><div class="rv">Normal</div></div>
+          <div class="row"><div class="ln">Decay heat<span id="rad-dh-sub">six-group model</span></div><div class="rv"><span id="rad-dh">&mdash;</span><span> MWt</span></div></div>
         </div>
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Containment Dose Trend</h2><span class="tag">60 min</span></div><svg class="chart" data-chart="dose" viewBox="0 0 460 150" preserveAspectRatio="none"></svg></div>
       </div>
     </section>
 
     <!-- ===== ALARMS ===== -->
+    <script>
+    /* Radiation/Safety per-unit updater — every displayed value derives from
+       the selected unit's simulated state (st.dose, st.flux, st.dhFrac,
+       rodInsert/scramTimer). Scalings are illustrative and footnoted. */
+    (function(){
+      function $(id){return document.getElementById(id);}
+      function setPill(el,cls,tx){if(!el)return;el.className='pill '+cls;el.textContent=tx;}
+      function upd(){
+        var n=window.NEXUS;if(!n||!n.unit)return;
+        var u=n.unit();if(!u)return;var st=u.st;
+        var flux=Math.max(0,st.flux||0), dose=st.dose||0.12;
+        var uname=u.name+' \u00b7 '+u.cls;
+        if($('rad-unit-arm'))$('rad-unit-arm').textContent=uname;
+        if($('rad-unit-sys'))$('rad-unit-sys').textContent='Read-only \u00b7 '+u.name;
+        if($('rad-unit-cont'))$('rad-unit-cont').textContent=uname;
+        // area monitors — illustrative scalings of simulated dose & power
+        var aux=dose*0.33, fuel=0.085+dose*0.04, turb=0.0002+0.00022*flux, stack=flux*0.0004;
+        if($('rad-aux'))$('rad-aux').textContent=aux.toFixed(3);
+        if($('rad-fuel'))$('rad-fuel').textContent=fuel.toFixed(3);
+        if($('rad-turb'))$('rad-turb').textContent=turb.toFixed(3);
+        if($('rad-stack'))$('rad-stack').textContent=stack.toFixed(2);
+        setPill($('rad-cont-st'),dose>=0.18?'warn':'ok',dose>=0.18?'Elevated':'Normal');
+        setPill($('rad-aux-st'),'ok','Normal');
+        setPill($('rad-fuel-st'),'ok','Normal');
+        setPill($('rad-turb-st'),flux>5?'ok':'na',flux>5?'Normal':'Unit offline');
+        setPill($('rad-stack-st'),'ok','Below limit');
+        // SCRAM availability — state-aware
+        if(u.scramTimer>0){setPill($('rad-scram'),'warn','Tripped \u00b7 inserting');if($('rad-scram-sub'))$('rad-scram-sub').textContent='trip in progress';}
+        else if(!u.online||st.rodInsert>=95){setPill($('rad-scram'),'na','Rods inserted');if($('rad-scram-sub'))$('rad-scram-sub').textContent=u.online?'rods fully inserted':'unit shut down';}
+        else{setPill($('rad-scram'),'ok','Ready');if($('rad-scram-sub'))$('rad-scram-sub').textContent='rods withdrawn';}
+        // containment temp — derived from power level
+        if($('rad-ctemp'))$('rad-ctemp').textContent=Math.round(21+0.17*flux);
+        // decay heat — six-group model, computed per unit each tick
+        var dhf=(typeof st.dhFrac==='number')?st.dhFrac:(st.dh?st.dh.reduce(function(a,b){return a+b;},0):0);
+        var rated=u.cap/0.338, dhMW=dhf*rated;
+        if($('rad-dh'))$('rad-dh').textContent=dhMW>=10?dhMW.toFixed(0):dhMW.toFixed(1);
+        if($('rad-dh-sub'))$('rad-dh-sub').textContent=(dhf*100).toFixed(2)+'% of rated \u00b7 '+((u.online&&flux>5)?'inventory if tripped now':'post-shutdown decay');
+      }
+      setInterval(upd,900);upd();
+    })();
+    </script>
     <section class="page" data-page="alarms">
       <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Alarm &amp; Event Management</h2>
         <div style="display:flex;gap:6px"><button class="btn active" data-filter="all">All</button><button class="btn" data-filter="crit">Critical</button><button class="btn" data-filter="warn">Warning</button><button class="btn" data-filter="info">Info</button></div></div>
@@ -1925,7 +1968,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   const titles={overview:['Plant Overview','Unit 1 · Full power operation'],fleet:['Plant Fleet','Multi-unit / modular operation'],core:['Reactor Core','PWR · 157 fuel assemblies'],
     rods:['Control Rods','Interactive · Bank D regulating'],neutronics:['Neutronics','Flux · reactivity · detectors'],
     steam:['Steam & Secondary','Steam generators · turbine train'],coolant:['Coolant / Thermal-Hydraulics','Primary & secondary loops'],
-    power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Monitoring & advisory layer'],
+    power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Per-unit monitoring & advisory layer'],
     alarms:['Alarms & Events','Active alarm management'],ai:['AI Diagnostics','Predictive diagnostics + planned DSLM assistant'],rlopt:['Advanced Optimization (RL)','Experimental · twin-only · advisory'],deps:['System Dependencies','How components influence each other'],help:['Help & Guide','What each screen does'],
     twin:['Digital Twin','Simulation ⇄ live reconciliation'],trends:['Trends & History','Time-series analytics'],
     incident:['Incident Analysis','Event reconstruction'],rcgraph:['Root Cause Graph','Per-unit incident archive · causal fault propagation'],audit:['Compliance & Audit','Immutable log'],sec:['Security & Services','Platform & OT security'],'insp-overview':['Rod Inspection','Per-unit quality status'],'ndt-methods':['NDT Methods','Reference'],'personnel-overview':['Personnel','Staffing & coverage'],'personnel-stress':['Staffing Stress Test','Absence resilience'],plant3d:['Plant 3D View','Whole-plant fleet · per-unit turbines & shared switchyard'],components:['Component Registry','Per-unit equipment health & inventory'],'aging':['Aging & Degradation','Component life management'],'decommissioning':['Decommissioning','Dismantling lifecycle'],'waste':['Waste & Spent Fuel','Fleet inventory, storage, decay & disposal'],'robotics-overview':['Robotics & Vehicles','Robotic fleet status'],'robotics-readiness':['Mission Readiness','Robotic capability test'],'access-presence':['Zone Access','Live presence & violations'],'access-matrix':['Permissions Matrix','Zone authorisation policy'],'kinetics':['Reactor Kinetics','Point-kinetics simulation'],'analysis':['Model Analysis','Validation \u00b7 parameters \u00b7 sensitivity \u00b7 margins'],'reactor3d':['3D Reactor View','Telemetry vs simulation digital twin'],'training':['Training Mode','Guided drills on the live point-kinetics simulator'],'about':['About','Author & scope']};
