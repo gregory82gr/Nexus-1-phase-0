@@ -222,6 +222,12 @@
   .topbar{grid-column:2;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line-hot);background:linear-gradient(180deg,var(--panel-2),var(--panel))}
   .topbar .ttl{font-family:'Chakra Petch';font-size:15px;font-weight:600;letter-spacing:2px;color:#eafdff;text-transform:uppercase}
   .topbar .ttl small{display:block;font-size:9px;color:var(--text-dim);letter-spacing:1.5px;font-weight:400}
+  .scopebdg{display:inline-block;vertical-align:2px;margin-left:10px;font-family:'IBM Plex Mono';font-size:8px;letter-spacing:1.4px;padding:2px 7px;border-radius:3px;border:1px solid;text-transform:uppercase;cursor:default}
+  .scopebdg.unit{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,.08)}
+  .scopebdg.fleet{color:var(--amber);border-color:var(--amber);background:rgba(255,176,0,.08)}
+  .scopebdg.reference{color:var(--text-dim);border-color:var(--line-hot);background:rgba(95,122,128,.08)}
+  .unitpick{transition:opacity .25s}
+  body[data-scope="fleet"] .unitpick,body[data-scope="reference"] .unitpick{opacity:.45}
   .clk{text-align:right}.clk .t{font-size:17px;font-weight:600;color:#eafdff;letter-spacing:1px}.clk .d{font-size:8.5px;color:var(--text-dim);letter-spacing:1.3px;text-transform:uppercase}
 
   main{grid-column:2;overflow-y:auto;padding:18px 22px 40px;position:relative}
@@ -582,7 +588,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   </aside>
 
   <header class="topbar">
-    <div class="ttl" id="pgtitle">Plant Overview<small id="pgsub">Unit 1 &middot; Full power operation</small></div>
+    <div class="ttl" id="pgtitle">Plant Overview<span class="scopebdg unit" id="pgscope" title="Follows the fleet unit selection">UNIT</span><small id="pgsub">Unit 1 &middot; Full power operation</small></div>
     <div style="display:flex;align-items:center;gap:18px">
       <div class="modes" id="modes" title="Operating modes (per Project Description)"><div class="mode active" data-mode="sim" title="Simulation Mode — fully virtual plant. Active.">Sim</div><div class="mode" data-mode="train" title="Training Mode — guided drills on the live model. Active.">Train</div><div class="mode soon" data-mode="shadow" title="Shadow Mode — roadmap, not active at Phase 0">Shadow</div><div class="mode soon" data-mode="advisory" title="Advisory Mode — roadmap, not active at Phase 0">Advisory</div><div class="mode soon" data-mode="superv" title="Supervisory Mode — roadmap, not active at Phase 0">Superv.</div><div class="mode soon" data-mode="hybrid" title="Hybrid Digital Twin Mode — roadmap, not active at Phase 0">Hybrid</div></div>
       <div class="unitpick"><span class="ul">Unit</span><select id="unitsel"></select></div>
@@ -1990,14 +1996,32 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     return null;
   }
   function refreshSub(){var a=document.querySelector('.page.active');if(!a)return;
+    if(window.setPageScope)window.setPageScope(a.dataset.page);
     var s=liveSub(a.dataset.page);
     if(s){var el=document.getElementById('pgsub');if(el&&el.textContent!==s)el.textContent=s;}}
   setInterval(refreshSub,1000);
+  // ---- page scope: every screen declares whether it follows the unit selection ----
+  const SCOPE={};
+  ['overview','core','rods','neutronics','steam','coolant','power','trends','rad','kinetics','analysis','reactor3d','training','twin','deps','components','aging','decommissioning','insp-overview','rodtype','rcgraph'].forEach(p=>SCOPE[p]='unit');
+  ['fleet','plant3d','alarms','incident','audit','sec','ai','rlopt','waste','personnel-overview','persector','personnel-stress','robotics-overview','robotcat','robotics-readiness','access-presence','access-matrix'].forEach(p=>SCOPE[p]='fleet');
+  ['ndt-methods','help','about'].forEach(p=>SCOPE[p]='reference');
+  const SCOPELBL={unit:['UNIT','Follows the fleet unit selection'],
+    fleet:['FLEET','Site / fleet-wide \u2014 independent of the unit selection'],
+    reference:['REFERENCE','Static reference \u2014 independent of the unit selection']};
+  function applyScope(p){
+    if(applyScope._p===p)return;applyScope._p=p;
+    const s=SCOPE[p]||'fleet';
+    document.body.dataset.scope=s;
+    const b=document.getElementById('pgscope');
+    if(b){b.className='scopebdg '+s;b.textContent=SCOPELBL[s][0];b.title=SCOPELBL[s][1];}
+  }
+  window.setPageScope=applyScope;
   function go(p){
     $$('.navitem,.subitem').forEach(x=>x.classList.remove('active'));
     const el=document.querySelector('[data-p="'+p+'"]');if(el)el.classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page===p));
     if(titles[p]){$('#pgtitle').firstChild.textContent=titles[p][0];$('#pgsub').textContent=liveSub(p)||titles[p][1];}
+    applyScope(p);
     drawCharts();
   }
   $$('.navitem[data-p]').forEach(it=>it.onclick=()=>go(it.dataset.p));
@@ -2459,6 +2483,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     document.querySelector('.subitem[data-type="'+id+'"]').classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page==='rodtype'));
     $('#pgtitle').firstChild.textContent=t.name;$('#pgsub').textContent=t.fn+(u?' \u00b7 '+u.name+' ('+u.cls+')':'');
+    if(window.setPageScope)window.setPageScope('rodtype');
     $('#type-header').innerHTML=`<div class="typehead"><div class="big">${t.icon}</div><div style="flex:1">
       <div class="tn">${t.name}</div><div class="tf">Function: ${t.fn}</div><div class="td">${t.desc}</div>
       <div class="meta"><div>Unit<b>${u?u.name+' \u00b7 '+u.cls:'\u2014'}</b></div><div>Cladding<b>${t.clad}</b></div><div>Contents<b>${t.fill}</b></div><div>Nominal wall<b>${t.wall.toFixed(2)} mm</b></div><div>Ferromagnetic<b>${t.ferro?'Yes':'No (MT N/A)'}</b></div></div>
@@ -2687,6 +2712,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     document.querySelector('.subitem[data-sector="'+id+'"]').classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page==='persector'));
     $('#pgtitle').firstChild.textContent=s.name;$('#pgsub').textContent='Sector roster & coverage';
+    if(window.setPageScope)window.setPageScope('persector');
     renderSector(s);}
 
   function pill(st){return st==='ok'?'<span class="pill ok">Adequate</span>':st==='warn'?'<span class="pill warn">Shortfall</span>':'<span class="pill crit">Breach</span>';}
@@ -2948,6 +2974,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     document.querySelector('.subitem[data-cat="'+id+'"]').classList.add('active');
     $$('.page').forEach(pg=>pg.classList.toggle('active',pg.dataset.page==='robotcat'));
     $('#pgtitle').firstChild.textContent=c.name+' Robots';$('#pgsub').textContent='Robotic & vehicle assets';
+    if(window.setPageScope)window.setPageScope('robotcat');
     const list=ASSETS.filter(a=>a.cat===id);
     $('#rcat-head').innerHTML=`<div class="typehead"><div class="big">${c.icon}</div><div style="flex:1"><div class="tn">${c.name}</div>
       <div class="tf">${list.length} asset(s) &middot; ${list.filter(availAsset).length} available</div>
@@ -4393,6 +4420,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       item('Unit selector (top bar)','Most reactor screens follow the fleet unit you select there.')+
       item('Operating-mode pills (top bar)','<b>Sim</b> and <b>Train</b> are active \u2014 they jump to the Overview and to Training Mode. <b>Shadow, Advisory, Superv.</b> and <b>Hybrid</b> are roadmap, not active at Phase 0.')+
       item('It behaves as a connected system','A <b>SCRAM</b> propagates: it writes to Incident Analysis and the Compliance log, adds a rod-inspection demand cycle, and ages components.')+
+      item('Every screen declares its scope','The badge next to the page title marks each screen as <b>UNIT</b> (follows the fleet unit selection), <b>FLEET</b> (site / fleet-wide) or <b>REFERENCE</b> (static documentation). The unit selector stays available everywhere; on FLEET and REFERENCE screens it dims to show the page does not depend on it.')+
       item('The ? button','The top-bar <b>?</b> gives quick help for whatever screen you are viewing.')));
     H.push(panel('A suggested tour','where to start',
       item('1 \u00b7 Overview','Whole-plant snapshot for the selected unit.')+
