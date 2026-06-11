@@ -938,6 +938,71 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <div class="kin-legend"><span><i style="background:var(--amber)"></i>Xe-135</span><span><i style="background:var(--magenta)"></i>I-135</span></div></div>
   </div>
 
+  <div class="panel" style="margin-bottom:13px">
+    <div class="ph"><h2><span class="tick"></span>Feedback structure (automation view)</h2><span class="tag">live closed-loop block diagram</span></div>
+    <svg id="fb-diag" viewBox="0 0 880 330" style="width:100%;max-width:980px;display:block;margin:0 auto">
+      <defs>
+        <marker id="fb-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#9fb6bd"/></marker>
+        <marker id="fb-arv" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#8b5cf6"/></marker>
+      </defs>
+      <!-- forward path -->
+      <line x1="18" y1="70" x2="93" y2="70" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <text x="18" y="52" fill="var(--text-dim)" font-size="9.5">&#961;_rod &#183; control input</text>
+      <text id="fb-rod" x="18" y="90" fill="#22d3ee" font-size="10" style="font-family:'IBM Plex Mono',monospace">0 pcm</text>
+      <circle cx="110" cy="70" r="15" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="110" y="74" fill="#eafdff" font-size="12" text-anchor="middle">&#931;</text>
+      <text x="93" y="98" fill="#8b5cf6" font-size="12" text-anchor="middle">&#8722;</text>
+      <text x="138" y="56" fill="var(--text-dim)" font-size="9.5">&#961;_net</text>
+      <text id="fb-net" x="138" y="68" fill="#22d3ee" font-size="10" style="font-family:'IBM Plex Mono',monospace">0 pcm</text>
+      <line x1="125" y1="70" x2="178" y2="70" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="180" y="38" width="210" height="64" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="285" y="62" fill="#eafdff" font-size="11" text-anchor="middle">Point kinetics</text>
+      <text x="285" y="78" fill="var(--text-dim)" font-size="9.5" text-anchor="middle">6 delayed-neutron groups</text>
+      <line x1="390" y1="70" x2="838" y2="70" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <text x="600" y="52" fill="var(--text-dim)" font-size="9.5">n &#183; neutron power</text>
+      <text id="fb-pow" x="600" y="90" fill="#22d3ee" font-size="10" style="font-family:'IBM Plex Mono',monospace">100.0 %</text>
+      <circle cx="760" cy="70" r="3" fill="#22d3ee"/>
+      <line x1="760" y1="70" x2="760" y2="270" stroke="#2a4750" stroke-width="1.5"/>
+      <!-- return bus into the summing junction -->
+      <line x1="110" y1="270" x2="110" y2="87" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#fb-arv)"/>
+      <!-- row 1 · Doppler via fuel node -->
+      <line x1="760" y1="140" x2="712" y2="140" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="560" y="118" width="150" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="635" y="134" fill="#eafdff" font-size="10.5" text-anchor="middle">Fuel thermal node</text>
+      <text id="fb-tf" x="635" y="152" fill="#22d3ee" font-size="9.5" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">T_F = 600 &#176;C</text>
+      <line x1="560" y1="140" x2="432" y2="140" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="300" y="118" width="130" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="365" y="134" fill="#eafdff" font-size="10.5" text-anchor="middle">Doppler gain</text>
+      <text id="fb-ad" x="365" y="152" fill="var(--text-dim)" font-size="9.5" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#945;_D</text>
+      <line x1="300" y1="140" x2="113" y2="140" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text id="fb-dop" x="365" y="176" fill="#8b5cf6" font-size="10" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#961;_Dop = 0 pcm</text>
+      <!-- row 2 · moderator via coolant node (fed by the fuel node, K_FC) -->
+      <line x1="635" y1="162" x2="635" y2="181" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <text x="648" y="176" fill="var(--text-mute)" font-size="8.5">K_FC</text>
+      <rect x="560" y="183" width="150" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="635" y="199" fill="#eafdff" font-size="10.5" text-anchor="middle">Coolant node</text>
+      <text id="fb-tc" x="635" y="217" fill="#22d3ee" font-size="9.5" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">T_C = 305 &#176;C</text>
+      <line x1="560" y1="205" x2="432" y2="205" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="300" y="183" width="130" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="365" y="199" fill="#eafdff" font-size="10.5" text-anchor="middle">Moderator gain</text>
+      <text id="fb-am" x="365" y="217" fill="var(--text-dim)" font-size="9.5" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#945;_M</text>
+      <line x1="300" y1="205" x2="113" y2="205" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text id="fb-mod" x="365" y="241" fill="#8b5cf6" font-size="10" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#961;_mod = 0 pcm</text>
+      <!-- row 3 · xenon chain -->
+      <line x1="760" y1="270" x2="712" y2="270" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="560" y="248" width="150" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="635" y="264" fill="#eafdff" font-size="10.5" text-anchor="middle">I-135 &#8594; Xe-135 chain</text>
+      <text id="fb-xev" x="635" y="282" fill="#22d3ee" font-size="9.5" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">Xe = 100 % eq</text>
+      <line x1="560" y1="270" x2="432" y2="270" stroke="#2a4750" stroke-width="1.5" marker-end="url(#fb-ar)"/>
+      <rect x="300" y="248" width="130" height="44" rx="6" fill="#0e1c20" stroke="#1f3a42" stroke-width="1.5"/>
+      <text x="365" y="264" fill="#eafdff" font-size="10.5" text-anchor="middle">Xenon worth</text>
+      <text x="365" y="282" fill="var(--text-dim)" font-size="9" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#8722;K_Xe&#183;(Xe&#8722;Xe_eq)</text>
+      <line x1="300" y1="270" x2="113" y2="270" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text id="fb-xe" x="365" y="306" fill="#8b5cf6" font-size="10" text-anchor="middle" style="font-family:'IBM Plex Mono',monospace">&#961;_Xe = 0 pcm</text>
+    </svg>
+    <div class="note" style="margin-top:9px;line-height:1.6">The solver drawn as a <b>closed-loop control diagram</b>: rod worth is the external input, and three <b>negative feedback</b> paths (dashed violet &mdash; the same convention as the System Dependencies screen) return through the fuel node, the coolant node and the xenon chain into the summing junction. Every block is a literal function inside <span class="mono">window.KIN.model</span>, the gains are the constants listed on the Model Analysis screen, and every value on the edges is computed live with the <b>same formulas as the Reactivity Balance</b> panel above &mdash; this diagram is a schematic of the implementation, not an illustration. It is <i>why</i> a +pcm step self-regulates instead of running away. Linearized transfer functions and formal stability analysis are roadmap, not Phase-0.</div>
+  </div>
+
   <div class="panel">
     <div class="ph"><h2><span class="tick"></span>The model (what this actually computes)</h2><span class="tag">honest notes</span></div>
     <div class="note">This solves the <b>point-kinetics equations</b> with six delayed-neutron precursor groups (U-235 data), the standard model of reactor dynamics:
@@ -4404,6 +4469,38 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
 
 </script>
 <!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
+<script>
+/* ===== Reactor Kinetics · live feedback block diagram · NX1-094C79E0A366D34F =====
+   Updates the "Feedback structure (automation view)" SVG with values computed
+   from window.KIN.snapshot() using the SAME formulas as the Reactivity Balance
+   renderer: rhoD = aD·(TF−TF0), rhoM = aM·(TC−TC0), rhoXe = −KXE·(Xe−XEEQ),
+   effRod = rodPcm − 8000·scram. Single source of truth. */
+(function(){
+  function $(id){return document.getElementById(id);}
+  function act(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='kinetics';}
+  function set(id,t){var e=$(id);if(e&&e.textContent!==t)e.textContent=t;}
+  function f(x,d){return (x>=0?'+':'')+Number(x).toFixed(d);}
+  function upd(){
+    if(!act()||!window.KIN||!window.KIN.snapshot||!window.KIN.model)return;
+    var sn=window.KIN.snapshot(),p=window.KIN.model.params;
+    var effRod=sn.rodPcm+(sn.scram?-8000:0);
+    var rd=p.aD*(sn.TF-p.TF0),rm=p.aM*(sn.TC-p.TC0),rx=-p.KXE*(sn.Xe-p.XEEQ);
+    set('fb-rod',f(effRod,0)+' pcm');
+    set('fb-net',f(sn.rho,0)+' pcm');
+    set('fb-pow',Number(sn.power).toFixed(1)+' %');
+    set('fb-tf','T_F = '+Number(sn.TF).toFixed(0)+' \u00b0C');
+    set('fb-tc','T_C = '+Number(sn.TC).toFixed(0)+' \u00b0C');
+    set('fb-xev','Xe = '+Number(sn.Xe/p.XEEQ*100).toFixed(0)+' % eq');
+    set('fb-ad','\u03b1_D = '+Number(p.aD).toFixed(1)+' pcm/\u00b0C');
+    set('fb-am','\u03b1_M = '+Number(p.aM).toFixed(1)+' pcm/\u00b0C');
+    set('fb-dop','\u03c1_Dop = '+f(rd,0)+' pcm');
+    set('fb-mod','\u03c1_mod = '+f(rm,0)+' pcm');
+    set('fb-xe','\u03c1_Xe = '+f(rx,0)+' pcm');
+  }
+  setInterval(upd,500);
+})();
+</script>
+
 <script>
 /* ===== Plant 3D View · whole-plant fleet scene · NX1-094C79E0A366D34F =====
    Topology: each unit drives its OWN turbine-generator; all generators feed
