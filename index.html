@@ -1399,6 +1399,13 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           <div class="row"><div class="ln">Spray Valve</div><span class="pill ok">Closed</span></div>
         </div>
       </div>
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Primary Flow — 3D</h2><span class="tag" id="pflow-tag">—</span></div>
+        <div class="view3d nsss3d" id="pflow3d">
+          <div class="vlabel">Primary Circuit<small id="pflow-sub">—</small></div>
+          <div class="vstats" id="pflow-stats"></div>
+        </div>
+        <div class="note" style="margin-top:8px">Schematic geometry — illustrative, not to scale. Particle speed follows the live loop-flow signals (qualitative, not a calibrated velocity field); particle colour follows the live hot/cold-leg temperatures; the pressurizer fill follows live level. After a trip, forced circulation continues while the ΔT colour gradient collapses — watch the loop drain toward one colour. Drag to rotate.</div>
+      </div>
       <div class="grid c2">
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Steam Generator Levels</h2></div>
           <div id="sg-levels">
@@ -3883,6 +3890,213 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   loop();
 })();
 </script>
+
+<script>
+(function(){
+  // ---- Primary Flow 3D (Coolant / TH) ----
+  // Animated primary-circuit view. The NSSS panel on Steam & Secondary answers
+  // "what connects to what"; this one answers "what is the fluid doing":
+  //  - particle advance speed  <- live loopAflow / loopBflow (normalised)
+  //  - particle colour         <- live hotLegA / coldLegA along the path
+  //  - pressurizer fill        <- live pzrLevel (PWR: external PZR + surge line;
+  //                               SMR: integrated in the vessel head)
+  // Geometry is illustrative; layout derives from NEXUS.archOf().
+  var HOST=document.getElementById('pflow3d');if(!HOST)return;
+  var TAG=document.getElementById('pflow-tag'),SUB=document.getElementById('pflow-sub'),STATS=document.getElementById('pflow-stats');
+  if(!window.THREE){var fb=document.createElement('div');fb.className='fallback';
+    fb.innerHTML='3D view needs the three.js library, which could not load.<br>It requires an internet connection (CDN). The rest of the console works offline.';
+    HOST.appendChild(fb);return;}
+  var T=window.THREE;
+  var C={cyan:0x22d3ee,green:0x3ddc84,amber:0xffb000,red:0xff3b46,violet:0x8b5cf6,steel:0xa6bbc2,dark:0x0e1c20,blue:0x2a6fd6};
+  var NP=28; // particles per loop
+  var scene,camera,renderer,grp,loopsArr=[],coreMesh=null,pzrFill=null,pzrMax=1;
+  var builtId=null,drag=false,man=false,px=0,py=0,ry=0.55,rx=0.26,lastT=0;
+  function getU(){return (window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;}
+  function arch(u){return window.NEXUS.archOf(u);}
+  function mat(c,o){var m=new T.MeshPhongMaterial({color:c,shininess:24});if(o)for(var k in o)m[k]=o[k];return m;}
+  function orient(m,dir){m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.clone().normalize());}
+  function label(txt){var cv=document.createElement('canvas');var ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return null;
+    cv.width=128;cv.height=40;ctx.font='700 20px IBM Plex Mono, monospace';
+    ctx.fillStyle='#eafdff';ctx.textAlign='center';ctx.fillText(txt,64,27);
+    var sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv),transparent:true,depthTest:false}));
+    sp.scale.set(2.6,0.8,1);return sp;}
+  // coolant temperature -> colour (deep blue ~285 C -> cyan -> amber -> red ~332 C)
+  function coolColor(tc,out){var x=Math.max(0,Math.min(1,(tc-285)/47));
+    var stops=[[0,[42,111,214]],[0.34,[34,211,238]],[0.72,[255,176,0]],[1,[255,59,70]]];
+    var a=stops[0],b=stops[stops.length-1];
+    for(var i=0;i<stops.length-1;i++){if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}}
+    var f=(x-a[0])/((b[0]-a[0])||1);
+    out[0]=(a[1][0]+(b[1][0]-a[1][0])*f)/255;out[1]=(a[1][1]+(b[1][1]-a[1][1])*f)/255;out[2]=(a[1][2]+(b[1][2]-a[1][2])*f)/255;}
+  // piecewise temperature along the closed path (u in 0..1), Th=hot leg, Tc=cold leg
+  function tempAt(u,Th,Tc,bp){ // bp = [hotEnd, sgEnd, coldEnd] breakpoints
+    if(u<bp[0])return Th;
+    if(u<bp[1])return Th+(Tc-Th)*((u-bp[0])/(bp[1]-bp[0]));
+    if(u<bp[2])return Tc;
+    return Tc+(Th-Tc)*((u-bp[2])/(1-bp[2]));}
+
+  function clearScene(){
+    if(renderer){try{renderer.dispose();}catch(e){}
+      if(renderer.domElement&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}
+    loopsArr=[];coreMesh=null;pzrFill=null;}
+  function baseScene(){
+    var w=HOST.clientWidth||900,h=HOST.clientHeight||330;
+    scene=new T.Scene();
+    camera=new T.PerspectiveCamera(45,w/h,0.1,400);
+    renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
+    HOST.appendChild(renderer.domElement);
+    scene.add(new T.AmbientLight(0x445a66,0.95));
+    var dl=new T.DirectionalLight(0xffffff,0.8);dl.position.set(14,26,12);scene.add(dl);
+    var dl2=new T.DirectionalLight(0x22d3ee,0.35);dl2.position.set(-12,8,-14);scene.add(dl2);
+    grp=new T.Group();scene.add(grp);
+    bindPointer(renderer.domElement);}
+
+  function addFlowLoop(points,bp,sigEven){ // build tube + particle cloud for one closed path
+    var curve=new T.CatmullRomCurve3(points,true,'catmullrom',0.35);
+    var tube=new T.Mesh(new T.TubeGeometry(curve,90,0.15,8,true),
+      mat(C.steel,{transparent:true,opacity:0.16,emissive:C.cyan,emissiveIntensity:0.04}));
+    grp.add(tube);
+    var pos=new Float32Array(NP*3),col=new Float32Array(NP*3),ph=new Float32Array(NP);
+    for(var i=0;i<NP;i++)ph[i]=i/NP;
+    var g=new T.BufferGeometry();
+    g.setAttribute('position',new T.BufferAttribute(pos,3));
+    g.setAttribute('color',new T.BufferAttribute(col,3));
+    var pts=new T.Points(g,new T.PointsMaterial({size:0.34,vertexColors:true,transparent:true,opacity:0.95}));
+    grp.add(pts);
+    loopsArr.push({curve:curve,geo:g,phase:ph,bp:bp,even:sigEven});}
+
+  function buildPWR(a){
+    camera.position.set(0,10.5,21);camera.lookAt(0,1.0,0);
+    var gnd=new T.Mesh(new T.CylinderGeometry(10.6,10.6,0.3,48),mat(C.dark));gnd.position.y=-3.4;grp.add(gnd);
+    var ves=new T.Mesh(new T.CylinderGeometry(1.9,1.9,6.2,32,1,true),mat(C.cyan,{transparent:true,opacity:0.14,side:T.DoubleSide}));ves.position.y=0.3;grp.add(ves);
+    var dome=new T.Mesh(new T.SphereGeometry(1.9,32,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.14,side:T.DoubleSide}));dome.position.y=3.4;grp.add(dome);
+    coreMesh=new T.Mesh(new T.BoxGeometry(1.5,2.0,1.5),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-0.9;grp.add(coreMesh);
+    var vl=label('RPV');if(vl){vl.position.set(0,5.6,0);grp.add(vl);}
+    for(var i=0;i<a.loops;i++){var th=i/a.loops*Math.PI*2+Math.PI/a.loops;
+      var P=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(th+d)*r,y,Math.sin(th+d)*r);};
+      // SG reference shape (slim) + pump volute
+      var sgm=new T.Mesh(new T.CylinderGeometry(0.75,0.75,5.0,20),mat(C.steel,{transparent:true,opacity:0.5}));
+      sgm.position.copy(P(6.0,1.1,0.08));grp.add(sgm);
+      var cap=new T.Mesh(new T.SphereGeometry(0.75,20,10,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{transparent:true,opacity:0.5}));
+      cap.position.copy(P(6.0,3.6,0.08));grp.add(cap);
+      var pump=new T.Mesh(new T.SphereGeometry(0.5,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));
+      pump.position.copy(P(3.7,-2.2,0.45));grp.add(pump);
+      var lb=label('Loop '+String.fromCharCode(65+i));if(lb){lb.position.copy(P(6.0,5.0,0.08));grp.add(lb);}
+      // closed circulation path: core out -> hot leg -> up SG -> down SG (azimuthal
+      // offset, U-tube-like) -> pump -> cold leg -> downcomer -> core
+      addFlowLoop([
+        P(0.6,1.5), P(1.9,0.7), P(4.0,0.5), P(5.9,-0.2),
+        P(5.9,3.2), P(6.25,3.2,0.16), P(6.25,-1.6,0.16),
+        P(4.4,-2.4,0.34), P(3.7,-2.2,0.45), P(1.9,-1.3,0.2),
+        P(1.1,-2.5,0.08), P(0.45,-2.6), P(0.45,-0.6)
+      ],[0.30,0.50,0.92],i%2===0);}
+    // pressurizer off loop-A hot leg, with surge line and live level fill
+    var th0=Math.PI/a.loops;
+    var Q=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(th0+d)*r,y,Math.sin(th0+d)*r);};
+    var pz=new T.Mesh(new T.CylinderGeometry(0.7,0.7,2.4,20),mat(C.steel,{transparent:true,opacity:0.55}));
+    pz.position.copy(Q(3.5,2.4,-0.55));grp.add(pz);
+    var pzc=new T.Mesh(new T.SphereGeometry(0.7,20,10,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{transparent:true,opacity:0.55}));
+    pzc.position.copy(Q(3.5,3.6,-0.55));grp.add(pzc);
+    pzrMax=2.2;
+    pzrFill=new T.Mesh(new T.CylinderGeometry(0.58,0.58,1,18),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.35,transparent:true,opacity:0.8}));
+    pzrFill.position.copy(Q(3.5,1.3,-0.55));pzrFill.userData.base=1.3;grp.add(pzrFill);
+    var htr=new T.Mesh(new T.CylinderGeometry(0.6,0.6,0.16,18),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.5}));
+    htr.position.copy(Q(3.5,1.22,-0.55));grp.add(htr);
+    var sa=Q(3.5,1.2,-0.55),sb=Q(4.0,0.5,0);
+    var d=new T.Vector3().subVectors(sb,sa),sl=new T.Mesh(new T.CylinderGeometry(0.1,0.1,d.length(),8),mat(C.steel,{transparent:true,opacity:0.6}));
+    sl.position.copy(sa).add(sb).multiplyScalar(0.5);orient(sl,d);grp.add(sl);
+    var pl=label('PZR');if(pl){pl.position.copy(Q(3.5,4.5,-0.55));grp.add(pl);}}
+
+  function buildSMR(a){
+    camera.position.set(0,8.0,15.0);camera.lookAt(0,1.2,0);
+    var gnd=new T.Mesh(new T.CylinderGeometry(6.5,6.5,0.3,48),mat(C.dark));gnd.position.y=-3.4;grp.add(gnd);
+    var ves=new T.Mesh(new T.CylinderGeometry(3.0,3.0,9.0,40,1,true),mat(C.cyan,{transparent:true,opacity:0.12,side:T.DoubleSide}));ves.position.y=1.1;grp.add(ves);
+    var dome=new T.Mesh(new T.SphereGeometry(3.0,40,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.12,side:T.DoubleSide}));dome.position.y=5.6;grp.add(dome);
+    coreMesh=new T.Mesh(new T.BoxGeometry(1.8,2.0,1.8),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-1.9;grp.add(coreMesh);
+    var riser=new T.Mesh(new T.CylinderGeometry(0.75,0.75,4.6,24,1,true),mat(C.steel,{transparent:true,opacity:0.22,side:T.DoubleSide}));riser.position.y=1.4;grp.add(riser);
+    // compact SG slabs as muted reference shapes (detail lives on the NSSS view)
+    for(var i=0;i<6;i++){var th=i/6*Math.PI*2;
+      var slab=new T.Mesh(new T.BoxGeometry(0.45,3.0,1.25),mat(0x5b6e76,{transparent:true,opacity:0.5}));
+      slab.position.set(Math.cos(th)*2.15,2.2,Math.sin(th)*2.15);slab.rotation.y=-th;grp.add(slab);}
+    var vl=label('Integral RPV');if(vl){vl.position.set(0,8.0,0);grp.add(vl);}
+    // two in-vessel circulation paths: core -> riser -> head (pump) -> down past
+    // the compact SGs -> downcomer annulus -> core inlet
+    for(var k=0;k<2;k++){var ph0=k*Math.PI+Math.PI/2;
+      var P=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(ph0+d)*r,y,Math.sin(ph0+d)*r);};
+      var pump=new T.Mesh(new T.SphereGeometry(0.42,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));
+      pump.position.copy(P(1.5,4.7));grp.add(pump);
+      addFlowLoop([
+        P(0.3,-0.7), P(0.3,2.4), P(0.9,4.2), P(1.5,4.7),
+        P(2.3,3.8), P(2.45,2.2), P(2.55,0.2),
+        P(2.6,-1.8), P(1.4,-2.7), P(0.5,-2.3)
+      ],[0.34,0.58,0.90],k===0);}
+    // NUWARD-style pressurizer integrated in the vessel head: live level fill
+    pzrMax=1.3;
+    pzrFill=new T.Mesh(new T.CylinderGeometry(1.5,1.5,1,24),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.3,transparent:true,opacity:0.55}));
+    pzrFill.position.set(0,5.25,0);pzrFill.userData.base=5.25;grp.add(pzrFill);
+    var pl=label('PZR \u00b7 head');if(pl){pl.position.set(0,7.2,0);grp.add(pl);}}
+
+  function build(u){
+    clearScene();baseScene();
+    var a=arch(u);
+    if(a.pwr)buildPWR(a);else buildSMR(a);
+    builtId=u.id;
+    if(TAG)TAG.textContent=u.name+' \u00b7 '+u.cls;
+    if(SUB)SUB.textContent=a.pwr?(a.loops+'-loop forced circulation'):'Integral \u00b7 in-vessel circulation';}
+
+  function bindPointer(el){el.style.cursor='grab';
+    el.addEventListener('pointerdown',function(e){drag=true;man=true;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
+    window.addEventListener('pointerup',function(){if(drag){drag=false;el.style.cursor='grab';}});
+    window.addEventListener('pointermove',function(e){if(!drag)return;
+      ry+=(e.clientX-px)*0.01;rx+=(e.clientY-py)*0.006;rx=Math.max(-0.1,Math.min(0.9,rx));
+      px=e.clientX;py=e.clientY;});}
+
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='coolant';}
+  var rgb=[0,0,0];
+  function tick(u,dt){
+    var st=u.st,f=(u.cap||900)/1000;
+    var Th=st.hotLegA||323,Tc=st.coldLegA||289;
+    var nomA=17.8*f,nomB=17.6*f;
+    var spA=Math.max(0,(st.loopAflow||0)/nomA),spB=Math.max(0,(st.loopBflow||0)/nomB);
+    var load=Math.max(0,Math.min(1.15,(st.flux||0)/100));
+    if(coreMesh)coreMesh.material.emissiveIntensity=0.06+load*0.55;
+    for(var L=0;L<loopsArr.length;L++){var lp=loopsArr[L];
+      var adv=0.05*dt*(lp.even?spA:spB);            // ~20 s per circuit at nominal flow
+      var pos=lp.geo.attributes.position.array,col=lp.geo.attributes.color.array;
+      for(var i=0;i<NP;i++){lp.phase[i]=(lp.phase[i]+adv)%1;
+        var p=lp.curve.getPointAt(lp.phase[i]);
+        pos[i*3]=p.x;pos[i*3+1]=p.y;pos[i*3+2]=p.z;
+        coolColor(tempAt(lp.phase[i],Th,Tc,lp.bp),rgb);
+        col[i*3]=rgb[0];col[i*3+1]=rgb[1];col[i*3+2]=rgb[2];}
+      lp.geo.attributes.position.needsUpdate=true;lp.geo.attributes.color.needsUpdate=true;}
+    if(pzrFill){var lvl=Math.max(0.05,Math.min(1,(st.pzrLevel||58)/100));
+      var fh=lvl*pzrMax;                       // fill height in scene units
+      pzrFill.scale.y=fh;                      // unit-height cylinder scaled...
+      pzrFill.position.y=pzrFill.userData.base+fh/2;   // ...about its base
+    }
+    if(STATS){STATS.innerHTML='<span>\u0394T <b>'+(Th-Tc).toFixed(0)+' \u00b0C</b></span>'+
+      '<span>Loop A <b>'+(st.loopAflow||0).toFixed(1)+' km\u00b3/h</b></span>'+
+      '<span>Loop B <b>'+(st.loopBflow||0).toFixed(1)+' km\u00b3/h</b></span>'+
+      '<span>PZR <b>'+(st.pzrLevel||0).toFixed(0)+' % \u00b7 '+(st.pzrPress||0).toFixed(0)+' bar</b></span>';}
+    if(!man)ry+=0.003;grp.rotation.y=ry;grp.rotation.x=rx;
+    renderer.render(scene,camera);}
+
+  function loop(t){requestAnimationFrame(loop);
+    var dt=Math.min(0.08,Math.max(0.001,((t||0)-lastT)/1000));lastT=t||0;
+    if(!active())return;
+    var u=getU();if(!u)return;
+    if(builtId!==u.id)build(u);
+    tick(u,dt);}
+
+  function resize(){if(!renderer)return;var w=HOST.clientWidth,h=HOST.clientHeight;if(!w||!h)return;
+    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
+  var sub=document.querySelector('.subitem[data-p="coolant"]');
+  if(sub)sub.addEventListener('click',function(){setTimeout(function(){var u=getU();if(u&&builtId!==u.id)build(u);resize();},40);});
+  window.addEventListener('resize',function(){if(active())resize();});
+  loop(0);
+})();
+</script>
+
 
 <!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
 
