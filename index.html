@@ -157,6 +157,9 @@
   .coremap{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;max-width:380px}
   .cell{aspect-ratio:1;border-radius:2px;background:var(--line)}
   .mimic{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:18px 6px}
+  .nsss3d{height:330px}
+  #sg-tbody tr{cursor:pointer}
+  #sg-tbody tr.sgsel td{background:rgba(34,211,238,.10);box-shadow:inset 2px 0 0 var(--cyan)}
   .mnode{flex:1;text-align:center;border:1px solid var(--line-hot);border-radius:5px;padding:13px 6px;background:rgba(34,211,238,.03)}
   .mnode .mt{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim)}
   .mnode .mv{font-size:16px;font-weight:700;color:#eafdff;margin-top:4px}
@@ -1341,7 +1344,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="stat green"><div class="k">Condenser Vacuum</div><div class="v"><span class="live" data-sig="condVac" data-dec="1"></span><small>kPa</small></div><div class="bar"><i style="width:90%"></i></div></div>
       </div>
       <div class="grid c-21" style="margin-bottom:13px">
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag" id="sg-tag">2 × U-tube</span></div>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag" id="sg-tag">—</span></div>
           <table><thead><tr><th>SG</th><th>Pressure</th><th>NR Level</th><th>Steam Flow</th><th>Status</th></tr></thead><tbody id="sg-tbody">
             <tr><td>SG-1</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
             <tr><td>SG-2</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0" data-jitter="1"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
@@ -1353,23 +1356,22 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
             <div class="row"><div class="ln">Steam Dump / Bypass</div><span class="pill ok">Closed</span></div>
           </div>
         </div>
-        <div class="panel"><div class="ph"><h2><span class="tick"></span>Turbine Train</h2></div>
-          <div class="row"><div class="ln">Governor Valve<span>load demand</span></div><div class="flowbar"><i class="flowfill" data-flow="mwe" data-max="1100"></i></div><div class="rv"><span class="live" data-sig="govValve" data-dec="0"></span><span> %</span></div></div>
-          <div class="row"><div class="ln">HP Turbine</div><span class="pill ok">In service</span></div>
-          <div class="row"><div class="ln">LP Turbines (×2)</div><span class="pill ok">In service</span></div>
-          <div class="row"><div class="ln">MSR Outlet Temp</div><div class="rv">221<span> °C</span></div></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Turbine Train</h2><span class="tag" id="turb-tag">—</span></div>
+          <div class="row"><div class="ln">Governor Valve<span>load demand</span></div><div class="flowbar"><i class="flowfill" data-flow="govValve" data-max="100"></i></div><div class="rv"><span class="live" data-sig="govValve" data-dec="0"></span><span> %</span></div></div>
+          <div id="turb-rows"></div>
           <div class="row"><div class="ln">Turbine Speed</div><div class="rv"><span class="live" data-sig="rpm" data-dec="0"></span><span> RPM</span></div></div>
         </div>
       </div>
+      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>NSSS Topology — 3D</h2><span class="tag" id="nsss-tag">—</span></div>
+        <div class="view3d nsss3d" id="nsss3d">
+          <div class="vlabel">NSSS Schematic<small id="nsss-sub">—</small></div>
+          <div class="vstats" id="nsss-stats"></div>
+        </div>
+        <div class="note" style="margin-top:8px">Schematic geometry — illustrative, not to scale. Steam-generator level markers and glow are driven by the same live signals as the table above. Click a steam generator (or its table row) to cross-highlight; drag to rotate.</div>
+      </div>
       <div class="grid c2">
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Secondary Flow</h2><span class="tag">Mimic</span></div>
-          <div class="mimic">
-            <div class="mnode"><div class="mt">Steam Gen</div><div class="mv" style="font-size:13px"><span class="live" data-sig="steamPress" data-dec="0"></span> bar</div></div><div class="marrow">→</div>
-            <div class="mnode"><div class="mt">HP Turb</div><div class="mv" style="font-size:13px">—</div></div><div class="marrow">→</div>
-            <div class="mnode"><div class="mt">MSR</div><div class="mv" style="font-size:13px">221°</div></div><div class="marrow">→</div>
-            <div class="mnode"><div class="mt">LP Turb</div><div class="mv" style="font-size:13px">—</div></div><div class="marrow">→</div>
-            <div class="mnode"><div class="mt">Condenser</div><div class="mv" style="font-size:13px"><span class="live" data-sig="condVac" data-dec="1"></span></div></div>
-          </div>
+          <div class="mimic" id="sec-mimic"></div>
         </div>
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Steam Pressure Trend</h2><span class="tag">60 min</span></div><svg class="chart" data-chart="steamPress" viewBox="0 0 460 150" preserveAspectRatio="none"></svg></div>
       </div>
@@ -2048,7 +2050,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     return {coreTemp:online?324:90,pressure:155,flux:flux,rodInsert:ri,rodTarget:ri,reactivity:0,xenon:50,
       mwt:mwt,mwe:mwe,eff:33.8,rpm:online?3000:0,hz:online?50.0:0,mvar:180*f,voltage:21.0,pf:0.98,
       loopAflow:17.8*f,loopBflow:17.6*f,hotLegA:online?323:120,coldLegA:289,pzrLevel:58,pzrPress:155,
-      sgLevel:62,feedwater:online?1620*f:0,condVac:5.1,steamPress:online?68:5,steamFlow:online?1480*f:0,govValve:online?90:0,
+      sgLevel:62,feedwater:online?1495*f:0,condVac:5.1,steamPress:online?68:5,steamFlow:online?1480*f:0,govValve:online?90:0,
       dose:0.12,contPress:1.01,telRate:41.2,twinLag:0.8,
       // decay-heat groups: equilibrium at current power if online; offline units
       // are seeded at the 7-days-after-shutdown level (representative assumption
@@ -2087,7 +2089,8 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     st.pressure=W(st.pressure,.4,152,158);
     st.steamFlow+=(st.flux/100*1500*f-st.steamFlow)*0.15+rnd(-6,6);
     st.steamPress+=((u.online?60:5)+st.flux/100*9-st.steamPress)*0.12+rnd(-.2,.2);
-    st.feedwater+=(st.flux/100*1640*f-st.feedwater)*0.15+rnd(-6,6);
+    // feedwater tracks steam flow + ~1 % SG blowdown (mass balance at steady state)
+    st.feedwater+=(st.flux/100*1515*f-st.feedwater)*0.15+rnd(-6,6);
     st.sgLevel=W(st.sgLevel,.5,58,66);st.condVac=W(st.condVac,.1,4.8,5.4);
     const rpmT=u.online?3000:0;st.rpm+=(rpmT-st.rpm)*0.08+(u.online?rnd(-2,2):0);st.rpm=clamp(st.rpm,0,3010);
     st.hz=u.online?clamp(50+(st.rpm-3000)/60,49.7,50.05):0;
@@ -2132,18 +2135,50 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="uact"><div class="toggle ${u.online?'on':'off'}" data-toggle="${u.id}">${u.online?'On':'Off'}</div><div class="toggle" data-select="${u.id}">Select</div></div></div>`;}).join('');}
   }
 
+  // Single source of truth for per-unit NSSS architecture (used by applyArch,
+  // the SG table and the 3D NSSS topology view — do not re-derive elsewhere).
+  function archOf(u){
+    var pwr=!!(u&&u.cls&&u.cls.indexOf("PWR")===0);
+    var loops=pwr?(((u&&u.cap)||900)>=1100?4:3):2;
+    return {pwr:pwr,loops:loops,nsg:pwr?loops:6};
+  }
   var lastArchSig=null;
   function applyArch(){
     var u=selUnit; if(!u)return;
-    var pwr=!!(u.cls&&u.cls.indexOf("PWR")===0);
-    var loops=pwr?((u.cap||900)>=1100?4:3):2;
-    var nsg=pwr?loops:6;
+    var arch=archOf(u),pwr=arch.pwr,loops=arch.loops,nsg=arch.nsg;
     var sig=u.id+"|"+pwr+"|"+loops; if(sig===lastArchSig)return; lastArchSig=sig;
     var ge=function(id){return document.getElementById(id);};
     var ct=ge("cool-tag"); if(ct)ct.textContent=pwr?(loops+"-Loop"):"Integral \u00b7 in-vessel";
     var st=ge("sg-tag"); if(st)st.textContent=pwr?(loops+" \u00d7 U-tube"):"6 \u00d7 compact plate";
     var cn=ge("cool-note"); if(cn)cn.textContent=pwr?"":"Integral layout \u2014 steam generators and coolant pumps sit inside the reactor vessel; no external loops.";
-    var sn=ge("sg-note"); if(sn)sn.textContent=pwr?"":"Compact plate steam generators inside the vessel (six for power, plus two safety units).";
+    var sn=ge("sg-note"); if(sn)sn.textContent=pwr?"":"Compact plate steam generators inside the vessel (six for power, plus two safety units). Secondary steam conditions shown are illustrative loop-PWR values \u2014 not published NUWARD figures.";
+    // Turbine train: HP + 2\u00d7 LP with MSR for the loop PWRs (matches the spec
+    // card 'HP + 2\u00d7 LP'); single compact turbine-generator skid for the SMR
+    // (matches the SMR component registry \u2014 no separate HP/LP train, no MSR row).
+    var tt=ge("turb-tag"); if(tt)tt.textContent=pwr?"HP + 2 \u00d7 LP":"Compact TG skid";
+    var tr=ge("turb-rows");
+    if(tr){tr.innerHTML=pwr?(
+      '<div class="row"><div class="ln">HP Turbine</div><span class="pill ok">In service</span></div>'+
+      '<div class="row"><div class="ln">LP Turbines (\u00d72)</div><span class="pill ok">In service</span></div>'+
+      '<div class="row"><div class="ln">MSR Outlet Temp</div><div class="rv">\u2248 265<span> \u00b0C</span></div></div>'
+    ):(
+      '<div class="row"><div class="ln">Turbine-Generator Skid<span>single compact set</span></div><span class="pill ok">In service</span></div>'+
+      '<div class="row"><div class="ln">Moisture Separation<span>integrated</span></div><span class="pill ok">In service</span></div>'
+    );}
+    var mim=ge("sec-mimic");
+    if(mim){var sgNode='<div class="mnode"><div class="mt">Steam Gen</div><div class="mv" style="font-size:13px"><span class="live" data-sig="steamPress" data-dec="0"></span> bar</div></div>';
+      var cndNode='<div class="mnode"><div class="mt">Condenser</div><div class="mv" style="font-size:13px"><span class="live" data-sig="condVac" data-dec="1"></span></div></div>';
+      var ar='<div class="marrow">\u2192</div>';
+      mim.innerHTML=pwr?(sgNode+ar+
+        '<div class="mnode"><div class="mt">HP Turb</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+
+        '<div class="mnode"><div class="mt">MSR</div><div class="mv" style="font-size:13px">\u2248265\u00b0</div></div>'+ar+
+        '<div class="mnode"><div class="mt">LP Turb</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+cndNode
+      ):(sgNode+ar+
+        '<div class="mnode"><div class="mt">TG Skid</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+cndNode);}
+    // Per-unit bar maxima for steam-flow / feedwater stat bars (1800 kg/s was a
+    // fixed large-PWR scale: PWR-1300 pegged past it, the SMR showed a sliver).
+    var fcap=(u.cap||900)/1000, bmax=Math.round(1800*fcap);
+    document.querySelectorAll('[data-bar="steamFlow"],[data-bar="feedwater"]').forEach(function(b){b.dataset.max=bmax;});
     var cr=ge("cool-rows");
     if(cr){var h="",i;
       for(i=0;i<loops;i++){var sk=(i%2===0)?"loopAflow":"loopBflow";var jit=i>=2?" data-jitter=\"0.4\"":"";
@@ -2361,7 +2396,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     renderIncidents();renderCompliance();bus.emit('scram',{unitId:unitId,unit:nm,reason:reason});
   }
   renderIncidents();renderCompliance();
-  window.NEXUS={units:units,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');},pushAlarm:function(sev,src,msg,st){return pushAlarmObj(sev,src,msg,st);}};
+  window.NEXUS={units:units,archOf:archOf,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');},pushAlarm:function(sev,src,msg,st){return pushAlarmObj(sev,src,msg,st);}};
   setupRods();setupAxial();render();drawCharts();renderAlarms();renderFleet();setInterval(masterTick,1500);
 })();
 
@@ -3667,6 +3702,188 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   loop();
 })();
 </script>
+
+<script>
+(function(){
+  // ---- NSSS Topology 3D (Steam & Secondary) ----
+  // Schematic per-unit primary-system view: loop PWRs show the vessel with
+  // external SG towers, hot/cold legs and RCPs; the integral SMR shows one
+  // vessel with 6 in-vessel power SGs + 2 safety SGs and canned pumps.
+  // Geometry is illustrative; live bindings (glow, level markers) use the
+  // exact signals the SG table uses. Layout derives from NEXUS.archOf().
+  var HOST=document.getElementById('nsss3d');if(!HOST)return;
+  var TAG=document.getElementById('nsss-tag'),SUB=document.getElementById('nsss-sub'),STATS=document.getElementById('nsss-stats');
+  var TB=document.getElementById('sg-tbody');
+  if(!window.THREE){var fb=document.createElement('div');fb.className='fallback';
+    fb.innerHTML='3D view needs the three.js library, which could not load.<br>It requires an internet connection (CDN). The rest of the console works offline.';
+    HOST.appendChild(fb);return;}
+  var T=window.THREE;
+  var C={cyan:0x22d3ee,green:0x3ddc84,amber:0xffb000,red:0xff3b46,violet:0x8b5cf6,steel:0xa6bbc2,dark:0x0e1c20};
+  var scene,camera,renderer,grp,sgMeshes=[],lvlMarks=[],hotPipes=[],coreMesh=null,selRing=null;
+  var builtId=null,selSG=-1,drag=false,man=false,px=0,py=0,moved=0,ry=0.55,rx=0.26;
+  function getU(){return (window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;}
+  function arch(u){return window.NEXUS.archOf(u);}
+  function mat(c,o){var m=new T.MeshPhongMaterial({color:c,shininess:24});if(o)for(var k in o)m[k]=o[k];return m;}
+  function orient(m,dir){m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.clone().normalize());}
+  function pipe(a,b,r,c,glow){var d=new T.Vector3().subVectors(b,a),len=d.length();
+    var m=new T.Mesh(new T.CylinderGeometry(r,r,len,12),mat(c,{emissive:c,emissiveIntensity:glow||0.12}));
+    m.position.copy(a).add(b).multiplyScalar(0.5);orient(m,d);grp.add(m);return m;}
+  function label(txt,big){var cv=document.createElement('canvas');var ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return null;
+    cv.width=128;cv.height=40;ctx.font='700 '+(big?24:20)+'px IBM Plex Mono, monospace';
+    ctx.fillStyle='#eafdff';ctx.textAlign='center';ctx.fillText(txt,64,27);
+    var sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv),transparent:true,depthTest:false}));
+    sp.scale.set(big?3.4:2.6,big?1.05:0.8,1);return sp;}
+
+  function clearScene(){
+    if(renderer){try{renderer.dispose();}catch(e){}
+      if(renderer.domElement&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}
+    sgMeshes=[];lvlMarks=[];hotPipes=[];coreMesh=null;selRing=null;selSG=-1;syncRows();}
+
+  function baseScene(){
+    var w=HOST.clientWidth||900,h=HOST.clientHeight||330;
+    scene=new T.Scene();
+    camera=new T.PerspectiveCamera(45,w/h,0.1,400);
+    renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
+    HOST.appendChild(renderer.domElement);
+    scene.add(new T.AmbientLight(0x445a66,0.95));
+    var dl=new T.DirectionalLight(0xffffff,0.8);dl.position.set(14,26,12);scene.add(dl);
+    var dl2=new T.DirectionalLight(0x22d3ee,0.35);dl2.position.set(-12,8,-14);scene.add(dl2);
+    grp=new T.Group();scene.add(grp);
+    bindPointer(renderer.domElement);}
+
+  function buildPWR(a){
+    camera.position.set(0,10.5,21);camera.lookAt(0,1.2,0);
+    var gnd=new T.Mesh(new T.CylinderGeometry(11.2,11.2,0.3,48),mat(C.dark));gnd.position.y=-3.3;grp.add(gnd);
+    var ves=new T.Mesh(new T.CylinderGeometry(1.9,1.9,6.5,32,1,true),mat(C.cyan,{transparent:true,opacity:0.16,side:T.DoubleSide}));ves.position.y=0.4;grp.add(ves);
+    var dome=new T.Mesh(new T.SphereGeometry(1.9,32,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.16,side:T.DoubleSide}));dome.position.y=3.65;grp.add(dome);
+    coreMesh=new T.Mesh(new T.BoxGeometry(1.6,2.2,1.6),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-0.6;grp.add(coreMesh);
+    var vl=label('RPV');if(vl){vl.position.set(0,6.3,0);grp.add(vl);}
+    var R=6.4;
+    for(var i=0;i<a.loops;i++){var th=i/a.loops*Math.PI*2+Math.PI/a.loops;
+      var ux=Math.cos(th),uz=Math.sin(th),x=ux*R,z=uz*R;
+      var sg=new T.Group();sg.position.set(x,0,z);
+      var low=new T.Mesh(new T.CylinderGeometry(0.95,0.95,4.4,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));low.position.y=-0.6;sg.add(low);
+      var cone=new T.Mesh(new T.CylinderGeometry(1.3,0.95,1.0,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));cone.position.y=2.1;sg.add(cone);
+      var up=new T.Mesh(new T.CylinderGeometry(1.3,1.3,2.4,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));up.position.y=3.8;sg.add(up);
+      var cap=new T.Mesh(new T.SphereGeometry(1.3,24,12,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));cap.position.y=5.0;sg.add(cap);
+      sg.userData.glow=[low,cone,up,cap];
+      var stm=new T.Mesh(new T.CylinderGeometry(0.22,0.22,1.4,10),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.25}));stm.position.y=6.2;sg.add(stm);
+      var fw=new T.Mesh(new T.CylinderGeometry(0.18,0.18,1.6,10),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.25}));
+      fw.position.set(ux*1.9,3.4,uz*1.9);orient(fw,new T.Vector3(ux,0,uz));sg.add(fw);
+      grp.add(sg);sgMeshes.push(sg);
+      var pv=new T.Vector3(ux*1.9,-0.2,uz*1.9),ps=new T.Vector3(x-ux*0.95,-1.0,z-uz*0.95);
+      hotPipes.push(pipe(pv,ps,0.30,C.amber,0.2));
+      var pp=new T.Vector3(Math.cos(th+0.45)*3.7,-2.2,Math.sin(th+0.45)*3.7);
+      pipe(new T.Vector3(x,-2.6,z),pp,0.26,C.cyan,0.15);
+      pipe(pp,new T.Vector3(Math.cos(th+0.22)*1.9,-1.5,Math.sin(th+0.22)*1.9),0.26,C.cyan,0.15);
+      var pump=new T.Mesh(new T.SphereGeometry(0.55,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));pump.position.copy(pp);grp.add(pump);
+      var ring=new T.Mesh(new T.TorusGeometry(1.36,0.06,8,28),mat(C.green,{emissive:C.green,emissiveIntensity:0.7}));
+      ring.rotation.x=Math.PI/2;ring.position.set(x,3.4,z);grp.add(ring);lvlMarks.push(ring);
+      var lb=label('SG-'+(i+1),true);if(lb){lb.position.set(x,7.2,z);grp.add(lb);}}
+    selRing=new T.Mesh(new T.TorusGeometry(1.85,0.09,8,36),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.9}));
+    selRing.rotation.x=Math.PI/2;selRing.visible=false;grp.add(selRing);}
+
+  function buildSMR(a){
+    camera.position.set(0,8.5,15.5);camera.lookAt(0,1.4,0);
+    var gnd=new T.Mesh(new T.CylinderGeometry(7,7,0.3,48),mat(C.dark));gnd.position.y=-3.3;grp.add(gnd);
+    var ves=new T.Mesh(new T.CylinderGeometry(3.0,3.0,9.2,40,1,true),mat(C.cyan,{transparent:true,opacity:0.13,side:T.DoubleSide}));ves.position.y=1.2;grp.add(ves);
+    var dome=new T.Mesh(new T.SphereGeometry(3.0,40,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.13,side:T.DoubleSide}));dome.position.y=5.8;grp.add(dome);
+    var vl=label('Integral RPV');if(vl){vl.position.set(0,8.4,0);grp.add(vl);}
+    coreMesh=new T.Mesh(new T.BoxGeometry(2.0,2.2,2.0),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-1.9;grp.add(coreMesh);
+    // 8 slab positions: 0..5 power SGs (table rows), 6..7 dedicated safety SGs
+    for(var i=0;i<8;i++){var th=i/8*Math.PI*2+Math.PI/8;
+      var ux=Math.cos(th),uz=Math.sin(th),x=ux*2.15,z=uz*2.15,safe=i>=6;
+      var slab=new T.Mesh(new T.BoxGeometry(0.5,3.2,1.35),
+        safe?mat(0x5b6e76,{transparent:true,opacity:0.85}):mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.06}));
+      slab.rotation.y=-th;
+      if(safe){slab.position.set(x,3.4,z);grp.add(slab);continue;}
+      var sg=new T.Group();sg.position.set(x,2.4,z);sg.add(slab);sg.userData.glow=[slab];grp.add(sg);sgMeshes.push(sg);
+      var mk=new T.Mesh(new T.BoxGeometry(0.58,0.10,1.43),mat(C.green,{emissive:C.green,emissiveIntensity:0.8}));
+      mk.position.set(x,2.4,z);mk.rotation.y=-th;grp.add(mk);lvlMarks.push(mk);
+      var lb=label('SG-'+(i+1));if(lb){lb.position.set(ux*3.7,2.4+((i%2)?0.55:-0.55),uz*3.7);grp.add(lb);}}
+    var p1=new T.Mesh(new T.SphereGeometry(0.5,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));p1.position.set(1.2,5.2,0);grp.add(p1);
+    var p2=p1.clone();p2.position.set(-1.2,5.2,0);grp.add(p2);
+    var stm=new T.Mesh(new T.CylinderGeometry(0.22,0.22,1.8,10),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.25}));
+    stm.position.set(3.7,4.6,0);orient(stm,new T.Vector3(1,0,0));grp.add(stm);
+    var fw=new T.Mesh(new T.CylinderGeometry(0.18,0.18,1.8,10),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.25}));
+    fw.position.set(-3.7,1.4,0);orient(fw,new T.Vector3(1,0,0));grp.add(fw);
+    selRing=new T.Mesh(new T.TorusGeometry(1.15,0.07,8,32),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.9}));
+    selRing.rotation.x=Math.PI/2;selRing.visible=false;grp.add(selRing);}
+
+  function build(u){
+    clearScene();baseScene();
+    var a=arch(u);
+    if(a.pwr)buildPWR(a);else buildSMR(a);
+    builtId=u.id;
+    if(TAG)TAG.textContent=u.name+' \u00b7 '+u.cls;
+    if(SUB)SUB.textContent=a.pwr?(a.loops+'-loop \u00b7 '+a.nsg+' \u00d7 U-tube SG'):'Integral \u00b7 6 power + 2 safety compact SG';}
+
+  // ---- selection / cross-highlight ----
+  function syncRows(){if(!TB)return;var rows=TB.querySelectorAll('tr');
+    for(var i=0;i<rows.length;i++)rows[i].classList.toggle('sgsel',i===selSG);}
+  function selectSG(i){selSG=(selSG===i)?-1:i;syncRows();}
+  if(TB)TB.addEventListener('click',function(e){var tr=e.target.closest('tr');if(!tr||!tr.parentNode)return;
+    var rows=Array.prototype.slice.call(TB.querySelectorAll('tr'));var i=rows.indexOf(tr);
+    if(i>=0&&i<sgMeshes.length)selectSG(i);});
+
+  var ray=new T.Raycaster(),mv=new T.Vector2();
+  function pick(e){if(!renderer)return -1;
+    var r=renderer.domElement.getBoundingClientRect();
+    mv.x=((e.clientX-r.left)/r.width)*2-1;mv.y=-((e.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(mv,camera);
+    var hits=ray.intersectObjects(sgMeshes,true);if(!hits.length)return -1;
+    var o=hits[0].object;while(o&&sgMeshes.indexOf(o)<0)o=o.parent;
+    return o?sgMeshes.indexOf(o):-1;}
+  function bindPointer(el){el.style.cursor='grab';
+    el.addEventListener('pointerdown',function(e){drag=true;man=true;moved=0;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
+    window.addEventListener('pointerup',function(e){if(!drag)return;drag=false;el.style.cursor='grab';
+      if(moved<5){var i=pick(e);if(i>=0)selectSG(i);}});
+    window.addEventListener('pointermove',function(e){if(!drag)return;
+      moved+=Math.abs(e.clientX-px)+Math.abs(e.clientY-py);
+      ry+=(e.clientX-px)*0.01;rx+=(e.clientY-py)*0.006;rx=Math.max(-0.1,Math.min(0.9,rx));
+      px=e.clientX;py=e.clientY;});}
+
+  // ---- live tick ----
+  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='steam';}
+  function tick(u){
+    var a=arch(u),st=u.st,f=(u.cap||900)/1000,t=performance.now()/1000;
+    var load=Math.max(0,Math.min(1.15,(st.steamFlow||0)/(1500*f)));
+    if(coreMesh)coreMesh.material.emissiveIntensity=0.06+load*0.55;
+    var hotF=Math.max(0,Math.min(1,((st.hotLegA||290)-292)*0.028));
+    hotPipes.forEach(function(p){p.material.emissiveIntensity=0.08+hotF*0.3;});
+    for(var i=0;i<sgMeshes.length;i++){
+      var boost=(i===selSG)?0.34:0;
+      sgMeshes[i].userData.glow.forEach(function(m){m.material.emissiveIntensity=0.04+load*0.2+boost;});
+      var lvl=Math.max(45,Math.min(75,(st.sgLevel||62)+Math.sin(t*0.8+i*1.7)*(i?1:0)));
+      var mk=lvlMarks[i];if(!mk)continue;
+      if(a.pwr)mk.position.y=2.7+(lvl/100)*2.2;        // along the SG drum band
+      else mk.position.y=0.95+(lvl/100)*2.9;            // along the slab height
+    }
+    if(selRing){selRing.visible=selSG>=0;
+      if(selSG>=0){var sp=sgMeshes[selSG].position;
+        selRing.position.set(sp.x,a.pwr?-2.85:0.7,sp.z);}}
+    if(STATS){STATS.innerHTML=selSG>=0
+      ?('<span>Selected <b>SG-'+(selSG+1)+'</b></span><span>NR level <b>'+(st.sgLevel||0).toFixed(0)+' %</b></span><span>Steam <b>'+((st.steamFlow||0)/a.nsg).toFixed(0)+' kg/s</b></span><span>Header <b>'+(st.steamPress||0).toFixed(1)+' bar</b></span>')
+      :('<span>Load <b>'+(load*100).toFixed(0)+' %</b></span><span>Click an SG or its table row to cross-highlight</span>');}
+    if(!man)ry+=0.003;grp.rotation.y=ry;grp.rotation.x=rx;
+    renderer.render(scene,camera);}
+
+  function loop(){requestAnimationFrame(loop);
+    if(!active())return;
+    var u=getU();if(!u)return;
+    if(builtId!==u.id)build(u);
+    tick(u);}
+
+  function resize(){if(!renderer)return;var w=HOST.clientWidth,h=HOST.clientHeight;if(!w||!h)return;
+    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
+  var sub=document.querySelector('.subitem[data-p="steam"]');
+  if(sub)sub.addEventListener('click',function(){setTimeout(function(){var u=getU();if(u&&builtId!==u.id)build(u);resize();},40);});
+  window.addEventListener('resize',function(){if(active())resize();});
+  loop();
+})();
+</script>
+
 <!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
 
 <script>
