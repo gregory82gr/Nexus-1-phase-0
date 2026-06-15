@@ -157,9 +157,6 @@
   .coremap{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;max-width:380px}
   .cell{aspect-ratio:1;border-radius:2px;background:var(--line)}
   .mimic{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:18px 6px}
-  .nsss3d{height:330px}
-  #sg-tbody tr{cursor:pointer}
-  #sg-tbody tr.sgsel td{background:rgba(34,211,238,.10);box-shadow:inset 2px 0 0 var(--cyan)}
   .mnode{flex:1;text-align:center;border:1px solid var(--line-hot);border-radius:5px;padding:13px 6px;background:rgba(34,211,238,.03)}
   .mnode .mt{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim)}
   .mnode .mv{font-size:16px;font-weight:700;color:#eafdff;margin-top:4px}
@@ -584,6 +581,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       <div class="navitem" data-p="rcgraph"><span class="ic">&#9903;</span>Root Cause Graph</div>
       <div class="navitem" data-p="audit"><span class="ic">&#9636;</span>Compliance / Audit</div>
       <div class="navitem" data-p="sec"><span class="ic">&#9960;</span>Security / Services</div>
+      <div class="navitem" data-p="console"><span class="ic">&#10095;</span>NX-Script Console</div>
       <div class="navitem" data-p="help"><span class="ic">&#10067;</span>Help &amp; Guide</div>
       <div class="navitem" data-p="about"><span class="ic">&#9432;</span>About</div>
     </nav>
@@ -1344,7 +1342,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="stat green"><div class="k">Condenser Vacuum</div><div class="v"><span class="live" data-sig="condVac" data-dec="1"></span><small>kPa</small></div><div class="bar"><i style="width:90%"></i></div></div>
       </div>
       <div class="grid c-21" style="margin-bottom:13px">
-        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag" id="sg-tag">—</span></div>
+        <div class="panel hot"><div class="ph"><h2><span class="tick"></span>Steam Generators</h2><span class="tag" id="sg-tag">2 × U-tube</span></div>
           <table><thead><tr><th>SG</th><th>Pressure</th><th>NR Level</th><th>Steam Flow</th><th>Status</th></tr></thead><tbody id="sg-tbody">
             <tr><td>SG-1</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
             <tr><td>SG-2</td><td class="mono"><span class="live" data-sig="steamPress" data-dec="1" data-jitter="0.3"></span> bar</td><td class="mono"><span class="live" data-sig="sgLevel" data-dec="0" data-jitter="1"></span> %</td><td class="mono"><span class="live" data-sig="steamFlow" data-dec="0" data-half="1"></span> kg/s</td><td><span class="pill ok">Normal</span></td></tr>
@@ -1356,22 +1354,23 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
             <div class="row"><div class="ln">Steam Dump / Bypass</div><span class="pill ok">Closed</span></div>
           </div>
         </div>
-        <div class="panel"><div class="ph"><h2><span class="tick"></span>Turbine Train</h2><span class="tag" id="turb-tag">—</span></div>
-          <div class="row"><div class="ln">Governor Valve<span>load demand</span></div><div class="flowbar"><i class="flowfill" data-flow="govValve" data-max="100"></i></div><div class="rv"><span class="live" data-sig="govValve" data-dec="0"></span><span> %</span></div></div>
-          <div id="turb-rows"></div>
+        <div class="panel"><div class="ph"><h2><span class="tick"></span>Turbine Train</h2></div>
+          <div class="row"><div class="ln">Governor Valve<span>load demand</span></div><div class="flowbar"><i class="flowfill" data-flow="mwe" data-max="1100"></i></div><div class="rv"><span class="live" data-sig="govValve" data-dec="0"></span><span> %</span></div></div>
+          <div class="row"><div class="ln">HP Turbine</div><span class="pill ok">In service</span></div>
+          <div class="row"><div class="ln">LP Turbines (×2)</div><span class="pill ok">In service</span></div>
+          <div class="row"><div class="ln">MSR Outlet Temp</div><div class="rv">221<span> °C</span></div></div>
           <div class="row"><div class="ln">Turbine Speed</div><div class="rv"><span class="live" data-sig="rpm" data-dec="0"></span><span> RPM</span></div></div>
         </div>
       </div>
-      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>NSSS Topology — 3D</h2><span class="tag" id="nsss-tag">—</span></div>
-        <div class="view3d nsss3d" id="nsss3d">
-          <div class="vlabel">NSSS Schematic<small id="nsss-sub">—</small></div>
-          <div class="vstats" id="nsss-stats"></div>
-        </div>
-        <div class="note" style="margin-top:8px">Schematic geometry — illustrative, not to scale. Steam-generator level markers and glow are driven by the same live signals as the table above. Click a steam generator (or its table row) to cross-highlight; drag to rotate.</div>
-      </div>
       <div class="grid c2">
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Secondary Flow</h2><span class="tag">Mimic</span></div>
-          <div class="mimic" id="sec-mimic"></div>
+          <div class="mimic">
+            <div class="mnode"><div class="mt">Steam Gen</div><div class="mv" style="font-size:13px"><span class="live" data-sig="steamPress" data-dec="0"></span> bar</div></div><div class="marrow">→</div>
+            <div class="mnode"><div class="mt">HP Turb</div><div class="mv" style="font-size:13px">—</div></div><div class="marrow">→</div>
+            <div class="mnode"><div class="mt">MSR</div><div class="mv" style="font-size:13px">221°</div></div><div class="marrow">→</div>
+            <div class="mnode"><div class="mt">LP Turb</div><div class="mv" style="font-size:13px">—</div></div><div class="marrow">→</div>
+            <div class="mnode"><div class="mt">Condenser</div><div class="mv" style="font-size:13px"><span class="live" data-sig="condVac" data-dec="1"></span></div></div>
+          </div>
         </div>
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Steam Pressure Trend</h2><span class="tag">60 min</span></div><svg class="chart" data-chart="steamPress" viewBox="0 0 460 150" preserveAspectRatio="none"></svg></div>
       </div>
@@ -1398,13 +1397,6 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
           <div class="row" style="margin-top:6px"><div class="ln">Heaters</div><span class="pill ok">Auto</span></div>
           <div class="row"><div class="ln">Spray Valve</div><span class="pill ok">Closed</span></div>
         </div>
-      </div>
-      <div class="panel" style="margin-bottom:13px"><div class="ph"><h2><span class="tick"></span>Primary Flow — 3D</h2><span class="tag" id="pflow-tag">—</span></div>
-        <div class="view3d nsss3d" id="pflow3d">
-          <div class="vlabel">Primary Circuit<small id="pflow-sub">—</small></div>
-          <div class="vstats" id="pflow-stats"></div>
-        </div>
-        <div class="note" style="margin-top:8px">Schematic geometry — illustrative, not to scale. Particle speed follows the live loop-flow signals (qualitative, not a calibrated velocity field); particle colour follows the live hot/cold-leg temperatures; the pressurizer fill follows live level. After a trip, forced circulation continues while the ΔT colour gradient collapses — watch the loop drain toward one colour. Drag to rotate.</div>
       </div>
       <div class="grid c2">
         <div class="panel"><div class="ph"><h2><span class="tick"></span>Steam Generator Levels</h2></div>
@@ -1869,6 +1861,22 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
       </div>
     </section>
   
+      <section class="page" data-page="console">
+      <div class="panel hot">
+        <div class="ph"><h2><span class="tick"></span>NX-Script Console &mdash; read-only query</h2><span class="tag" id="nxs-tag">Appendix C &middot; live state</span></div>
+        <div class="note" style="margin-bottom:9px;line-height:1.6">A read-only window onto the live console state, in the small language of <b>Appendix C</b>. Every <span class="mono">get</span> traces to a value the simulation actually computes. <b>Dual-tier signals</b> (<span class="mono">power, coolant_temp, xenon, thermal_mw, electrical_mw, rod_insert, capacity, online</span>) read the <b style="color:var(--amber)">fleet model</b> uniformly for any unit, so they are comparable across the fleet. <b>Point-kinetics signals</b> (<span class="mono">period, reactivity_pcm, decay_heat, fuel_temp, kin_power, kin_xenon</span>) read the rigorous six-group solver but <i>only for the selected unit</i> &mdash; for any other unit they refuse, because the solver tracks one unit at a time. <span class="mono">get fleet.X</span> returns an array; aggregate explicitly with <span class="mono">sum / mean / max / min</span>. There are no act verbs here: <span class="mono">set, scram, hold, step, wait</span> are refused by design.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="nxs-examples"></div>
+        <textarea id="nxs-input" spellcheck="false" style="width:100%;box-sizing:border-box;min-height:120px;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--line-hot);border-radius:4px;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;letter-spacing:.2px" placeholder='select u1&#10;print "Unit 1 power is", round(get u1.power), "%"'></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <button class="btn" id="nxs-run" style="border-color:var(--cyan);color:var(--cyan)">Run &nbsp;&#9654;</button>
+          <button class="btn" id="nxs-clear">Clear</button>
+          <span class="note" style="margin:0">Ctrl/&#8984;+Enter to run</span>
+        </div>
+        <div style="margin-top:12px;background:var(--bg);border:1px solid var(--line);border-radius:4px;min-height:90px;max-height:340px;overflow:auto;padding:10px 12px">
+          <pre id="nxs-output" class="mono" style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12.5px;line-height:1.55;color:var(--text-dim)">Ready. Output appears here.</pre>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 <script>
@@ -1980,7 +1988,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   })();
 
   // ---- nav (top-level + expandable group + sub-items) ----
-  const titles={overview:['Plant Overview','Unit 1 · Full power operation'],fleet:['Plant Fleet','Multi-unit / modular operation'],core:['Reactor Core','PWR · 157 fuel assemblies'],
+  const titles={overview:['Plant Overview','Unit 1 · Full power operation'],fleet:['Plant Fleet','Multi-unit / modular operation'],console:['NX-Script Console','Read-only query console · Appendix C'],core:['Reactor Core','PWR · 157 fuel assemblies'],
     rods:['Control Rods','Interactive · Bank D regulating'],neutronics:['Neutronics','Flux · reactivity · detectors'],
     steam:['Steam & Secondary','Steam generators · turbine train'],coolant:['Coolant / Thermal-Hydraulics','Primary & secondary loops'],
     power:['Power & Grid','Turbine-generator · 400 kV'],rad:['Radiation & Safety','Per-unit monitoring & advisory layer'],
@@ -2012,7 +2020,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   // ---- page scope: every screen declares whether it follows the unit selection ----
   const SCOPE={};
   ['overview','core','rods','neutronics','steam','coolant','power','trends','rad','kinetics','analysis','reactor3d','training','twin','deps','components','aging','decommissioning','insp-overview','rodtype','rcgraph'].forEach(p=>SCOPE[p]='unit');
-  ['fleet','plant3d','alarms','incident','audit','sec','ai','rlopt','waste','personnel-overview','persector','personnel-stress','robotics-overview','robotcat','robotics-readiness','access-presence','access-matrix'].forEach(p=>SCOPE[p]='fleet');
+  ['fleet','plant3d','alarms','incident','audit','sec','ai','rlopt','waste','personnel-overview','persector','personnel-stress','robotics-overview','robotcat','robotics-readiness','access-presence','access-matrix','console'].forEach(p=>SCOPE[p]='fleet');
   ['ndt-methods','help','about'].forEach(p=>SCOPE[p]='reference');
   const SCOPELBL={unit:['UNIT','Follows the fleet unit selection'],
     fleet:['FLEET','Site / fleet-wide \u2014 independent of the unit selection'],
@@ -2057,7 +2065,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     return {coreTemp:online?324:90,pressure:155,flux:flux,rodInsert:ri,rodTarget:ri,reactivity:0,xenon:50,
       mwt:mwt,mwe:mwe,eff:33.8,rpm:online?3000:0,hz:online?50.0:0,mvar:180*f,voltage:21.0,pf:0.98,
       loopAflow:17.8*f,loopBflow:17.6*f,hotLegA:online?323:120,coldLegA:289,pzrLevel:58,pzrPress:155,
-      sgLevel:62,feedwater:online?1495*f:0,condVac:5.1,steamPress:online?68:5,steamFlow:online?1480*f:0,govValve:online?90:0,
+      sgLevel:62,feedwater:online?1620*f:0,condVac:5.1,steamPress:online?68:5,steamFlow:online?1480*f:0,govValve:online?90:0,
       dose:0.12,contPress:1.01,telRate:41.2,twinLag:0.8,
       // decay-heat groups: equilibrium at current power if online; offline units
       // are seeded at the 7-days-after-shutdown level (representative assumption
@@ -2096,8 +2104,7 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     st.pressure=W(st.pressure,.4,152,158);
     st.steamFlow+=(st.flux/100*1500*f-st.steamFlow)*0.15+rnd(-6,6);
     st.steamPress+=((u.online?60:5)+st.flux/100*9-st.steamPress)*0.12+rnd(-.2,.2);
-    // feedwater tracks steam flow + ~1 % SG blowdown (mass balance at steady state)
-    st.feedwater+=(st.flux/100*1515*f-st.feedwater)*0.15+rnd(-6,6);
+    st.feedwater+=(st.flux/100*1640*f-st.feedwater)*0.15+rnd(-6,6);
     st.sgLevel=W(st.sgLevel,.5,58,66);st.condVac=W(st.condVac,.1,4.8,5.4);
     const rpmT=u.online?3000:0;st.rpm+=(rpmT-st.rpm)*0.08+(u.online?rnd(-2,2):0);st.rpm=clamp(st.rpm,0,3010);
     st.hz=u.online?clamp(50+(st.rpm-3000)/60,49.7,50.05):0;
@@ -2142,50 +2149,18 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
         <div class="uact"><div class="toggle ${u.online?'on':'off'}" data-toggle="${u.id}">${u.online?'On':'Off'}</div><div class="toggle" data-select="${u.id}">Select</div></div></div>`;}).join('');}
   }
 
-  // Single source of truth for per-unit NSSS architecture (used by applyArch,
-  // the SG table and the 3D NSSS topology view — do not re-derive elsewhere).
-  function archOf(u){
-    var pwr=!!(u&&u.cls&&u.cls.indexOf("PWR")===0);
-    var loops=pwr?(((u&&u.cap)||900)>=1100?4:3):2;
-    return {pwr:pwr,loops:loops,nsg:pwr?loops:6};
-  }
   var lastArchSig=null;
   function applyArch(){
     var u=selUnit; if(!u)return;
-    var arch=archOf(u),pwr=arch.pwr,loops=arch.loops,nsg=arch.nsg;
+    var pwr=!!(u.cls&&u.cls.indexOf("PWR")===0);
+    var loops=pwr?((u.cap||900)>=1100?4:3):2;
+    var nsg=pwr?loops:6;
     var sig=u.id+"|"+pwr+"|"+loops; if(sig===lastArchSig)return; lastArchSig=sig;
     var ge=function(id){return document.getElementById(id);};
     var ct=ge("cool-tag"); if(ct)ct.textContent=pwr?(loops+"-Loop"):"Integral \u00b7 in-vessel";
     var st=ge("sg-tag"); if(st)st.textContent=pwr?(loops+" \u00d7 U-tube"):"6 \u00d7 compact plate";
     var cn=ge("cool-note"); if(cn)cn.textContent=pwr?"":"Integral layout \u2014 steam generators and coolant pumps sit inside the reactor vessel; no external loops.";
-    var sn=ge("sg-note"); if(sn)sn.textContent=pwr?"":"Compact plate steam generators inside the vessel (six for power, plus two safety units). Secondary steam conditions shown are illustrative loop-PWR values \u2014 not published NUWARD figures.";
-    // Turbine train: HP + 2\u00d7 LP with MSR for the loop PWRs (matches the spec
-    // card 'HP + 2\u00d7 LP'); single compact turbine-generator skid for the SMR
-    // (matches the SMR component registry \u2014 no separate HP/LP train, no MSR row).
-    var tt=ge("turb-tag"); if(tt)tt.textContent=pwr?"HP + 2 \u00d7 LP":"Compact TG skid";
-    var tr=ge("turb-rows");
-    if(tr){tr.innerHTML=pwr?(
-      '<div class="row"><div class="ln">HP Turbine</div><span class="pill ok">In service</span></div>'+
-      '<div class="row"><div class="ln">LP Turbines (\u00d72)</div><span class="pill ok">In service</span></div>'+
-      '<div class="row"><div class="ln">MSR Outlet Temp</div><div class="rv">\u2248 265<span> \u00b0C</span></div></div>'
-    ):(
-      '<div class="row"><div class="ln">Turbine-Generator Skid<span>single compact set</span></div><span class="pill ok">In service</span></div>'+
-      '<div class="row"><div class="ln">Moisture Separation<span>integrated</span></div><span class="pill ok">In service</span></div>'
-    );}
-    var mim=ge("sec-mimic");
-    if(mim){var sgNode='<div class="mnode"><div class="mt">Steam Gen</div><div class="mv" style="font-size:13px"><span class="live" data-sig="steamPress" data-dec="0"></span> bar</div></div>';
-      var cndNode='<div class="mnode"><div class="mt">Condenser</div><div class="mv" style="font-size:13px"><span class="live" data-sig="condVac" data-dec="1"></span></div></div>';
-      var ar='<div class="marrow">\u2192</div>';
-      mim.innerHTML=pwr?(sgNode+ar+
-        '<div class="mnode"><div class="mt">HP Turb</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+
-        '<div class="mnode"><div class="mt">MSR</div><div class="mv" style="font-size:13px">\u2248265\u00b0</div></div>'+ar+
-        '<div class="mnode"><div class="mt">LP Turb</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+cndNode
-      ):(sgNode+ar+
-        '<div class="mnode"><div class="mt">TG Skid</div><div class="mv" style="font-size:13px">\u2014</div></div>'+ar+cndNode);}
-    // Per-unit bar maxima for steam-flow / feedwater stat bars (1800 kg/s was a
-    // fixed large-PWR scale: PWR-1300 pegged past it, the SMR showed a sliver).
-    var fcap=(u.cap||900)/1000, bmax=Math.round(1800*fcap);
-    document.querySelectorAll('[data-bar="steamFlow"],[data-bar="feedwater"]').forEach(function(b){b.dataset.max=bmax;});
+    var sn=ge("sg-note"); if(sn)sn.textContent=pwr?"":"Compact plate steam generators inside the vessel (six for power, plus two safety units).";
     var cr=ge("cool-rows");
     if(cr){var h="",i;
       for(i=0;i<loops;i++){var sk=(i%2===0)?"loopAflow":"loopBflow";var jit=i>=2?" data-jitter=\"0.4\"":"";
@@ -2403,10 +2378,318 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
     renderIncidents();renderCompliance();bus.emit('scram',{unitId:unitId,unit:nm,reason:reason});
   }
   renderIncidents();renderCompliance();
-  window.NEXUS={units:units,archOf:archOf,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');},pushAlarm:function(sev,src,msg,st){return pushAlarmObj(sev,src,msg,st);}};
+  window.NEXUS={units:units,getSel:function(){return selId;},selectUnit:selectUnit,toggleUnit:toggleUnit,renderFleet:renderFleet,plant:plant,incidents:incidents,compliance:compliance,recordScram:recordScram,renderIncidents:renderIncidents,renderCompliance:renderCompliance,bus:bus,unit:function(){return selUnit;},setSelRod:function(p){selUnit.st.rodTarget=Math.max(0,Math.min(100,p));},withdrawSel:function(){selUnit.st.rodTarget=34;},scramSel:function(){selUnit.st.rodTarget=100;selUnit.scramTimer=4;recordScram(selId,'SCRAM from 3D core view','Operator (3D)');},pushAlarm:function(sev,src,msg,st){return pushAlarmObj(sev,src,msg,st);}};
+
+  /* injected by apply_nxs.py; engine source of record: nxs_module.js */
   setupRods();setupAxial();render();drawCharts();renderAlarms();renderFleet();setInterval(masterTick,1500);
 })();
 
+</script>
+
+<script>
+/* NEXUS-1 · NXS Phase-A read-only query console (Appendix C).
+   Reads live state only — no act verbs, no mutation, safe in every mode. */
+/* ============================================================================
+ * NEXUS-1 · NXS — Phase-A read-only query console  (window.NXS)
+ * ----------------------------------------------------------------------------
+ * Implements the read-only half of the Appendix-C language, bound to the LIVE
+ * console state. No act verbs, no time advance, no mutation. Safe in every
+ * operating mode because nothing here can change plant state.
+ *
+ * Grammar (subset of the printed EBNF, p.69):
+ *     program   = { statement }
+ *     statement = letStmt | selectStmt | printStmt | assertStmt
+ *               | repeatStmt | whenStmt | forStmt | exprStmt
+ *     letStmt   = "let" IDENT "=" expr
+ *     selectStmt= "select" target           (* drives the REAL fleet selector *)
+ *     printStmt = "print" expr { "," expr }
+ *     assertStmt= "assert" expr [ "," expr ]
+ *     forStmt   = "for" IDENT "in" expr "do" block
+ *     whenStmt  = "when" expr "do" block
+ *     repeatStmt= "repeat" expr "times" block
+ *     target    = "fleet" | IDENT | "(" expr ")"
+ *     primary   = NUMBER | STRING | "true" | "false"
+ *               | "get" target "." IDENT | "fleet" | IDENT | "(" expr ")"
+ *
+ * DELIBERATELY ABSENT (Phase B, Simulation-mode-only): set, scram, hold,
+ * step, wait, every. The act verbs are not parsed here at all — an attempt to
+ * use one is reported as "act verb 'scram' is not available in the read-only
+ * console", so the read/write split is visible to the user, not silent.
+ *
+ * TIER DISCIPLINE (honesty thesis):
+ *   - Dual-tier signals (power, coolant_temp, xenon, thermal_mw, electrical_mw,
+ *     capacity, online, rod_insert) read the FLEET illustrative model uniformly
+ *     for EVERY unit, so values are comparable across the fleet.
+ *   - Kinetics-only signals (period, reactivity_pcm, decay_heat) read the
+ *     rigorous six-group point-kinetics solver (window.KIN) but ONLY for the
+ *     currently selected unit; for any other unit they REFUSE with an honest
+ *     message, because the solver tracks one unit at a time. A refusal is not
+ *     a fabricated value.
+ *   - get fleet.X always returns an ARRAY (never an implicit sum). Use the
+ *     built-ins sum/mean/max/min to aggregate explicitly.
+ * ==========================================================================*/
+(function () {
+  'use strict';
+
+  /* --- token types & vocabulary (read-only subset) ----------------------- */
+  var TT = { NUM:'NUM', STR:'STR', ID:'ID', KW:'KW', OP:'OP', NL:'NL', EOF:'EOF' };
+  var KEYWORDS = ['let','select','get','print','assert','repeat','times',
+                  'when','for','in','do','end','true','false','and','or','not','fleet'];
+  // act verbs are recognised ONLY so we can give a precise refusal, never parsed
+  var ACT_VERBS = ['set','scram','hold','step','wait','every'];
+  var KWSET = {}; KEYWORDS.forEach(function(k){ KWSET[k]=1; });
+  var ACTSET = {}; ACT_VERBS.forEach(function(k){ ACTSET[k]=1; });
+  var OPS = ['<=','>=','==','!=','+','-','*','/','%','<','>','=','(',')',',','.'];
+
+  function err(msg,line,col){ var e=new Error('[line '+line+':'+col+'] '+msg); e.nxs=true; return e; }
+
+  /* --- 1. LEXER ----------------------------------------------------------- */
+  function lex(src){
+    var toks=[], i=0, line=1, col=1;
+    function peek(k){ return src[i+(k||0)]; }
+    function adv(){ var c=src[i++]; if(c==='\n'){line++;col=1;}else col++; return c; }
+    while(i<src.length){
+      var c=peek();
+      if(c===' '||c==='\t'||c==='\r'){ adv(); continue; }
+      if(c==='#'){ while(i<src.length&&peek()!=='\n') adv(); continue; }
+      if(c==='\n'){ var L0=line,C0=col; adv(); toks.push({type:TT.NL,value:'\\n',line:L0,col:C0}); continue; }
+      if(/[0-9]/.test(c) || (c==='.'&&/[0-9]/.test(peek(1)))){
+        var L1=line,C1=col,s1='';
+        while(i<src.length&&/[0-9.]/.test(peek())) s1+=adv();
+        toks.push({type:TT.NUM,value:parseFloat(s1),line:L1,col:C1}); continue;
+      }
+      if(c==='"'){
+        var L2=line,C2=col; adv(); var s2='';
+        while(i<src.length&&peek()!=='"'){ if(peek()==='\\') adv(); s2+=adv(); }
+        if(peek()!=='"') throw err('unterminated string',L2,C2);
+        adv(); toks.push({type:TT.STR,value:s2,line:L2,col:C2}); continue;
+      }
+      if(/[A-Za-z_]/.test(c)){
+        var L3=line,C3=col,s3='';
+        while(i<src.length&&/[A-Za-z0-9_]/.test(peek())) s3+=adv();
+        var ty = KWSET[s3] ? TT.KW : TT.ID;
+        toks.push({type:ty,value:s3,line:L3,col:C3,act:ACTSET[s3]?1:0}); continue;
+      }
+      var matched=null;
+      for(var o=0;o<OPS.length;o++){ if(src.lastIndexOf(OPS[o],i)===i){ matched=OPS[o]; break; } }
+      if(matched){ var L4=line,C4=col; for(var k=0;k<matched.length;k++) adv(); toks.push({type:TT.OP,value:matched,line:L4,col:C4}); continue; }
+      throw err('unexpected character '+JSON.stringify(c),line,col);
+    }
+    toks.push({type:TT.NL,value:'\\n',line:line,col:col});
+    toks.push({type:TT.EOF,value:null,line:line,col:col});
+    return toks;
+  }
+
+  /* --- 2. PARSER (recursive descent + Pratt expressions) ------------------ */
+  function parse(toks){
+    var p=0;
+    function peek(k){ return toks[p+(k||0)]; }
+    function at(type,value){ return peek().type===type && (value===undefined||peek().value===value); }
+    function next(){ return toks[p++]; }
+    function expect(type,value){ if(!at(type,value)){ var t=peek(); throw err('expected '+(value||type)+', got '+JSON.stringify(t.value),t.line,t.col);} return next(); }
+    function skipNL(){ while(at(TT.NL)) next(); }
+    function endStmt(){ if(at(TT.NL)){ while(at(TT.NL)) next(); } else if(!at(TT.EOF)&&!at(TT.KW,'end')){ var t=peek(); throw err('expected end of statement, got '+JSON.stringify(t.value),t.line,t.col);} }
+
+    function program(){ var body=[]; skipNL(); while(!at(TT.EOF)){ body.push(statement()); skipNL(); } return {k:'Program',body:body}; }
+    function block(){ var body=[]; skipNL(); while(!at(TT.KW,'end')&&!at(TT.EOF)){ body.push(statement()); skipNL(); } expect(TT.KW,'end'); return body; }
+
+    function statement(){
+      var t=peek();
+      // precise refusal for act verbs — the read/write split is visible
+      if(t.type===TT.ID && t.act){ throw err("act verb '"+t.value+"' is not available in the read-only console (Phase B, Simulation mode only)",t.line,t.col); }
+      if(at(TT.KW,'let'))    { next(); var nm=expect(TT.ID).value; expect(TT.OP,'='); var v=expr(); endStmt(); return {k:'Let',name:nm,value:v}; }
+      if(at(TT.KW,'select')) { next(); var u=target(); endStmt(); return {k:'Select',unit:u}; }
+      if(at(TT.KW,'print'))  { next(); var a=[expr()]; while(at(TT.OP,',')){ next(); a.push(expr()); } endStmt(); return {k:'Print',args:a}; }
+      if(at(TT.KW,'assert')) { next(); var e=expr(); var m=null; if(at(TT.OP,',')){ next(); m=expr(); } endStmt(); return {k:'Assert',cond:e,msg:m}; }
+      if(at(TT.KW,'repeat')) { next(); var n=expr(); expect(TT.KW,'times'); var b=block(); return {k:'Repeat',count:n,body:b}; }
+      if(at(TT.KW,'when'))   { next(); var c=expr(); expect(TT.KW,'do'); var b2=block(); return {k:'When',cond:c,body:b2}; }
+      if(at(TT.KW,'for'))    { next(); var vv=expect(TT.ID).value; expect(TT.KW,'in'); var it=expr(); expect(TT.KW,'do'); var b3=block(); return {k:'For',var:vv,iter:it,body:b3}; }
+      var ex=expr(); endStmt(); return {k:'ExprStmt',expr:ex};
+    }
+
+    function target(){
+      if(at(TT.KW,'fleet')){ next(); return {k:'Fleet'}; }
+      if(at(TT.ID)) return {k:'UnitRef',name:next().value};
+      if(at(TT.OP,'(')){ next(); var e=expr(); expect(TT.OP,')'); return {k:'UnitExpr',expr:e}; }
+      var t=peek(); throw err('expected a unit (id, fleet, or (expr))',t.line,t.col);
+    }
+
+    var PREC={ 'or':1,'and':2,'==':3,'!=':3,'<':4,'>':4,'<=':4,'>=':4,'+':5,'-':5,'*':6,'/':6,'%':6 };
+    function expr(rbp){ rbp=rbp||0; var left=unary();
+      while(true){ var t=peek(); var op=(t.type===TT.OP||t.type===TT.KW)?t.value:null; var lbp=PREC[op];
+        if(lbp===undefined||lbp<=rbp) break; next(); var right=expr(lbp); left={k:'Binary',op:op,left:left,right:right}; }
+      return left; }
+    function unary(){ if(at(TT.OP,'-')){next();return {k:'Unary',op:'-',arg:unary()};}
+      if(at(TT.OP,'+')){next();return {k:'Unary',op:'+',arg:unary()};}
+      if(at(TT.KW,'not')){next();return {k:'Unary',op:'not',arg:unary()};} return postfix(); }
+    function postfix(){ var e=primary();
+      while(true){ if(at(TT.OP,'.')){ next(); var nm=expect(TT.ID).value; e={k:'Member',obj:e,name:nm}; }
+        else if(at(TT.OP,'(')){ next(); var args=[]; if(!at(TT.OP,')')){ args.push(expr()); while(at(TT.OP,',')){ next(); args.push(expr()); } } expect(TT.OP,')'); e={k:'Call',callee:e,args:args}; }
+        else break; }
+      return e; }
+    function primary(){ var t=peek();
+      if(at(TT.NUM)) return {k:'Num',v:next().value};
+      if(at(TT.STR)) return {k:'Str',v:next().value};
+      if(at(TT.KW,'true')){ next(); return {k:'Bool',v:true}; }
+      if(at(TT.KW,'false')){ next(); return {k:'Bool',v:false}; }
+      if(at(TT.KW,'get')){ next(); var u=target(); expect(TT.OP,'.'); var sig=expect(TT.ID).value; return {k:'Get',unit:u,signal:sig}; }
+      if(at(TT.KW,'fleet')){ next(); return {k:'FleetVal'}; }
+      if(t.type===TT.ID && t.act){ throw err("act verb '"+t.value+"' is not available in the read-only console",t.line,t.col); }
+      if(at(TT.ID)) return {k:'Var',name:next().value};
+      if(at(TT.OP,'(')){ next(); var e=expr(); expect(TT.OP,')'); return e; }
+      throw err('unexpected '+JSON.stringify(t.value)+' in expression',t.line,t.col);
+    }
+    return program();
+  }
+
+  /* --- 3. PLANT ADAPTER over the REAL console state ----------------------- */
+  // Tier A — fleet illustrative model: defined for EVERY unit, comparable.
+  var FLEET_SIG = {
+    power:        function(u){ return u.st.flux; },                 // neutronic %, rated
+    thermal_mw:   function(u){ return u.st.mwt; },
+    electrical_mw:function(u){ return u.st.mwe; },
+    coolant_temp: function(u){ return u.st.coreTemp; },             // degC
+    xenon:        function(u){ return u.st.xenon; },                // illustrative %, NOT KIN xenon
+    rod_insert:   function(u){ return u.st.rodInsert; },            // %
+    capacity:     function(u){ return u.cap; },                     // MWe rated
+    online:       function(u){ return u.online?1:0; }
+  };
+  // Tier K — rigorous point-kinetics: SELECTED unit only, else honest refusal.
+  var KIN_SIG = {
+    period:        function(K){ return K.period; },                 // s (Infinity at steady)
+    reactivity_pcm:function(K){ return K.rodPcm; },                 // pcm, the genuine input
+    decay_heat:    function(K){ return K.decayHeat; },              // % of rated, six-group
+    kin_power:     function(K){ return K.power; },                  // % from the solver, NOT fleet power
+    fuel_temp:     function(K){ return K.TF; },                     // degC, solver node
+    kin_xenon:     function(K){ return K.xe; }                      // % equilibrium, solver
+  };
+
+  function makeAdapter(){
+    function nx(){ return (typeof window!=='undefined' && window.NEXUS) ? window.NEXUS : null; }
+    function kin(){ return (typeof window!=='undefined' && window.KIN) ? window.KIN : null; }
+    return {
+      units: function(){ var n=nx(); return n&&n.units?n.units:[]; },
+      unit:  function(id){ var n=nx(); if(!n)return null;
+                if(!id){ return n.unit?n.unit():null; }
+                var arr=n.units||[]; for(var i=0;i<arr.length;i++) if(arr[i].id===id) return arr[i];
+                return null; },
+      selId: function(){ var n=nx(); return n&&n.getSel?n.getSel():null; },
+      select:function(id){ var n=nx(); if(!n||!n.selectUnit) throw new Error('no fleet selector available');
+                if(!this.unit(id)) throw new Error('no such unit: '+id); n.selectUnit(id); },
+      kinState: function(){ var k=kin(); return k&&k.state?k.state():null; }
+    };
+  }
+
+  /* --- 4. EVALUATOR (tree-walking, side-effect-free except `select`) ------ */
+  function evaluate(ast, plant, out){
+    var log = out || function(){ var a=[].slice.call(arguments); console.log(a.join(' ')); };
+    var globals = Object.create(null);
+    var asserts = { pass:0, fail:0 };
+
+    function resolveUnits(node, env){
+      if(node.k==='Fleet') return plant.units();
+      if(node.k==='UnitRef'){ var u=plant.unit(node.name); if(!u) throw new Error('no such unit: '+node.name); return [u]; }
+      if(node.k==='UnitExpr'){ var v=ev(node.expr,env); var u2=plant.unit(String(v)); if(!u2) throw new Error('no such unit: '+String(v)); return [u2]; }
+      throw new Error('bad unit target');
+    }
+    function readSignal(u, sig){
+      if(FLEET_SIG.hasOwnProperty(sig)) return FLEET_SIG[sig](u);
+      if(KIN_SIG.hasOwnProperty(sig)){
+        if(u.id !== plant.selId())
+          throw new Error("point-kinetics signal '"+sig+"' is solved only for the selected unit (currently "+plant.selId()+"); select "+u.id+" first");
+        var K=plant.kinState();
+        if(!K) throw new Error("point-kinetics solver not available for signal '"+sig+"'");
+        return KIN_SIG[sig](K);
+      }
+      throw new Error('unknown signal: '+sig);
+    }
+    function ev(n, env){
+      switch(n.k){
+        case 'Num': return n.v; case 'Str': return n.v; case 'Bool': return n.v;
+        case 'Var': if(n.name in env) return env[n.name]; if(n.name in globals) return globals[n.name]; throw new Error('undefined variable: '+n.name);
+        case 'FleetVal': return plant.units().map(function(u){ return u.id; });
+        case 'Get': {
+          var us=resolveUnits(n.unit,env);
+          if(n.unit.k==='Fleet') return us.map(function(u){ return readSignal(u,n.signal); }); // ALWAYS array
+          return readSignal(us[0],n.signal);
+        }
+        case 'Member': { var o=ev(n.obj,env); return o==null?undefined:o[n.name]; }
+        case 'Unary': { var a=ev(n.arg,env); if(n.op==='-')return -a; if(n.op==='+')return +a; return !a; }
+        case 'Binary': {
+          if(n.op==='and') return ev(n.left,env)&&ev(n.right,env);
+          if(n.op==='or')  return ev(n.left,env)||ev(n.right,env);
+          var x=ev(n.left,env), y=ev(n.right,env);
+          switch(n.op){case '+':return x+y;case '-':return x-y;case '*':return x*y;case '/':return x/y;case '%':return x%y;
+            case '<':return x<y;case '>':return x>y;case '<=':return x<=y;case '>=':return x>=y;case '==':return x===y;case '!=':return x!==y;}
+          throw new Error('bad operator '+n.op);
+        }
+        case 'Call': {
+          var name=n.callee.k==='Var'?n.callee.name:null;
+          var args=n.args.map(function(a){ return ev(a,env); });
+          var FN={ abs:Math.abs, round:Math.round, floor:Math.floor, ceil:Math.ceil,
+                   min:function(a){ return Array.isArray(a)?Math.min.apply(null,a):Math.min.apply(null,arguments); },
+                   max:function(a){ return Array.isArray(a)?Math.max.apply(null,a):Math.max.apply(null,arguments); },
+                   sum:function(a){ a=Array.isArray(a)?a:[].slice.call(arguments); return a.reduce(function(s,v){return s+(+v||0);},0); },
+                   mean:function(a){ a=Array.isArray(a)?a:[].slice.call(arguments); return a.length? a.reduce(function(s,v){return s+(+v||0);},0)/a.length : NaN; },
+                   count:function(a){ return Array.isArray(a)?a.length:arguments.length; } };
+          if(name && FN.hasOwnProperty(name)) return FN[name].apply(null,args);
+          throw new Error('unknown function: '+name);
+        }
+      }
+      throw new Error('cannot evaluate node '+n.k);
+    }
+    function fmt(v){
+      if(Array.isArray(v)) return '['+v.map(fmt).join(', ')+']';
+      if(typeof v==='number'){ if(!isFinite(v)) return v>0?'inf':'-inf'; return String(Math.round(v*100)/100); }
+      return String(v);
+    }
+    function exec(stmts, env){ for(var i=0;i<stmts.length;i++) execOne(stmts[i], env); }
+    function execOne(s, env){
+      switch(s.k){
+        case 'Program': exec(s.body, env); break;
+        case 'Let': globals[s.name]=ev(s.value,env); break;
+        case 'Select': { var u=resolveUnits(s.unit,env)[0]; plant.select(u.id); log('selected '+u.id); break; }
+        case 'Print': { var parts=s.args.map(function(a){ return fmt(ev(a,env)); }); log(parts.join(' ')); break; }
+        case 'Assert': { var ok=ev(s.cond,env); if(ok){ asserts.pass++; } else { asserts.fail++; log('ASSERT FAILED'+(s.msg?': '+ev(s.msg,env):'')); } break; }
+        case 'Repeat': { var n=ev(s.count,env); for(var r=0;r<n;r++) exec(s.body,env); break; }
+        case 'When': { if(ev(s.cond,env)) exec(s.body,env); break; }
+        case 'For': { var it=ev(s.iter,env); var arr=Array.isArray(it)?it:[it]; for(var j=0;j<arr.length;j++){ var e2=Object.create(env); e2[s.var]=arr[j]; exec(s.body,e2); } break; }
+        case 'ExprStmt': ev(s.expr,env); break;
+        default: throw new Error('cannot exec '+s.k);
+      }
+    }
+    exec([ast], Object.create(null));
+    return asserts;
+  }
+
+  /* --- 5. PUBLIC API ------------------------------------------------------ */
+  function run(src){
+    var lines=[];
+    var out=function(){ lines.push([].slice.call(arguments).join(' ')); };
+    var plant=makeAdapter();
+    try {
+      var toks=lex(src);
+      var ast=parse(toks);
+      var asserts=evaluate(ast, plant, out);
+      return { ok:asserts.fail===0, output:lines, asserts:asserts };
+    } catch(e){
+      // STREAM-SAFE: whatever printed before the error is preserved, then the error.
+      lines.push('ERROR: '+e.message);
+      return { ok:false, output:lines, error:e.message };
+    }
+  }
+
+  var NXS = {
+    version: '0.1-phaseA',
+    run: run,
+    // exposed for tests / REPLs that want the pipeline pieces
+    _lex: lex, _parse: parse, _evaluate: evaluate, _adapter: makeAdapter,
+    signals: function(){ return { fleet:Object.keys(FLEET_SIG), kinetics:Object.keys(KIN_SIG) }; }
+  };
+
+  if(typeof window!=='undefined') window.NXS=NXS;
+  if(typeof module!=='undefined' && module.exports) module.exports=NXS;
+})();
 </script>
 <script>
 
@@ -3709,395 +3992,6 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   loop();
 })();
 </script>
-
-<script>
-(function(){
-  // ---- NSSS Topology 3D (Steam & Secondary) ----
-  // Schematic per-unit primary-system view: loop PWRs show the vessel with
-  // external SG towers, hot/cold legs and RCPs; the integral SMR shows one
-  // vessel with 6 in-vessel power SGs + 2 safety SGs and canned pumps.
-  // Geometry is illustrative; live bindings (glow, level markers) use the
-  // exact signals the SG table uses. Layout derives from NEXUS.archOf().
-  var HOST=document.getElementById('nsss3d');if(!HOST)return;
-  var TAG=document.getElementById('nsss-tag'),SUB=document.getElementById('nsss-sub'),STATS=document.getElementById('nsss-stats');
-  var TB=document.getElementById('sg-tbody');
-  if(!window.THREE){var fb=document.createElement('div');fb.className='fallback';
-    fb.innerHTML='3D view needs the three.js library, which could not load.<br>It requires an internet connection (CDN). The rest of the console works offline.';
-    HOST.appendChild(fb);return;}
-  var T=window.THREE;
-  var C={cyan:0x22d3ee,green:0x3ddc84,amber:0xffb000,red:0xff3b46,violet:0x8b5cf6,steel:0xa6bbc2,dark:0x0e1c20};
-  var scene,camera,renderer,grp,sgMeshes=[],lvlMarks=[],hotPipes=[],coreMesh=null,selRing=null;
-  var builtId=null,selSG=-1,drag=false,man=false,px=0,py=0,moved=0,ry=0.55,rx=0.26;
-  function getU(){return (window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;}
-  function arch(u){return window.NEXUS.archOf(u);}
-  function mat(c,o){var m=new T.MeshPhongMaterial({color:c,shininess:24});if(o)for(var k in o)m[k]=o[k];return m;}
-  function orient(m,dir){m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.clone().normalize());}
-  function pipe(a,b,r,c,glow){var d=new T.Vector3().subVectors(b,a),len=d.length();
-    var m=new T.Mesh(new T.CylinderGeometry(r,r,len,12),mat(c,{emissive:c,emissiveIntensity:glow||0.12}));
-    m.position.copy(a).add(b).multiplyScalar(0.5);orient(m,d);grp.add(m);return m;}
-  function label(txt,big){var cv=document.createElement('canvas');var ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return null;
-    cv.width=128;cv.height=40;ctx.font='700 '+(big?24:20)+'px IBM Plex Mono, monospace';
-    ctx.fillStyle='#eafdff';ctx.textAlign='center';ctx.fillText(txt,64,27);
-    var sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv),transparent:true,depthTest:false}));
-    sp.scale.set(big?3.4:2.6,big?1.05:0.8,1);return sp;}
-
-  function clearScene(){
-    if(renderer){try{renderer.dispose();}catch(e){}
-      if(renderer.domElement&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}
-    sgMeshes=[];lvlMarks=[];hotPipes=[];coreMesh=null;selRing=null;selSG=-1;syncRows();}
-
-  function baseScene(){
-    var w=HOST.clientWidth||900,h=HOST.clientHeight||330;
-    scene=new T.Scene();
-    camera=new T.PerspectiveCamera(45,w/h,0.1,400);
-    renderer=new T.WebGLRenderer({antialias:true,alpha:true});
-    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
-    HOST.appendChild(renderer.domElement);
-    scene.add(new T.AmbientLight(0x445a66,0.95));
-    var dl=new T.DirectionalLight(0xffffff,0.8);dl.position.set(14,26,12);scene.add(dl);
-    var dl2=new T.DirectionalLight(0x22d3ee,0.35);dl2.position.set(-12,8,-14);scene.add(dl2);
-    grp=new T.Group();scene.add(grp);
-    bindPointer(renderer.domElement);}
-
-  function buildPWR(a){
-    camera.position.set(0,10.5,21);camera.lookAt(0,1.2,0);
-    var gnd=new T.Mesh(new T.CylinderGeometry(11.2,11.2,0.3,48),mat(C.dark));gnd.position.y=-3.3;grp.add(gnd);
-    var ves=new T.Mesh(new T.CylinderGeometry(1.9,1.9,6.5,32,1,true),mat(C.cyan,{transparent:true,opacity:0.16,side:T.DoubleSide}));ves.position.y=0.4;grp.add(ves);
-    var dome=new T.Mesh(new T.SphereGeometry(1.9,32,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.16,side:T.DoubleSide}));dome.position.y=3.65;grp.add(dome);
-    coreMesh=new T.Mesh(new T.BoxGeometry(1.6,2.2,1.6),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-0.6;grp.add(coreMesh);
-    var vl=label('RPV');if(vl){vl.position.set(0,6.3,0);grp.add(vl);}
-    var R=6.4;
-    for(var i=0;i<a.loops;i++){var th=i/a.loops*Math.PI*2+Math.PI/a.loops;
-      var ux=Math.cos(th),uz=Math.sin(th),x=ux*R,z=uz*R;
-      var sg=new T.Group();sg.position.set(x,0,z);
-      var low=new T.Mesh(new T.CylinderGeometry(0.95,0.95,4.4,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));low.position.y=-0.6;sg.add(low);
-      var cone=new T.Mesh(new T.CylinderGeometry(1.3,0.95,1.0,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));cone.position.y=2.1;sg.add(cone);
-      var up=new T.Mesh(new T.CylinderGeometry(1.3,1.3,2.4,24),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));up.position.y=3.8;sg.add(up);
-      var cap=new T.Mesh(new T.SphereGeometry(1.3,24,12,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.05}));cap.position.y=5.0;sg.add(cap);
-      sg.userData.glow=[low,cone,up,cap];
-      var stm=new T.Mesh(new T.CylinderGeometry(0.22,0.22,1.4,10),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.25}));stm.position.y=6.2;sg.add(stm);
-      var fw=new T.Mesh(new T.CylinderGeometry(0.18,0.18,1.6,10),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.25}));
-      fw.position.set(ux*1.9,3.4,uz*1.9);orient(fw,new T.Vector3(ux,0,uz));sg.add(fw);
-      grp.add(sg);sgMeshes.push(sg);
-      var pv=new T.Vector3(ux*1.9,-0.2,uz*1.9),ps=new T.Vector3(x-ux*0.95,-1.0,z-uz*0.95);
-      hotPipes.push(pipe(pv,ps,0.30,C.amber,0.2));
-      var pp=new T.Vector3(Math.cos(th+0.45)*3.7,-2.2,Math.sin(th+0.45)*3.7);
-      pipe(new T.Vector3(x,-2.6,z),pp,0.26,C.cyan,0.15);
-      pipe(pp,new T.Vector3(Math.cos(th+0.22)*1.9,-1.5,Math.sin(th+0.22)*1.9),0.26,C.cyan,0.15);
-      var pump=new T.Mesh(new T.SphereGeometry(0.55,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));pump.position.copy(pp);grp.add(pump);
-      var ring=new T.Mesh(new T.TorusGeometry(1.36,0.06,8,28),mat(C.green,{emissive:C.green,emissiveIntensity:0.7}));
-      ring.rotation.x=Math.PI/2;ring.position.set(x,3.4,z);grp.add(ring);lvlMarks.push(ring);
-      var lb=label('SG-'+(i+1),true);if(lb){lb.position.set(x,7.2,z);grp.add(lb);}}
-    selRing=new T.Mesh(new T.TorusGeometry(1.85,0.09,8,36),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.9}));
-    selRing.rotation.x=Math.PI/2;selRing.visible=false;grp.add(selRing);}
-
-  function buildSMR(a){
-    camera.position.set(0,8.5,15.5);camera.lookAt(0,1.4,0);
-    var gnd=new T.Mesh(new T.CylinderGeometry(7,7,0.3,48),mat(C.dark));gnd.position.y=-3.3;grp.add(gnd);
-    var ves=new T.Mesh(new T.CylinderGeometry(3.0,3.0,9.2,40,1,true),mat(C.cyan,{transparent:true,opacity:0.13,side:T.DoubleSide}));ves.position.y=1.2;grp.add(ves);
-    var dome=new T.Mesh(new T.SphereGeometry(3.0,40,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.13,side:T.DoubleSide}));dome.position.y=5.8;grp.add(dome);
-    var vl=label('Integral RPV');if(vl){vl.position.set(0,8.4,0);grp.add(vl);}
-    coreMesh=new T.Mesh(new T.BoxGeometry(2.0,2.2,2.0),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-1.9;grp.add(coreMesh);
-    // 8 slab positions: 0..5 power SGs (table rows), 6..7 dedicated safety SGs
-    for(var i=0;i<8;i++){var th=i/8*Math.PI*2+Math.PI/8;
-      var ux=Math.cos(th),uz=Math.sin(th),x=ux*2.15,z=uz*2.15,safe=i>=6;
-      var slab=new T.Mesh(new T.BoxGeometry(0.5,3.2,1.35),
-        safe?mat(0x5b6e76,{transparent:true,opacity:0.85}):mat(C.steel,{emissive:C.cyan,emissiveIntensity:0.06}));
-      slab.rotation.y=-th;
-      if(safe){slab.position.set(x,3.4,z);grp.add(slab);continue;}
-      var sg=new T.Group();sg.position.set(x,2.4,z);sg.add(slab);sg.userData.glow=[slab];grp.add(sg);sgMeshes.push(sg);
-      var mk=new T.Mesh(new T.BoxGeometry(0.58,0.10,1.43),mat(C.green,{emissive:C.green,emissiveIntensity:0.8}));
-      mk.position.set(x,2.4,z);mk.rotation.y=-th;grp.add(mk);lvlMarks.push(mk);
-      var lb=label('SG-'+(i+1));if(lb){lb.position.set(ux*3.7,2.4+((i%2)?0.55:-0.55),uz*3.7);grp.add(lb);}}
-    var p1=new T.Mesh(new T.SphereGeometry(0.5,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));p1.position.set(1.2,5.2,0);grp.add(p1);
-    var p2=p1.clone();p2.position.set(-1.2,5.2,0);grp.add(p2);
-    var stm=new T.Mesh(new T.CylinderGeometry(0.22,0.22,1.8,10),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.25}));
-    stm.position.set(3.7,4.6,0);orient(stm,new T.Vector3(1,0,0));grp.add(stm);
-    var fw=new T.Mesh(new T.CylinderGeometry(0.18,0.18,1.8,10),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.25}));
-    fw.position.set(-3.7,1.4,0);orient(fw,new T.Vector3(1,0,0));grp.add(fw);
-    selRing=new T.Mesh(new T.TorusGeometry(1.15,0.07,8,32),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.9}));
-    selRing.rotation.x=Math.PI/2;selRing.visible=false;grp.add(selRing);}
-
-  function build(u){
-    clearScene();baseScene();
-    var a=arch(u);
-    if(a.pwr)buildPWR(a);else buildSMR(a);
-    builtId=u.id;
-    if(TAG)TAG.textContent=u.name+' \u00b7 '+u.cls;
-    if(SUB)SUB.textContent=a.pwr?(a.loops+'-loop \u00b7 '+a.nsg+' \u00d7 U-tube SG'):'Integral \u00b7 6 power + 2 safety compact SG';}
-
-  // ---- selection / cross-highlight ----
-  function syncRows(){if(!TB)return;var rows=TB.querySelectorAll('tr');
-    for(var i=0;i<rows.length;i++)rows[i].classList.toggle('sgsel',i===selSG);}
-  function selectSG(i){selSG=(selSG===i)?-1:i;syncRows();}
-  if(TB)TB.addEventListener('click',function(e){var tr=e.target.closest('tr');if(!tr||!tr.parentNode)return;
-    var rows=Array.prototype.slice.call(TB.querySelectorAll('tr'));var i=rows.indexOf(tr);
-    if(i>=0&&i<sgMeshes.length)selectSG(i);});
-
-  var ray=new T.Raycaster(),mv=new T.Vector2();
-  function pick(e){if(!renderer)return -1;
-    var r=renderer.domElement.getBoundingClientRect();
-    mv.x=((e.clientX-r.left)/r.width)*2-1;mv.y=-((e.clientY-r.top)/r.height)*2+1;
-    ray.setFromCamera(mv,camera);
-    var hits=ray.intersectObjects(sgMeshes,true);if(!hits.length)return -1;
-    var o=hits[0].object;while(o&&sgMeshes.indexOf(o)<0)o=o.parent;
-    return o?sgMeshes.indexOf(o):-1;}
-  function bindPointer(el){el.style.cursor='grab';
-    el.addEventListener('pointerdown',function(e){drag=true;man=true;moved=0;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
-    window.addEventListener('pointerup',function(e){if(!drag)return;drag=false;el.style.cursor='grab';
-      if(moved<5){var i=pick(e);if(i>=0)selectSG(i);}});
-    window.addEventListener('pointermove',function(e){if(!drag)return;
-      moved+=Math.abs(e.clientX-px)+Math.abs(e.clientY-py);
-      ry+=(e.clientX-px)*0.01;rx+=(e.clientY-py)*0.006;rx=Math.max(-0.1,Math.min(0.9,rx));
-      px=e.clientX;py=e.clientY;});}
-
-  // ---- live tick ----
-  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='steam';}
-  function tick(u){
-    var a=arch(u),st=u.st,f=(u.cap||900)/1000,t=performance.now()/1000;
-    var load=Math.max(0,Math.min(1.15,(st.steamFlow||0)/(1500*f)));
-    if(coreMesh)coreMesh.material.emissiveIntensity=0.06+load*0.55;
-    var hotF=Math.max(0,Math.min(1,((st.hotLegA||290)-292)*0.028));
-    hotPipes.forEach(function(p){p.material.emissiveIntensity=0.08+hotF*0.3;});
-    for(var i=0;i<sgMeshes.length;i++){
-      var boost=(i===selSG)?0.34:0;
-      sgMeshes[i].userData.glow.forEach(function(m){m.material.emissiveIntensity=0.04+load*0.2+boost;});
-      var lvl=Math.max(45,Math.min(75,(st.sgLevel||62)+Math.sin(t*0.8+i*1.7)*(i?1:0)));
-      var mk=lvlMarks[i];if(!mk)continue;
-      if(a.pwr)mk.position.y=2.7+(lvl/100)*2.2;        // along the SG drum band
-      else mk.position.y=0.95+(lvl/100)*2.9;            // along the slab height
-    }
-    if(selRing){selRing.visible=selSG>=0;
-      if(selSG>=0){var sp=sgMeshes[selSG].position;
-        selRing.position.set(sp.x,a.pwr?-2.85:0.7,sp.z);}}
-    if(STATS){STATS.innerHTML=selSG>=0
-      ?('<span>Selected <b>SG-'+(selSG+1)+'</b></span><span>NR level <b>'+(st.sgLevel||0).toFixed(0)+' %</b></span><span>Steam <b>'+((st.steamFlow||0)/a.nsg).toFixed(0)+' kg/s</b></span><span>Header <b>'+(st.steamPress||0).toFixed(1)+' bar</b></span>')
-      :('<span>Load <b>'+(load*100).toFixed(0)+' %</b></span><span>Click an SG or its table row to cross-highlight</span>');}
-    if(!man)ry+=0.003;grp.rotation.y=ry;grp.rotation.x=rx;
-    renderer.render(scene,camera);}
-
-  function loop(){requestAnimationFrame(loop);
-    if(!active())return;
-    var u=getU();if(!u)return;
-    if(builtId!==u.id)build(u);
-    tick(u);}
-
-  function resize(){if(!renderer)return;var w=HOST.clientWidth,h=HOST.clientHeight;if(!w||!h)return;
-    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
-  var sub=document.querySelector('.subitem[data-p="steam"]');
-  if(sub)sub.addEventListener('click',function(){setTimeout(function(){var u=getU();if(u&&builtId!==u.id)build(u);resize();},40);});
-  window.addEventListener('resize',function(){if(active())resize();});
-  loop();
-})();
-</script>
-
-<script>
-(function(){
-  // ---- Primary Flow 3D (Coolant / TH) ----
-  // Animated primary-circuit view. The NSSS panel on Steam & Secondary answers
-  // "what connects to what"; this one answers "what is the fluid doing":
-  //  - particle advance speed  <- live loopAflow / loopBflow (normalised)
-  //  - particle colour         <- live hotLegA / coldLegA along the path
-  //  - pressurizer fill        <- live pzrLevel (PWR: external PZR + surge line;
-  //                               SMR: integrated in the vessel head)
-  // Geometry is illustrative; layout derives from NEXUS.archOf().
-  var HOST=document.getElementById('pflow3d');if(!HOST)return;
-  var TAG=document.getElementById('pflow-tag'),SUB=document.getElementById('pflow-sub'),STATS=document.getElementById('pflow-stats');
-  if(!window.THREE){var fb=document.createElement('div');fb.className='fallback';
-    fb.innerHTML='3D view needs the three.js library, which could not load.<br>It requires an internet connection (CDN). The rest of the console works offline.';
-    HOST.appendChild(fb);return;}
-  var T=window.THREE;
-  var C={cyan:0x22d3ee,green:0x3ddc84,amber:0xffb000,red:0xff3b46,violet:0x8b5cf6,steel:0xa6bbc2,dark:0x0e1c20,blue:0x2a6fd6};
-  var NP=28; // particles per loop
-  var scene,camera,renderer,grp,loopsArr=[],coreMesh=null,pzrFill=null,pzrMax=1;
-  var builtId=null,drag=false,man=false,px=0,py=0,ry=0.55,rx=0.26,lastT=0;
-  function getU(){return (window.NEXUS&&window.NEXUS.unit)?window.NEXUS.unit():null;}
-  function arch(u){return window.NEXUS.archOf(u);}
-  function mat(c,o){var m=new T.MeshPhongMaterial({color:c,shininess:24});if(o)for(var k in o)m[k]=o[k];return m;}
-  function orient(m,dir){m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.clone().normalize());}
-  function label(txt){var cv=document.createElement('canvas');var ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return null;
-    cv.width=128;cv.height=40;ctx.font='700 20px IBM Plex Mono, monospace';
-    ctx.fillStyle='#eafdff';ctx.textAlign='center';ctx.fillText(txt,64,27);
-    var sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv),transparent:true,depthTest:false}));
-    sp.scale.set(2.6,0.8,1);return sp;}
-  // coolant temperature -> colour (deep blue ~285 C -> cyan -> amber -> red ~332 C)
-  function coolColor(tc,out){var x=Math.max(0,Math.min(1,(tc-285)/47));
-    var stops=[[0,[42,111,214]],[0.34,[34,211,238]],[0.72,[255,176,0]],[1,[255,59,70]]];
-    var a=stops[0],b=stops[stops.length-1];
-    for(var i=0;i<stops.length-1;i++){if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}}
-    var f=(x-a[0])/((b[0]-a[0])||1);
-    out[0]=(a[1][0]+(b[1][0]-a[1][0])*f)/255;out[1]=(a[1][1]+(b[1][1]-a[1][1])*f)/255;out[2]=(a[1][2]+(b[1][2]-a[1][2])*f)/255;}
-  // piecewise temperature along the closed path (u in 0..1), Th=hot leg, Tc=cold leg
-  function tempAt(u,Th,Tc,bp){ // bp = [hotEnd, sgEnd, coldEnd] breakpoints
-    if(u<bp[0])return Th;
-    if(u<bp[1])return Th+(Tc-Th)*((u-bp[0])/(bp[1]-bp[0]));
-    if(u<bp[2])return Tc;
-    return Tc+(Th-Tc)*((u-bp[2])/(1-bp[2]));}
-
-  function clearScene(){
-    if(renderer){try{renderer.dispose();}catch(e){}
-      if(renderer.domElement&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}
-    loopsArr=[];coreMesh=null;pzrFill=null;}
-  function baseScene(){
-    var w=HOST.clientWidth||900,h=HOST.clientHeight||330;
-    scene=new T.Scene();
-    camera=new T.PerspectiveCamera(45,w/h,0.1,400);
-    renderer=new T.WebGLRenderer({antialias:true,alpha:true});
-    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(w,h);
-    HOST.appendChild(renderer.domElement);
-    scene.add(new T.AmbientLight(0x445a66,0.95));
-    var dl=new T.DirectionalLight(0xffffff,0.8);dl.position.set(14,26,12);scene.add(dl);
-    var dl2=new T.DirectionalLight(0x22d3ee,0.35);dl2.position.set(-12,8,-14);scene.add(dl2);
-    grp=new T.Group();scene.add(grp);
-    bindPointer(renderer.domElement);}
-
-  function addFlowLoop(points,bp,sigEven){ // build tube + particle cloud for one closed path
-    var curve=new T.CatmullRomCurve3(points,true,'catmullrom',0.35);
-    var tube=new T.Mesh(new T.TubeGeometry(curve,90,0.15,8,true),
-      mat(C.steel,{transparent:true,opacity:0.16,emissive:C.cyan,emissiveIntensity:0.04}));
-    grp.add(tube);
-    var pos=new Float32Array(NP*3),col=new Float32Array(NP*3),ph=new Float32Array(NP);
-    for(var i=0;i<NP;i++)ph[i]=i/NP;
-    var g=new T.BufferGeometry();
-    g.setAttribute('position',new T.BufferAttribute(pos,3));
-    g.setAttribute('color',new T.BufferAttribute(col,3));
-    var pts=new T.Points(g,new T.PointsMaterial({size:0.34,vertexColors:true,transparent:true,opacity:0.95}));
-    grp.add(pts);
-    loopsArr.push({curve:curve,geo:g,phase:ph,bp:bp,even:sigEven});}
-
-  function buildPWR(a){
-    camera.position.set(0,10.5,21);camera.lookAt(0,1.0,0);
-    var gnd=new T.Mesh(new T.CylinderGeometry(10.6,10.6,0.3,48),mat(C.dark));gnd.position.y=-3.4;grp.add(gnd);
-    var ves=new T.Mesh(new T.CylinderGeometry(1.9,1.9,6.2,32,1,true),mat(C.cyan,{transparent:true,opacity:0.14,side:T.DoubleSide}));ves.position.y=0.3;grp.add(ves);
-    var dome=new T.Mesh(new T.SphereGeometry(1.9,32,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.14,side:T.DoubleSide}));dome.position.y=3.4;grp.add(dome);
-    coreMesh=new T.Mesh(new T.BoxGeometry(1.5,2.0,1.5),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-0.9;grp.add(coreMesh);
-    var vl=label('RPV');if(vl){vl.position.set(0,5.6,0);grp.add(vl);}
-    for(var i=0;i<a.loops;i++){var th=i/a.loops*Math.PI*2+Math.PI/a.loops;
-      var P=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(th+d)*r,y,Math.sin(th+d)*r);};
-      // SG reference shape (slim) + pump volute
-      var sgm=new T.Mesh(new T.CylinderGeometry(0.75,0.75,5.0,20),mat(C.steel,{transparent:true,opacity:0.5}));
-      sgm.position.copy(P(6.0,1.1,0.08));grp.add(sgm);
-      var cap=new T.Mesh(new T.SphereGeometry(0.75,20,10,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{transparent:true,opacity:0.5}));
-      cap.position.copy(P(6.0,3.6,0.08));grp.add(cap);
-      var pump=new T.Mesh(new T.SphereGeometry(0.5,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));
-      pump.position.copy(P(3.7,-2.2,0.45));grp.add(pump);
-      var lb=label('Loop '+String.fromCharCode(65+i));if(lb){lb.position.copy(P(6.0,5.0,0.08));grp.add(lb);}
-      // closed circulation path: core out -> hot leg -> up SG -> down SG (azimuthal
-      // offset, U-tube-like) -> pump -> cold leg -> downcomer -> core
-      addFlowLoop([
-        P(0.6,1.5), P(1.9,0.7), P(4.0,0.5), P(5.9,-0.2),
-        P(5.9,3.2), P(6.25,3.2,0.16), P(6.25,-1.6,0.16),
-        P(4.4,-2.4,0.34), P(3.7,-2.2,0.45), P(1.9,-1.3,0.2),
-        P(1.1,-2.5,0.08), P(0.45,-2.6), P(0.45,-0.6)
-      ],[0.30,0.50,0.92],i%2===0);}
-    // pressurizer off loop-A hot leg, with surge line and live level fill
-    var th0=Math.PI/a.loops;
-    var Q=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(th0+d)*r,y,Math.sin(th0+d)*r);};
-    var pz=new T.Mesh(new T.CylinderGeometry(0.7,0.7,2.4,20),mat(C.steel,{transparent:true,opacity:0.55}));
-    pz.position.copy(Q(3.5,2.4,-0.55));grp.add(pz);
-    var pzc=new T.Mesh(new T.SphereGeometry(0.7,20,10,0,Math.PI*2,0,Math.PI/2),mat(C.steel,{transparent:true,opacity:0.55}));
-    pzc.position.copy(Q(3.5,3.6,-0.55));grp.add(pzc);
-    pzrMax=2.2;
-    pzrFill=new T.Mesh(new T.CylinderGeometry(0.58,0.58,1,18),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.35,transparent:true,opacity:0.8}));
-    pzrFill.position.copy(Q(3.5,1.3,-0.55));pzrFill.userData.base=1.3;grp.add(pzrFill);
-    var htr=new T.Mesh(new T.CylinderGeometry(0.6,0.6,0.16,18),mat(C.amber,{emissive:C.amber,emissiveIntensity:0.5}));
-    htr.position.copy(Q(3.5,1.22,-0.55));grp.add(htr);
-    var sa=Q(3.5,1.2,-0.55),sb=Q(4.0,0.5,0);
-    var d=new T.Vector3().subVectors(sb,sa),sl=new T.Mesh(new T.CylinderGeometry(0.1,0.1,d.length(),8),mat(C.steel,{transparent:true,opacity:0.6}));
-    sl.position.copy(sa).add(sb).multiplyScalar(0.5);orient(sl,d);grp.add(sl);
-    var pl=label('PZR');if(pl){pl.position.copy(Q(3.5,4.5,-0.55));grp.add(pl);}}
-
-  function buildSMR(a){
-    camera.position.set(0,8.0,15.0);camera.lookAt(0,1.2,0);
-    var gnd=new T.Mesh(new T.CylinderGeometry(6.5,6.5,0.3,48),mat(C.dark));gnd.position.y=-3.4;grp.add(gnd);
-    var ves=new T.Mesh(new T.CylinderGeometry(3.0,3.0,9.0,40,1,true),mat(C.cyan,{transparent:true,opacity:0.12,side:T.DoubleSide}));ves.position.y=1.1;grp.add(ves);
-    var dome=new T.Mesh(new T.SphereGeometry(3.0,40,16,0,Math.PI*2,0,Math.PI/2),mat(C.cyan,{transparent:true,opacity:0.12,side:T.DoubleSide}));dome.position.y=5.6;grp.add(dome);
-    coreMesh=new T.Mesh(new T.BoxGeometry(1.8,2.0,1.8),mat(C.green,{emissive:C.green,emissiveIntensity:0.4}));coreMesh.position.y=-1.9;grp.add(coreMesh);
-    var riser=new T.Mesh(new T.CylinderGeometry(0.75,0.75,4.6,24,1,true),mat(C.steel,{transparent:true,opacity:0.22,side:T.DoubleSide}));riser.position.y=1.4;grp.add(riser);
-    // compact SG slabs as muted reference shapes (detail lives on the NSSS view)
-    for(var i=0;i<6;i++){var th=i/6*Math.PI*2;
-      var slab=new T.Mesh(new T.BoxGeometry(0.45,3.0,1.25),mat(0x5b6e76,{transparent:true,opacity:0.5}));
-      slab.position.set(Math.cos(th)*2.15,2.2,Math.sin(th)*2.15);slab.rotation.y=-th;grp.add(slab);}
-    var vl=label('Integral RPV');if(vl){vl.position.set(0,8.0,0);grp.add(vl);}
-    // two in-vessel circulation paths: core -> riser -> head (pump) -> down past
-    // the compact SGs -> downcomer annulus -> core inlet
-    for(var k=0;k<2;k++){var ph0=k*Math.PI+Math.PI/2;
-      var P=function(r,y,d){d=d||0;return new T.Vector3(Math.cos(ph0+d)*r,y,Math.sin(ph0+d)*r);};
-      var pump=new T.Mesh(new T.SphereGeometry(0.42,16,12),mat(C.violet,{emissive:C.violet,emissiveIntensity:0.3}));
-      pump.position.copy(P(1.5,4.7));grp.add(pump);
-      addFlowLoop([
-        P(0.3,-0.7), P(0.3,2.4), P(0.9,4.2), P(1.5,4.7),
-        P(2.3,3.8), P(2.45,2.2), P(2.55,0.2),
-        P(2.6,-1.8), P(1.4,-2.7), P(0.5,-2.3)
-      ],[0.34,0.58,0.90],k===0);}
-    // NUWARD-style pressurizer integrated in the vessel head: live level fill
-    pzrMax=1.3;
-    pzrFill=new T.Mesh(new T.CylinderGeometry(1.5,1.5,1,24),mat(C.cyan,{emissive:C.cyan,emissiveIntensity:0.3,transparent:true,opacity:0.55}));
-    pzrFill.position.set(0,5.25,0);pzrFill.userData.base=5.25;grp.add(pzrFill);
-    var pl=label('PZR \u00b7 head');if(pl){pl.position.set(0,7.2,0);grp.add(pl);}}
-
-  function build(u){
-    clearScene();baseScene();
-    var a=arch(u);
-    if(a.pwr)buildPWR(a);else buildSMR(a);
-    builtId=u.id;
-    if(TAG)TAG.textContent=u.name+' \u00b7 '+u.cls;
-    if(SUB)SUB.textContent=a.pwr?(a.loops+'-loop forced circulation'):'Integral \u00b7 in-vessel circulation';}
-
-  function bindPointer(el){el.style.cursor='grab';
-    el.addEventListener('pointerdown',function(e){drag=true;man=true;px=e.clientX;py=e.clientY;el.style.cursor='grabbing';});
-    window.addEventListener('pointerup',function(){if(drag){drag=false;el.style.cursor='grab';}});
-    window.addEventListener('pointermove',function(e){if(!drag)return;
-      ry+=(e.clientX-px)*0.01;rx+=(e.clientY-py)*0.006;rx=Math.max(-0.1,Math.min(0.9,rx));
-      px=e.clientX;py=e.clientY;});}
-
-  function active(){var a=document.querySelector('.page.active');return a&&a.dataset.page==='coolant';}
-  var rgb=[0,0,0];
-  function tick(u,dt){
-    var st=u.st,f=(u.cap||900)/1000;
-    var Th=st.hotLegA||323,Tc=st.coldLegA||289;
-    var nomA=17.8*f,nomB=17.6*f;
-    var spA=Math.max(0,(st.loopAflow||0)/nomA),spB=Math.max(0,(st.loopBflow||0)/nomB);
-    var load=Math.max(0,Math.min(1.15,(st.flux||0)/100));
-    if(coreMesh)coreMesh.material.emissiveIntensity=0.06+load*0.55;
-    for(var L=0;L<loopsArr.length;L++){var lp=loopsArr[L];
-      var adv=0.05*dt*(lp.even?spA:spB);            // ~20 s per circuit at nominal flow
-      var pos=lp.geo.attributes.position.array,col=lp.geo.attributes.color.array;
-      for(var i=0;i<NP;i++){lp.phase[i]=(lp.phase[i]+adv)%1;
-        var p=lp.curve.getPointAt(lp.phase[i]);
-        pos[i*3]=p.x;pos[i*3+1]=p.y;pos[i*3+2]=p.z;
-        coolColor(tempAt(lp.phase[i],Th,Tc,lp.bp),rgb);
-        col[i*3]=rgb[0];col[i*3+1]=rgb[1];col[i*3+2]=rgb[2];}
-      lp.geo.attributes.position.needsUpdate=true;lp.geo.attributes.color.needsUpdate=true;}
-    if(pzrFill){var lvl=Math.max(0.05,Math.min(1,(st.pzrLevel||58)/100));
-      var fh=lvl*pzrMax;                       // fill height in scene units
-      pzrFill.scale.y=fh;                      // unit-height cylinder scaled...
-      pzrFill.position.y=pzrFill.userData.base+fh/2;   // ...about its base
-    }
-    if(STATS){STATS.innerHTML='<span>\u0394T <b>'+(Th-Tc).toFixed(0)+' \u00b0C</b></span>'+
-      '<span>Loop A <b>'+(st.loopAflow||0).toFixed(1)+' km\u00b3/h</b></span>'+
-      '<span>Loop B <b>'+(st.loopBflow||0).toFixed(1)+' km\u00b3/h</b></span>'+
-      '<span>PZR <b>'+(st.pzrLevel||0).toFixed(0)+' % \u00b7 '+(st.pzrPress||0).toFixed(0)+' bar</b></span>';}
-    if(!man)ry+=0.003;grp.rotation.y=ry;grp.rotation.x=rx;
-    renderer.render(scene,camera);}
-
-  function loop(t){requestAnimationFrame(loop);
-    var dt=Math.min(0.08,Math.max(0.001,((t||0)-lastT)/1000));lastT=t||0;
-    if(!active())return;
-    var u=getU();if(!u)return;
-    if(builtId!==u.id)build(u);
-    tick(u,dt);}
-
-  function resize(){if(!renderer)return;var w=HOST.clientWidth,h=HOST.clientHeight;if(!w||!h)return;
-    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
-  var sub=document.querySelector('.subitem[data-p="coolant"]');
-  if(sub)sub.addEventListener('click',function(){setTimeout(function(){var u=getU();if(u&&builtId!==u.id)build(u);resize();},40);});
-  window.addEventListener('resize',function(){if(active())resize();});
-  loop(0);
-})();
-</script>
-
-
 <!-- NX1-094C79E0A366D34F :: original work (c) 2026 Agathangelidis Grigorios -->
 
 <script>
@@ -5983,6 +5877,56 @@ window.__NEXUS_AUTHOR={name:'Agathangelidis Grigorios',year:'2026',sig:'NX1-094C
   }
   setInterval(function(){if(active())renderAll();},1200);
   if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<script>
+/* NXS console UI wiring -- binds the textarea/Run button to window.NXS.run.
+   Pure view layer: it only reads via NXS; the no-mutation guarantee lives in NXS. */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  var EXAMPLES = [
+    ['Read a signal', 'select u1\nprint "Unit 1 power is", round(get u1.power), "%"'],
+    ['Compare the fleet', 'for id in fleet do\n  print id, "->", round(get (id).electrical_mw), "MWe"\nend\nprint "fleet total:", round(sum(get fleet.electrical_mw)), "MWe"'],
+    ['Aggregate explicitly', 'print "mean coolant temp:", round(mean(get fleet.coolant_temp)), "C"\nprint "max power:", round(max(get fleet.power)), "%"'],
+    ['Kinetics (selected only)', 'select u1\nprint "period:", get u1.period, "s"\nprint "reactivity:", round(get u1.reactivity_pcm), "pcm"'],
+    ['Model claims (assert)', 'assert get u2.capacity == 1300, "PWR-1300 capacity"\nassert get sa.capacity == 170, "SMR module capacity"\nprint "claims held"'],
+    ['Read-only proof', 'scram u1']
+  ];
+  function ready(){
+    var input=$('nxs-input'), outEl=$('nxs-output'), runBtn=$('nxs-run'),
+        clearBtn=$('nxs-clear'), exWrap=$('nxs-examples');
+    if(!input||!runBtn||!outEl) return;
+    EXAMPLES.forEach(function(ex){
+      var b=document.createElement('button'); b.className='btn'; b.textContent=ex[0];
+      b.title=ex[1]; b.onclick=function(){ input.value=ex[1]; input.focus(); };
+      exWrap.appendChild(b);
+    });
+    function render(res){
+      var html='';
+      (res.output||[]).forEach(function(line){
+        var isErr = /^ERROR:/.test(line);
+        var isFail= /^ASSERT FAILED/.test(line);
+        var col = isErr ? 'var(--red)' : (isFail ? 'var(--amber)' : 'var(--text)');
+        var esc = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        html += '<span style="color:'+col+'">'+esc+'</span>\n';
+      });
+      if(!html) html='<span style="color:var(--text-dim)">(no output)</span>';
+      outEl.innerHTML = html;
+    }
+    function execute(){
+      if(!window.NXS){ outEl.textContent='NXS engine not available.'; return; }
+      var res = window.NXS.run(input.value||'');
+      render(res);
+    }
+    runBtn.onclick = execute;
+    if(clearBtn) clearBtn.onclick=function(){ outEl.innerHTML='<span style="color:var(--text-dim)">Ready.</span>'; };
+    input.addEventListener('keydown', function(e){
+      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); execute(); }
+    });
+    if(!input.value) input.value = EXAMPLES[0][1];
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ready);
+  else ready();
 })();
 </script>
 </body>
